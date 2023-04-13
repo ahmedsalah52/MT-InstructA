@@ -1,118 +1,211 @@
-# Using Docker to run garage
+# Meta-World
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/rlworkgroup/metaworld/blob/master/LICENSE)
+![Build Status](https://github.com/rlworkgroup/metaworld/workflows/MetaWorld%20CI/badge.svg)
 
-Currently there are two types of garage images:
-  - headless: garage without environment visualization.
-  - nvidia: garage with environment visualization using an NVIDIA graphics
-    card.
+__Meta-World is an open-source simulated benchmark for meta-reinforcement learning and multi-task learning consisting of 50 distinct robotic manipulation tasks.__ We aim to provide task distributions that are sufficiently broad to evaluate meta-RL algorithms' generalization ability to new behaviors.
 
-## Headless image
+For more background information, please refer to our [website](https://meta-world.github.io) and the accompanying [conference publication](https://arxiv.org/abs/1910.10897), which **provides baseline results for 8 state-of-the-art meta- and multi-task RL algorithms**.
 
-If you already have a copy of garage, proceed to subsection ["Build and run the
-image"], otherwise, keep reading.
+__Table of Contents__
+- [Installation](#installation)
+- [Using the benchmark](#using-the-benchmark)
+  * [Basics](#basics)
+  * [Seeding a Benchmark Instance](#seeding-a-benchmark-instance)
+  * [Running ML1, MT1](#running-ml1-or-mt1)
+  * [Running ML10, ML45, MT10, MT50](#running-a-benchmark)
+  * [Accessing Single Goal Environments](#accessing-single-goal-environments)
+- [Citing Meta-World](#citing-meta-world)
+- [Accompanying Baselines](accompanying-baselines)
+- [Become a Contributor](#become-a-contributor)
+- [Acknowledgements](#acknowledgements)
 
-To run an example launcher in the container, execute:
+## Join the Community
+Metaworld is now maintained by the Farama Foundation! You can interact with our community and the new developers in our [discoed server](https://discord.gg/PfR7a79FpQ) 
+## Installation
+Meta-World is based on MuJoCo, which has a proprietary dependency we can't set up for you. Please follow the [instructions](https://github.com/openai/mujoco-py#install-mujoco) in the mujoco-py package for help. Once you're ready to install everything, run:
+
 ```
-docker run -it --rm rlworkgroup/garage-headless python examples/tf/trpo_cartpole.py
-```
-
-To run environments using MuJoCo, pass the contents of the MuJoCo key in a
-variable named MJKEY in the same docker-run command using `cat`. For example,
-if your key is at `~/.mujoco/mjkey.txt`, execute:
-```
-docker run \
-  -it \
-  --rm \
-  -e MJKEY="$(cat ~/.mujoco/mjkey.txt)" \
-  rlworkgroup/garage-headless python examples/tf/trpo_swimmer.py
-```
-
-To save the experiment data generated in the container, you need to specify a
-path where the files will be saved inside your host computer with the argument
-`-v` in the docker-run command. For example, if the path you want to use is
-at `/home/tmp/data`, execute:
-```
-docker run \
-  -it \
-  --rm \
-  -v /home/tmp/data:/root/code/garage/data \
-  rlworkgroup/garage-headless python examples/tf/trpo_cartpole.py
-```
-This binds a volume between your host path and the path in garage at
-`/root/code/garage/data`.
-
-### Build and run the image
-
-To build the headless image, first clone this repository, move to the root
-folder of your local repository and then execute:
-```
-make build-headless
+pip install git+https://github.com/rlworkgroup/metaworld.git@master#egg=metaworld
 ```
 
-To build and run the container, execute;
-```
-make run-headless RUN_CMD="python examples/tf/trpo_cartpole.py"
-```
-Where RUN_CMD specifies the executable to run in the container.
+Alternatively, you can clone the repository and install an editable version locally:
 
-The previous command adds a volume from the data folder inside your cloned
-garage repository to the data folder in the garage container, so any experiment
-results ran in the container will be saved in the data folder inside your
-cloned repository. The data is saved in a folder with the name of the container
-that generated the data, which by default is the name of the image type the
-container is based on with the date and time the container was launched.
-
-If you want to specify another name for the container, do so with the variable
-`CONTAINER_NAME`:
 ```
-make run-headless RUN_CMD="..." CONTAINER_NAME="my_container"
+git clone https://github.com/rlworkgroup/metaworld.git
+cd metaworld
+pip install -e .
 ```
 
-If you need to use MuJoCo, you need to place your key at `~/.mujoco/mjkey.txt`
-or specify the corresponding path through the MJKEY_PATH variable:
-```
-make run-headless RUN_CMD="..." MJKEY_PATH="/home/user/mjkey.txt"
-```
+## Using the benchmark
+Here is a list of benchmark environments for meta-RL (ML*) and multi-task-RL (MT*):
+* [__ML1__](https://meta-world.github.io/figures/ml1.gif) is a meta-RL benchmark environment which tests few-shot adaptation to goal variation within single task. You can choose to test variation within any of [50 tasks](https://meta-world.github.io/figures/ml45-1080p.gif) for this benchmark.
+* [__ML10__](https://meta-world.github.io/figures/ml10.gif) is a meta-RL benchmark which tests few-shot adaptation to new tasks. It comprises 10 meta-train tasks, and 3 test tasks.
+* [__ML45__](https://meta-world.github.io/figures/ml45-1080p.gif) is a meta-RL benchmark which tests few-shot adaptation to new tasks. It comprises 45 meta-train tasks and 5 test tasks.
+* [__MT10__](https://meta-world.github.io/figures/mt10.gif), __MT1__, and __MT50__ are multi-task-RL benchmark environments for learning a multi-task policy that perform 10, 1, and 50 training tasks respectively. __MT1__ is similar to __ML1__ becau you can choose to test variation within any of [50 tasks](https://meta-world.github.io/figures/ml45-1080p.gif) for this benchmark.  In the original Metaworld experiments, we augment MT10 and MT50 environment observations with a one-hot vector which identifies the task. We don't enforce how users utilize task one-hot vectors, however one solution would be to use a Gym wrapper such as [this one](https://github.com/rlworkgroup/garage/blob/master/src/garage/envs/multi_env_wrapper.py)
 
-If you require to pass addtional arguments to the the make commands, you can
-use the variable ADD_ARGS, for example:
-```
-make build-headless ADD_ARGS="--build-arg MY_VAR=123"
-make run-headless ADD_ARGS="-e MY_VAR=123"
-```
 
-#### Prerequisites
+### Basics
+We provide a `Benchmark` API, that allows constructing environments following the [`gym.Env`](https://github.com/openai/gym/blob/c33cfd8b2cc8cac6c346bc2182cd568ef33b8821/gym/core.py#L8) interface.
 
-Be aware of the following prerequisites to build the image.
+To use a `Benchmark`, first construct it (this samples the tasks allowed for one run of an algorithm on the benchmark).
+Then, construct at least one instance of each environment listed in `benchmark.train_classes` and `benchmark.test_classes`.
+For each of those environments, a task must be assigned to it using
+`env.set_task(task)` from `benchmark.train_tasks` and `benchmark.test_tasks`,
+respectively.
+`Tasks` can only be assigned to environments which have a key in
+`benchmark.train_classes` or `benchmark.test_classes` matching `task.env_name`.
+Please see the sections [Running ML1, MT1](#running-ml1-or-mt1) and [Running ML10, ML45, MT10, MT50](#running-a-benchmark)
+for more details.
 
-- Install [Docker CE](https://docs.docker.com/install/linux/docker-ce/ubuntu/#install-docker-ce) 19.03+. Tested
-  on version 19.03.12.
+You may wish to only access individual environments used in the Metaworld benchmark for your research. See the
+[Accessing Single Goal Environments](#accessing-single-goal-environments) for more details.
 
-Tested on Ubuntu 16.04. It's recommended to use the versions indicated above
-for docker-ce.
 
-## nvidia image
+### Seeding a Benchmark Instance
+For the purposes of reproducibility, it may be important to you to seed your benchmark instance.
+You can do so in the following way:
+```python
+import metaworld
 
-The same commands for the headless image mentioned above apply for the nvidia
-image, except that the image name is defined by `rlworkgroup/garage-nvidia`.
-For example, to execute a launcher file:
-```
-docker run -it --rm rlworkgroup/garage-nvidia python examples/tf/trpo_cartpole.py
-```
-
-### Build and run the image
-
-The same rules for the headless image apply here, except that the target names
-are the following:
-```
-make build-nvidia
-make run-nvidia
+SEED = 0  # some seed number here
+benchmark = metaworld.BENCHMARK(seed=SEED)
 ```
 
-#### Prerequisites
+### Running ML1 or MT1
+```python
+import metaworld
+import random
 
-Additional to the prerequisites for the headless image, make sure to have:
-- Install the latest NVIDIA driver, tested
-  on [nvidia-390](https://tecadmin.net/install-latest-nvidia-drivers-ubuntu/)
-- [Install nvidia-docker2](https://github.com/NVIDIA/nvidia-docker#ubuntu-140416041804-debian-jessiestretch)
+print(metaworld.ML1.ENV_NAMES)  # Check out the available environments
 
-Tested on Ubuntu 16.04.
+ml1 = metaworld.ML1('pick-place-v1') # Construct the benchmark, sampling tasks
+
+env = ml1.train_classes['pick-place-v1']()  # Create an environment with task `pick_place`
+task = random.choice(ml1.train_tasks)
+env.set_task(task)  # Set task
+
+obs = env.reset()  # Reset environment
+a = env.action_space.sample()  # Sample an action
+obs, reward, done, info = env.step(a)  # Step the environoment with the sampled random action
+```
+__MT1__ can be run the same way except that it does not contain any `test_tasks`
+### Running a benchmark
+Create an environment with train tasks (ML10, MT10, ML45, or MT50):
+```python
+import metaworld
+import random
+
+ml10 = metaworld.ML10() # Construct the benchmark, sampling tasks
+
+training_envs = []
+for name, env_cls in ml10.train_classes.items():
+  env = env_cls()
+  task = random.choice([task for task in ml10.train_tasks
+                        if task.env_name == name])
+  env.set_task(task)
+  training_envs.append(env)
+
+for env in training_envs:
+  obs = env.reset()  # Reset environment
+  a = env.action_space.sample()  # Sample an action
+  obs, reward, done, info = env.step(a)  # Step the environoment with the sampled random action
+```
+Create an environment with test tasks (this only works for ML10 and ML45, since MT10 and MT50 don't have a separate set of test tasks):
+```python
+import metaworld
+import random
+
+ml10 = metaworld.ML10() # Construct the benchmark, sampling tasks
+
+testing_envs = []
+for name, env_cls in ml10.test_classes.items():
+  env = env_cls()
+  task = random.choice([task for task in ml10.test_tasks
+                        if task.env_name == name])
+  env.set_task(task)
+  testing_envs.append(env)
+
+for env in testing_envs:
+  obs = env.reset()  # Reset environment
+  a = env.action_space.sample()  # Sample an action
+  obs, reward, done, info = env.step(a)  # Step the environoment with the sampled random action
+```
+
+## Accessing Single Goal Environments
+You may wish to only access individual environments used in the Metaworld benchmark for your research.
+We provide constructors for creating environments where the goal has been hidden (by zeroing out the goal in
+the observation) and environments where the goal is observable. They are called GoalHidden and GoalObservable
+environments respectively.
+
+You can access them in the following way:
+```python
+from metaworld.envs import (ALL_V2_ENVIRONMENTS_GOAL_OBSERVABLE,
+                            ALL_V2_ENVIRONMENTS_GOAL_HIDDEN)
+                            # these are ordered dicts where the key : value
+                            # is env_name : env_constructor
+
+import numpy as np
+
+door_open_goal_observable_cls = ALL_V2_ENVIRONMENTS_GOAL_OBSERVABLE["door-open-v2-goal-observable"]
+door_open_goal_hidden_cls = ALL_V2_ENVIRONMENTS_GOAL_HIDDEN["door-open-v2-goal-hidden"]
+
+env = door_open_goal_hidden_cls()
+env.reset()  # Reset environment
+a = env.action_space.sample()  # Sample an action
+obs, reward, done, info = env.step(a)  # Step the environoment with the sampled random action
+assert (obs[-3:] == np.zeros(3)).all() # goal will be zeroed out because env is HiddenGoal
+
+# You can choose to initialize the random seed of the environment.
+# The state of your rng will remain unaffected after the environment is constructed.
+env1 = door_open_goal_observable_cls(seed=5)
+env2 = door_open_goal_observable_cls(seed=5)
+
+env1.reset()  # Reset environment
+env2.reset()
+a1 = env1.action_space.sample()  # Sample an action
+a2 = env2.action_space.sample()
+next_obs1, _, _, _ = env1.step(a1)  # Step the environoment with the sampled random action
+next_obs2, _, _, _ = env2.step(a2)  
+assert (next_obs1[-3:] == next_obs2[-3:]).all() # 2 envs initialized with the same seed will have the same goal
+assert not (next_obs2[-3:] == np.zeros(3)).all()   # The env's are goal observable, meaning the goal is not zero'd out
+
+env3 = door_open_goal_observable_cls(seed=10)  # Construct an environment with a different seed
+env1.reset()  # Reset environment
+env3.reset()
+a1 = env1.action_space.sample()  # Sample an action
+a3 = env3.action_space.sample()
+next_obs1, _, _, _ = env1.step(a1)  # Step the environoment with the sampled random action
+next_obs3, _, _, _ = env3.step(a3)  
+
+assert not (next_obs1[-3:] == next_obs3[-3:]).all() # 2 envs initialized with different seeds will have different goals
+assert not (next_obs1[-3:] == np.zeros(3)).all()   # The env's are goal observable, meaning the goal is not zero'd out
+
+```
+
+## Citing Meta-World
+If you use Meta-World for academic research, please kindly cite our CoRL 2019 paper the using following BibTeX entry.
+
+```
+@inproceedings{yu2019meta,
+  title={Meta-World: A Benchmark and Evaluation for Multi-Task and Meta Reinforcement Learning},
+  author={Tianhe Yu and Deirdre Quillen and Zhanpeng He and Ryan Julian and Karol Hausman and Chelsea Finn and Sergey Levine},
+  booktitle={Conference on Robot Learning (CoRL)},
+  year={2019}
+  eprint={1910.10897},
+  archivePrefix={arXiv},
+  primaryClass={cs.LG}
+  url={https://arxiv.org/abs/1910.10897}
+}
+```
+
+## Accompanying Baselines
+If you're looking for implementations of the baselines algorithms used in the Metaworld conference publication, please look at our sister directory, [Garage](https://github.com/rlworkgroup/garage). 
+Note that these aren't the exact same baselines that were used in the original conference publication, however they are true to the original baselines.
+
+## Become a Contributor
+We welcome all contributions to Meta-World. Please refer to the [contributor's guide](https://github.com/rlworkgroup/metaworld/blob/master/CONTRIBUTING.md) for how to prepare your contributions.
+
+## Acknowledgements
+Meta-World is a work by [Tianhe Yu (Stanford University)](https://cs.stanford.edu/~tianheyu/), [Deirdre Quillen (UC Berkeley)](https://scholar.google.com/citations?user=eDQsOFMAAAAJ&hl=en), [Zhanpeng He (Columbia University)](https://zhanpenghe.github.io), [Ryan Julian (University of Southern California)](https://ryanjulian.me), [Karol Hausman (Google AI)](https://karolhausman.github.io),  [Chelsea Finn (Stanford University)](https://ai.stanford.edu/~cbfinn/) and [Sergey Levine (UC Berkeley)](https://people.eecs.berkeley.edu/~svlevine/).
+
+The code for Meta-World was originally based on [multiworld](https://github.com/vitchyr/multiworld), which is developed by [Vitchyr H. Pong](https://people.eecs.berkeley.edu/~vitchyr/), [Murtaza Dalal](https://github.com/mdalal2020), [Ashvin Nair](http://ashvin.me/), [Shikhar Bahl](https://shikharbahl.github.io), [Steven Lin](https://github.com/stevenlin1111), [Soroush Nasiriany](http://snasiriany.me/), [Kristian Hartikainen](https://hartikainen.github.io/) and [Coline Devin](https://github.com/cdevin). The Meta-World authors are grateful for their efforts on providing such a great framework as a foundation of our work. We also would like to thank Russell Mendonca for his work on reward functions for some of the environments.
