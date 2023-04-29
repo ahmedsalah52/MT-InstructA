@@ -48,6 +48,7 @@ from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_sweep_v2 import SawyerSweepEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_sweep_into_goal_v2 import SawyerSweepIntoGoalEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_window_close_v2 import SawyerWindowCloseEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_window_open_v2 import SawyerWindowOpenEnvV2
+from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_sample_v2 import SawyerSampleEnvV2
 
 
 __all__ = [
@@ -101,4 +102,5 @@ __all__ = [
     'SawyerSweepIntoGoalEnvV2',
     'SawyerWindowCloseEnvV2',
     'SawyerWindowOpenEnvV2',
+    'SawyerSampleEnvV2',
 ]

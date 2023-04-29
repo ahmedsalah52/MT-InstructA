@@ -102,6 +102,7 @@ from metaworld.envs.mujoco.sawyer_xyz.v2 import (
     SawyerSweepIntoGoalEnvV2,
     SawyerWindowCloseEnvV2,
     SawyerWindowOpenEnvV2,
+    SawyerSampleEnvV2,
 )
 
 
@@ -212,6 +213,7 @@ ALL_V2_ENVIRONMENTS = OrderedDict((
     ('sweep-v2', SawyerSweepEnvV2),
     ('window-open-v2', SawyerWindowOpenEnvV2),
     ('window-close-v2', SawyerWindowCloseEnvV2),
+    ('sample', SawyerSampleEnvV2),
 ))
 
 _NUM_METAWORLD_ENVS = len(ALL_V1_ENVIRONMENTS)

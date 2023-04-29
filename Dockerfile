@@ -56,6 +56,11 @@ WORKDIR $HOME/code/metaworld
 
 # Install metaworld dependencies
 RUN . $HOME/venv/bin/activate && exec pip install -e .[dev]
+RUN pip install scipy
+RUN pip install ipdb
+RUN pip install --upgrade pip
+RUN pip install opencv-python
+RUN pip install -e .
 
 # Add code stub last
 COPY --chown=$USER:$USER . $HOME/code/metaworld
