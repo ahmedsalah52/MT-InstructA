@@ -1,29 +1,29 @@
 import numpy as np
-from gym.spaces import  Box
+from gym.spaces import Box
 
 from metaworld.envs import reward_utils
-from metaworld.envs.asset_path_utils import full_v2_path_for
+from metaworld.envs.asset_path_utils import full_v2_path_for,full_mix_path_for 
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
-
-
+import random
+from metaworld.envs.build_random_envs import build_env
 class SawyerSampleEnvV2(SawyerXYZEnv):
-    """
-    Motivation for V2:
-        V1 was rarely solvable due to limited path length. The window usually
-        only got ~25% closed before hitting max_path_length
-    Changelog from V1 to V2:
-        - (8/11/20) Updated to Byron's XML
-        - (7/7/20) Added 3 element handle position to the observation
-            (for consistency with other environments)
-        - (6/15/20) Increased max_path_length from 150 to 200
-    """
-    TARGET_RADIUS = 0.05
     def __init__(self):
-        liftThresh = 0.02
+        poses_list = [0,1,2]
+        dx_idx = poses_list.pop(random.randrange(len(poses_list)))
+
+        self.dx_dict = {0:-0.4 , 1:0 , 2:0.4}
+        dx = self.dx_dict[dx_idx]
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
-        obj_low = (0., 0.75, 0.2)
-        obj_high = (0., 0.9, 0.2)
+        obj_low  =  (dx, 0.85, 0.115)
+        obj_high =  (dx, 0.9, 0.115)
+
+        secondary_poses = [self.dx_dict[poses_list[0]],self.dx_dict[poses_list[1]]]
+        print('main ',dx)
+        print('secondary ',secondary_poses)
+
+        file_name = build_env('metaworld/envs/assets_v2/sawyer_xyz/testing.xml',secondary_poses,2)
+        print()
 
         super().__init__(
             self.model_name,
@@ -32,19 +32,14 @@ class SawyerSampleEnvV2(SawyerXYZEnv):
         )
 
         self.init_config = {
-            'obj_init_angle': 0.3,
-            'obj_init_pos': np.array([0.1, 0.785, 0.16], dtype=np.float32),
+            'obj_init_pos': np.array([0., 0.9, 0.115], dtype=np.float32),
             'hand_init_pos': np.array([0, 0.4, 0.2], dtype=np.float32),
         }
+        self.goal = np.array([0, 0.78, 0.12])
         self.obj_init_pos = self.init_config['obj_init_pos']
-        self.obj_init_angle = self.init_config['obj_init_angle']
         self.hand_init_pos = self.init_config['hand_init_pos']
-
         goal_low = self.hand_low
         goal_high = self.hand_high
-
-        
-        self.liftThresh = liftThresh
 
         self._random_reset_space = Box(
             np.array(obj_low),
@@ -52,98 +47,106 @@ class SawyerSampleEnvV2(SawyerXYZEnv):
         )
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
 
-        self.maxPullDist = 0.2
-        self.target_reward = 1000 * self.maxPullDist + 1000 * 2
-
     @property
     def model_name(self):
-        return full_v2_path_for('sawyer_xyz/sawyer_soccer.xml')
+        return full_v2_path_for('sawyer_xyz/multi_envs.xml')
+        return full_mix_path_for('metaworld/envs/assets_v2/sawyer_xyz/testing.xml',self.secondary_poses)
 
     @_assert_task_is_set
     def evaluate_state(self, obs, action):
-        (reward,
-        tcp_to_obj,
-        _,
-        target_to_obj,
-        object_grasped,
-        in_place) = self.compute_reward(action, obs)
+        (
+            reward,
+            tcp_to_obj,
+            tcp_open,
+            obj_to_target,
+            near_button,
+            button_pressed
+        ) = self.compute_reward(action, obs)
 
         info = {
-            'success': float(target_to_obj <= self.TARGET_RADIUS),
+            'success': float(obj_to_target <= 0.02),
             'near_object': float(tcp_to_obj <= 0.05),
-            'grasp_success': 1.,
-            'grasp_reward': object_grasped,
-            'in_place_reward': in_place,
-            'obj_to_target': target_to_obj,
+            'grasp_success': float(tcp_open > 0),
+            'grasp_reward': near_button,
+            'in_place_reward': button_pressed,
+            'obj_to_target': obj_to_target,
             'unscaled_reward': reward,
         }
 
         return reward, info
 
+    @property
+    def _target_site_config(self):
+        return []
+
+    def _get_id_main_object(self):
+        return self.unwrapped.model.geom_name2id('btnGeom')
+
     def _get_pos_objects(self):
-        return self._get_site_pos('handleCloseStart')
+        return self.get_body_com('button') + np.array([.0, -.193, .0])
 
     def _get_quat_objects(self):
-        return np.zeros(4)
+        return self.sim.data.get_body_xquat('button')
+
+    def _set_obj_xyz(self, pos):
+        qpos = self.data.qpos.flat.copy()
+        qvel = self.data.qvel.flat.copy()
+        qpos[9] = pos
+        qvel[9] = 0
+        self.set_state(qpos, qvel)
 
     def reset_model(self):
         self._reset_hand()
-        self.prev_obs = self._get_curr_obs_combined_no_goal()
+        self._target_pos = self.goal.copy()
+        self.obj_init_pos = self.init_config['obj_init_pos']
 
         if self.random_init:
-            self.obj_init_pos = self._get_state_rand_vec()
+            goal_pos = self._get_state_rand_vec()
+            self.obj_init_pos = goal_pos
 
-        self._target_pos = self.obj_init_pos.copy()
+        self.sim.model.body_pos[
+            self.model.body_name2id('box')] = self.obj_init_pos
+        self._set_obj_xyz(0)
+        self._target_pos = self._get_site_pos('hole')
 
-        self.sim.model.body_pos[self.model.body_name2id(
-            'window'
-        )] = self.obj_init_pos
-        self.window_handle_pos_init = (self._get_pos_objects()
-            + np.array([0.2, 0., 0.]))
-        self.data.set_joint_qpos('window_slide', 0.2)
+        self._obj_to_target_init = abs(
+            self._target_pos[1] - self._get_site_pos('buttonStart')[1]
+        )
 
         return self._get_obs()
 
-    def _reset_hand(self):
-        super()._reset_hand()
-        self.init_tcp = self.tcp_center
-
-    def compute_reward(self, actions, obs):
-        del actions
-        obj = self._get_pos_objects()
+    def compute_reward(self, action, obs):
+        del action
+        obj = obs[4:7]
         tcp = self.tcp_center
-        target = self._target_pos.copy()
-        
-        target_to_obj = (obj[0] - target[0])
-        target_to_obj = np.linalg.norm(target_to_obj)
-        target_to_obj_init = (self.window_handle_pos_init[0] - target[0])
-        target_to_obj_init = np.linalg.norm(target_to_obj_init)
 
-        in_place = reward_utils.tolerance(
-            target_to_obj,
-            bounds=(0, self.TARGET_RADIUS),
-            margin=abs(target_to_obj_init - self.TARGET_RADIUS),
+        tcp_to_obj = np.linalg.norm(obj - tcp)
+        tcp_to_obj_init = np.linalg.norm(obj - self.init_tcp)
+        obj_to_target = abs(self._target_pos[1] - obj[1])
+
+        tcp_closed = max(obs[3], 0.0)
+        near_button = reward_utils.tolerance(
+            tcp_to_obj,
+            bounds=(0, 0.05),
+            margin=tcp_to_obj_init,
+            sigmoid='long_tail',
+        )
+        button_pressed = reward_utils.tolerance(
+            obj_to_target,
+            bounds=(0, 0.005),
+            margin=self._obj_to_target_init,
             sigmoid='long_tail',
         )
 
-        handle_radius = 0.02
-        tcp_to_obj = np.linalg.norm(obj - tcp)
-        tcp_to_obj_init = np.linalg.norm(self.window_handle_pos_init - self.init_tcp)
-        reach = reward_utils.tolerance(
-            tcp_to_obj,
-            bounds=(0, handle_radius),
-            margin=abs(tcp_to_obj_init-handle_radius),
-            sigmoid='gaussian',
-        )
-        # reward = reach
-        tcp_opened = 0
-        object_grasped = reach
+        reward = 2 * reward_utils.hamacher_product(tcp_closed, near_button)
+        if tcp_to_obj <= 0.05:
+            reward += 8 * button_pressed
 
-        reward = 10 * reward_utils.hamacher_product(reach, in_place)
-        
-        return (reward,
-               tcp_to_obj,
-               tcp_opened,
-               target_to_obj,
-               object_grasped,
-               in_place)
+        return (
+            reward,
+            tcp_to_obj,
+            obs[3],
+            obj_to_target,
+            near_button,
+            button_pressed
+        )

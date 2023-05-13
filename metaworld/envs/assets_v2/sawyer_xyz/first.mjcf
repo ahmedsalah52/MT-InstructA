@@ -1,0 +1,13 @@
+<mujoco><include file="../objects/assets/plug_dependencies.xml" />
+    <body name="plug1" pos="-0.652 0.6 0.131">
+        <joint type="free" />
+        <include file="../objects/assets/plug.xml" />
+        
+      </body>
+
+      <body name="box" pos="-0.7 0.6 0.0">
+        <include file="../objects/assets/plug_wall.xml" />
+      </body>
+
+
+        </mujoco>

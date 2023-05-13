@@ -1,46 +1,71 @@
-import os
-import random
-from xml.etree import ElementTree
+import xml.etree.ElementTree as ET
 
-# Directory containing the XML files
-xml_dir = "metaworld/envs/assets_v2/sawyer_xyz"
 
-# List of XML files in the directory
-xml_files = os.listdir(xml_dir)
+def get_xml_includes2(filename):
+    root = ET.parse(filename).getroot()
+    includes = []
+    for child in root:
+        if child.tag == "include":
+            includes.append(ET.tostring(child, encoding="unicode").strip())
+            #includes.append(child.get('file'))
+        else:
+            break # stop after first non-include element
+    return includes
 
-# Choose 3 random files
-random_files = random.sample(xml_files, 3)
 
-# Create a new ElementTree object to hold the merged environment
-merged_env = ElementTree.Element("mujoco")
+def get_tree_includes(filename):
+    root = ET.parse(filename).getroot()
+    #root = tree.getroot()
+    includes = root.findall('include')
+    return includes
+def get_bodies(xml_file_path):
+    tree = ET.parse(xml_file_path)
+    root = tree.getroot()
+    worldbody = root.find('worldbody')
+    bodies = worldbody.findall('body')
+        
+    return bodies
 
-# Add the dependencies to the merged environment
-dependencies = [
-    "../scene/basic_scene.xml",
-    "../objects/assets/window_dependencies.xml",
-    "../objects/assets/xyz_base_dependencies.xml"
-]
-for dep in dependencies:
-    ElementTree.SubElement(merged_env, "include", {"file": dep})
 
-worldbody = ElementTree.SubElement(merged_env, "worldbody")
+def edit_body_pos(body_list, x_offset=0, y_offset=0):
+   
+    bodies = []
+    for body in body_list:
+        pos = body.get('pos').split()
+        new_pos = [float(pos[0]) + x_offset, float(pos[1]) + y_offset, float(pos[2])]
+        body.set('pos', ' '.join(map(str, new_pos)))
+        bodies.append(body)
 
-# Loop over the chosen files and append their <worldbody> elements to the merged environment
-for file in random_files:
-    # Parse the XML file into an ElementTree object
-    tree = ElementTree.parse(os.path.join(xml_dir, file))
-    
-    # Get the root element (should be <mujoco>)
+    return bodies
+
+
+def add_includes_to_xml_file(xml_file_path, includes):
+   
+
+    # Load the xml file into an element tree object
+    tree = ET.parse(xml_file_path)
     root = tree.getroot()
 
-    # Get the <worldbody> element
-    wb = root.find("worldbody")
+    # Get a list of existing include elements in the xml file
+    existing_includes = root.findall('include')
 
-    # Append the <worldbody> element to the merged environment
-    worldbody.extend(wb.getchildren())
+    # Remove any existing includes that match the ones we're trying to add
+    for include in includes:
+        for existing_include in existing_includes:
+            if include.attrib == existing_include.attrib:
+                root.remove(existing_include)
 
-# Create a new ElementTree object to hold the final XML
-final_xml = ElementTree.ElementTree(merged_env)
+    # Add the new includes to the xml file
+    for include in includes:
+        root.insert(0, include)
 
-# Write the final XML to a file
-final_xml.write(os.path.join(xml_dir,"merged_environment.xml"))
+    # Write the modified xml file back to disk
+    tree.write(xml_file_path)
+
+
+#bodies = get_bodies('metaworld/envs/assets_v2/sawyer_xyz/sawyer_soccer.xml')
+#print(edit_body_pos(bodies,1,1))
+ret = get_tree_includes('metaworld/envs/assets_v2/sawyer_xyz/sawyer_soccer.xml')
+print(ret)
+for r in ret:
+    print(r.attrib)
