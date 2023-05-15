@@ -20,9 +20,11 @@ def test_mjcf_file(filepath):
 
 def write_mjcf_file(body_trees: list, includes: list, filepath: str):
     root = ET.Element('mujoco')
-    for include in includes[1:-1]:
-        root.append(include)
     for body_tree in body_trees:
+        #body_tree.attrib['name'] +='unique'
+        for child in body_tree:
+            if child.tag == 'joint' or child.tag == 'freejoint':
+                body_tree.remove(child)
         root.append(body_tree)
     tree = ET.ElementTree(root)
     with open(filepath, 'wb') as f:
@@ -55,26 +57,26 @@ def save_mjcf(body_trees, dependency_includes, file_path):
     # with open(file_path, "w") as f:
     #     f.write(xml_str)
 
-def add_body_to_tree(main_tree, body_file):
+def add_body_to_tree(main_tree, body_file,internal_file_dir,unique):
     # Parse the body file
     body_tree = ET.parse(body_file)
     body_root = body_tree.getroot()
 
     # Find the body element in the body tree
     body_elem = body_root.find('body')
-
+    
     # Get the name and position of the body
-    name = body_elem.attrib['name']
+    name = body_elem.attrib['name']+unique
     pos = body_elem.attrib['pos']
 
     # Create a new body element in the main tree
     new_body_elem = ET.Element('body')
     new_body_elem.attrib['name'] = name
-    new_body_elem.attrib['pos'] = pos
+    new_body_elem.attrib['pos'] = '0 0 0'
 
     # Add the include element to the new body element
     include_elem = ET.Element('include')
-    include_elem.attrib['file'] = body_file
+    include_elem.attrib['file'] = internal_file_dir
     new_body_elem.append(include_elem)
 
     # Add the new body element to the main tree
@@ -110,9 +112,9 @@ def kill_duplicates(includes):
 def edit_body_pos(body_list, pos_offset):
     bodies = []
     for body in body_list:
-        #body.set('name', body.attrib.get('name')+str(pos_offset))
+        body.set('name', body.attrib.get('name')+str(pos_offset))
         pos = body.get('pos').split()
-        new_pos = [float(pos[0]) + pos_offset, float(pos[1]), float(pos[2])]
+        new_pos = [ pos_offset, float(pos[1]), float(pos[2])]
         body.set('pos', ' '.join(map(str, new_pos)))
         bodies.append(body)
     return bodies
@@ -154,11 +156,15 @@ def build_env(main_env_path,poses,num_envs):
     #add the two games, independents to the main file,
     # save the file to the same dir
     #return the file name
-    out_file_name = 'multi_envs.xml'
-    bodies_names = ['first','second']
+    out_file_name = ''
+    bodies_names = []
+    secondary_envs_names = []
+    mjcf_dir = '../sawyer_xyz_multi'
+    multi_envs_dir = 'metaworld/envs/assets_v2/sawyer_xyz_multi/'
     xml_dir   = os.path.split(main_env_path)[0]
-    print(os.path.split(main_env_path)[0],os.path.split(main_env_path)[1])
+    main_env_name = os.path.split(main_env_path)[1].split('.')[0]
     main_tree = ET.parse(main_env_path)
+    
 
     # List of XML files in the directory
     xml_files = os.listdir(xml_dir)
@@ -167,30 +173,39 @@ def build_env(main_env_path,poses,num_envs):
     # Choose 2 random files from the 3 picked, and exclude the main env file if picked.
     random_files = random.sample(xml_files, 3)
     for file in random_files:
-        if file.endswith(main_env_path): pass
+        print(file,main_env_path )
+        print('______________________________________')
+        if main_env_path.endswith(file): pass
         secondary_envs_trees.append(ET.parse(os.path.join(xml_dir,file)))
+        secondary_env_name = file.split('.')[0][7:]
+        secondary_envs_names.append(secondary_env_name)
+        bodies_names.append(secondary_env_name+'.mjcf')
         if len(secondary_envs_trees) == num_envs-1: break
     
     envs = defaultdict(list)
-    for pos_offset , tree in zip(poses,secondary_envs_trees):
-        print(tree)
+    for i,(pos_offset , tree) in enumerate(zip(poses,secondary_envs_trees)):
         bodies = get_bodies(tree)
-
-        write_mjcf_file(edit_body_pos(bodies,pos_offset), get_tree_includes(tree)  , os.path.join(xml_dir,'first.mjcf'))
-        #envs['includes'] += get_tree_includes(tree)        
+        write_mjcf_file(edit_body_pos(bodies,pos_offset), get_tree_includes(tree)  , os.path.join(multi_envs_dir,bodies_names[i]))
+        secondary_envs_names[i] += str(pos_offset)
+        envs['includes'] += get_tree_includes(tree)        
         #envs['bodies']   += edit_body_pos(bodies,pos_offset)
 
-    #envs['includes'] = kill_duplicates(envs['includes'])
-    #main_tree = add_includes_to_tree(main_tree,  envs['includes'])
+    envs['includes'] = kill_duplicates(envs['includes'])
+    main_tree = add_includes_to_tree(main_tree,  envs['includes'])
     #main_tree = add_bodies_to_tree(main_tree, envs['bodies'])
     
-    print(test_mjcf_file( os.path.join(xml_dir,'first.mjcf')))
-    print('__________________________________________')
-    main_tree = add_body_to_tree(main_tree,  os.path.join(xml_dir,'first.mjcf'))
+    for i , body_name in enumerate(bodies_names):
+        main_tree = add_body_to_tree(main_tree,  os.path.join(multi_envs_dir,body_name),os.path.join(mjcf_dir,body_name),str(i))
 
+    out_file_name += main_env_name
+    for sec_env in secondary_envs_names:
+        out_file_name += '-'
+        out_file_name += sec_env
+    out_file_name += '.xml'
+    print(out_file_name)
 
-    main_tree.write(os.path.join(xml_dir,out_file_name))
-    return os.path.join(xml_dir,out_file_name)
+    main_tree.write(os.path.join(multi_envs_dir,out_file_name))
+    return out_file_name
     
 
 

@@ -10,12 +10,9 @@ from metaworld.envs.mujoco.env_dict import ALL_V2_ENVIRONMENTS
 
 task = 'sample'
 ml1 = metaworld.ML_1_multi(task) # Construct the benchmark, sampling tasks
-print('before')
 #env = ml1.train_classes[task]()  # Create an environment with task `pick_place`
 env = ml1.my_env_s
-print('after')
 task = random.choice(ml1.train_tasks)
-print(task)
 env.set_task(task)  # Set task
 
 obs = env.reset()  # Reset environment

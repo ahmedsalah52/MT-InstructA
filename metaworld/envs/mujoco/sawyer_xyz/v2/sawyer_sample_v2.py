@@ -6,6 +6,7 @@ from metaworld.envs.asset_path_utils import full_v2_path_for,full_mix_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
 import random
 from metaworld.envs.build_random_envs import build_env
+import os
 class SawyerSampleEnvV2(SawyerXYZEnv):
     def __init__(self):
         poses_list = [0,1,2]
@@ -22,15 +23,22 @@ class SawyerSampleEnvV2(SawyerXYZEnv):
         print('main ',dx)
         print('secondary ',secondary_poses)
 
-        file_name = build_env('metaworld/envs/assets_v2/sawyer_xyz/testing.xml',secondary_poses,2)
-        print()
-
-        super().__init__(
-            self.model_name,
-            hand_low=hand_low,
-            hand_high=hand_high,
-        )
-
+      
+        
+        while True:
+            self.file_name = build_env('metaworld/envs/assets_v2/sawyer_xyz/sawyer_button_press.xml',secondary_poses,3)
+            print(self.file_name)
+            try:
+                super().__init__(
+                    self.model_name,
+                    hand_low=hand_low,
+                    hand_high=hand_high,
+                )
+                print('done')
+                break
+            except:
+                print('failed')
+                pass
         self.init_config = {
             'obj_init_pos': np.array([0., 0.9, 0.115], dtype=np.float32),
             'hand_init_pos': np.array([0, 0.4, 0.2], dtype=np.float32),
@@ -49,8 +57,8 @@ class SawyerSampleEnvV2(SawyerXYZEnv):
 
     @property
     def model_name(self):
-        return full_v2_path_for('sawyer_xyz/multi_envs.xml')
-        return full_mix_path_for('metaworld/envs/assets_v2/sawyer_xyz/testing.xml',self.secondary_poses)
+        return full_v2_path_for(os.path.join('sawyer_xyz_multi',self.file_name))
+        #return full_mix_path_for('metaworld/envs/assets_v2/sawyer_xyz/testing.xml',self.secondary_poses)
 
     @_assert_task_is_set
     def evaluate_state(self, obs, action):
