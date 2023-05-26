@@ -5,14 +5,26 @@ from metaworld.envs import reward_utils
 from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_door_v2 import SawyerDoorEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
 
+from metaworld.envs.build_random_envs import build_env , multi_object_man
+import os
+import glob,random
+
 
 class SawyerDoorCloseEnvV2(SawyerDoorEnvV2):
     def __init__(self):
 
-        goal_low = (.2, 0.65, 0.1499)
-        goal_high = (.3, 0.75, 0.1501)
+        
+        main_file = 'sawyer_door_pull'
+        
+        
+        main_envs_dir = 'metaworld/envs/assets_v2/sawyer_xyz_multi/'
+        env_xmls = glob.glob(os.path.join(main_envs_dir,main_file+'*'))
+        self.file_name = random.choice(env_xmls).split('/')[-1]
 
-        super().__init__()
+        main_env_pos = float(self.file_name.split(',')[1])
+        goal_low = (main_env_pos+.2, 0.65, 0.1499)
+        goal_high = (main_env_pos+.3, 0.75, 0.1501)
+        
 
         self.init_config = {
             'obj_init_angle': 0.3,

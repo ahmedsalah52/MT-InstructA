@@ -5,6 +5,9 @@ from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
 
+from metaworld.envs.build_random_envs import build_env , multi_object_man
+import os
+import glob,random
 
 class SawyerBoxCloseEnvV2(SawyerXYZEnv):
 
@@ -12,10 +15,19 @@ class SawyerBoxCloseEnvV2(SawyerXYZEnv):
 
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
-        obj_low = (-0.05, 0.5, 0.02)
-        obj_high = (0.05, 0.55, 0.02)
-        goal_low = (-0.1, 0.7, 0.133)
-        goal_high = (0.1, 0.8, 0.133)
+        main_file = 'sawyer_box'
+        
+        
+
+        main_envs_dir = 'metaworld/envs/assets_v2/sawyer_xyz_multi/'
+        env_xmls = glob.glob(os.path.join(main_envs_dir,main_file+'*'))
+        self.file_name = random.choice(env_xmls).split('/')[-1]
+
+        main_env_pos = float(self.file_name.split(',')[1])
+        obj_low = (main_env_pos, 0.5, 0.02)
+        obj_high = (main_env_pos, 0.55, 0.02)
+        goal_low = (main_env_pos-0.05, 0.7, 0.133)
+        goal_high = (main_env_pos+0.05, 0.8, 0.133)
 
         super().__init__(
             self.model_name,
@@ -43,6 +55,7 @@ class SawyerBoxCloseEnvV2(SawyerXYZEnv):
 
     @property
     def model_name(self):
+        return full_v2_path_for(os.path.join('sawyer_xyz_multi',self.file_name))
         return full_v2_path_for('sawyer_xyz/sawyer_box.xml')
 
     @_assert_task_is_set

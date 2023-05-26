@@ -4,24 +4,62 @@ from gym.spaces import Box
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
-
+import random
+from metaworld.envs.build_random_envs import build_env , multi_object_man
+import os
+import glob
 
 class SawyerNutAssemblyEnvV2(SawyerXYZEnv):
     WRENCH_HANDLE_LENGTH = 0.02
 
-    def __init__(self):
-        hand_low = (-0.5, 0.40, 0.05)
-        hand_high = (0.5, 1, 0.5)
-        obj_low = (0, 0.6, 0.02)
-        obj_high = (0, 0.6, 0.02)
-        goal_low = (-0.1, 0.75, 0.1)
-        goal_high = (0.1, 0.85, 0.1)
+    def __init__(self):        
+        hand_low  = (-0.5, 0.40, 0.05)
+        hand_high = (0.5, 1, 0.5)       
 
+        """multi_object = multi_object_man(init_file_name=main_file)
+
+        main_file = 'sawyer_assembly_peg.xml'
+        main_envs_dir = 'metaworld/envs/assets_v2/sawyer_xyz/'
+        xml_files = os.listdir(main_envs_dir)
+        poses_list = [0,1,2]
+        for pos in [0,1,2]:
+            poses_list = [0,1,2]
+            dx_idx = poses_list.pop(pos)
+            for st_sec_file in xml_files:
+                if main_file == st_sec_file: pass
+                for nd_sec_file in xml_files:
+                    if nd_sec_file == st_sec_file or nd_sec_file == main_file: pass         
+                    try:
+                        multi_object.get_new_env([st_sec_file,nd_sec_file] , dx_idx,poses_list)
+                        self.file_name = multi_object.get_file_name()
+                        super().__init__(
+                            self.model_name,
+                            hand_low=hand_low,
+                            hand_high=hand_high,
+                        )
+                        multi_object.multi_env_loaded()
+                    except:
+                        print('failed to load:',self.file_name)
+                        multi_object.multi_env_not_loaded()"""
+        
+        
+        main_file = 'sawyer_assembly_peg'
+        main_envs_dir = 'metaworld/envs/assets_v2/sawyer_xyz_multi/'
+        env_xmls = glob.glob(os.path.join(main_envs_dir,main_file+'*'))
+        self.file_name = random.choice(env_xmls).split('/')[-1]
+
+        main_env_pos = float(self.file_name.split(',')[1])
+        
         super().__init__(
-            self.model_name,
-            hand_low=hand_low,
-            hand_high=hand_high,
-        )
+                        self.model_name,
+                        hand_low=hand_low,
+                        hand_high=hand_high,
+                        )
+        obj_low   = (main_env_pos, 0.6, 0.02)
+        obj_high  = (main_env_pos, 0.6, 0.02)
+        goal_low  = (main_env_pos, 0.75, 0.1)
+        goal_high = (main_env_pos, 0.85, 0.1)
+
 
         self.init_config = {
             'obj_init_angle': 0.3,
@@ -41,7 +79,8 @@ class SawyerNutAssemblyEnvV2(SawyerXYZEnv):
 
     @property
     def model_name(self):
-        return full_v2_path_for('sawyer_xyz/sawyer_assembly_peg.xml')
+        return full_v2_path_for(os.path.join('sawyer_xyz_multi',self.file_name))
+        #return full_v2_path_for('sawyer_xyz/sawyer_assembly_peg.xml')
 
     @_assert_task_is_set
     def evaluate_state(self, obs, action):

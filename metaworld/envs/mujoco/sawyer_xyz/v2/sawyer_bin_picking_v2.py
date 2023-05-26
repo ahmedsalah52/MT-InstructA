@@ -5,6 +5,9 @@ from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
 
+from metaworld.envs.build_random_envs import build_env , multi_object_man
+import os
+import glob,random
 
 class SawyerBinPickingEnvV2(SawyerXYZEnv):
     """
@@ -23,11 +26,20 @@ class SawyerBinPickingEnvV2(SawyerXYZEnv):
 
         hand_low = (-0.5, 0.40, 0.07)
         hand_high = (0.5, 1, 0.5)
-        obj_low = (-0.21, 0.65, 0.02)
-        obj_high = (-0.03, 0.75, 0.02)
+        main_file = 'sawyer_bin_picking'
+        
+        
+
+        main_envs_dir = 'metaworld/envs/assets_v2/sawyer_xyz_multi/'
+        env_xmls = glob.glob(os.path.join(main_envs_dir,main_file+'*'))
+        self.file_name = random.choice(env_xmls).split('/')[-1]
+
+        main_env_pos = float(self.file_name.split(',')[1])
+        obj_low = (main_env_pos, 0.65, 0.02)
+        obj_high = (main_env_pos, 0.75, 0.02)
         # Small bounds around the center of the target bin
-        goal_low = np.array([0.1199, 0.699, -0.001])
-        goal_high = np.array([0.1201, 0.701, +0.001])
+        goal_low = np.array([main_env_pos+0.1199, 0.699, -0.001])
+        goal_high = np.array([main_env_pos+0.1201, 0.701, +0.001])
 
         super().__init__(
             self.model_name,
@@ -65,6 +77,8 @@ class SawyerBinPickingEnvV2(SawyerXYZEnv):
 
     @property
     def model_name(self):
+        return full_v2_path_for(os.path.join('sawyer_xyz_multi',self.file_name))
+
         return full_v2_path_for('sawyer_xyz/sawyer_bin_picking.xml')
 
     @_assert_task_is_set

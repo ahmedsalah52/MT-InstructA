@@ -179,22 +179,20 @@ class ML_1_multi(Benchmark):
 
     def __init__(self, env_name, seed=None):
         super().__init__()
-        if not env_name in _env_dict.ALL_V2_ENVIRONMENTS:
+        if not env_name in _env_dict.ALL_V2_ENVIRONMENTS_multi:
             raise ValueError(f"{env_name} is not a V2 environment")
-        cls = _env_dict.ALL_V2_ENVIRONMENTS[env_name]
+        cls = _env_dict.ALL_V2_ENVIRONMENTS_multi[env_name]
         self._train_classes = OrderedDict([(env_name, cls)])
 
         self._test_classes = self._train_classes
         self._train_ = OrderedDict([(env_name, cls)])
         args_kwargs = _env_dict.ML1_args_kwargs[env_name]
-        print('in before __________________________________________________')
 
         self._train_tasks  ,env = _make_tasks_multi(self._train_classes,
                                         {env_name: args_kwargs},
                                         _ML_OVERRIDE,
                                         seed=seed)
         self.my_env_s = env
-        print('in after ______________________________')
 
      
 

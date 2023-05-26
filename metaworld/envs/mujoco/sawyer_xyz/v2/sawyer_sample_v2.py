@@ -5,40 +5,51 @@ from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for,full_mix_path_for 
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
 import random
-from metaworld.envs.build_random_envs import build_env
+from metaworld.envs.build_random_envs import build_env , multi_object_man
 import os
+
 class SawyerSampleEnvV2(SawyerXYZEnv):
     def __init__(self):
         poses_list = [0,1,2]
         dx_idx = poses_list.pop(random.randrange(len(poses_list)))
-
         self.dx_dict = {0:-0.4 , 1:0 , 2:0.4}
         dx = self.dx_dict[dx_idx]
+        
+        
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
-        obj_low  =  (dx, 0.85, 0.115)
-        obj_high =  (dx, 0.9, 0.115)
+        obj_low  =  (dx+0.01, 0.85, 0.115)
+        obj_high =  (dx-0.01, 0.9, 0.115)
 
         secondary_poses = [self.dx_dict[poses_list[0]],self.dx_dict[poses_list[1]]]
         print('main ',dx)
         print('secondary ',secondary_poses)
 
+        main_env_name = 'sawyer_button_press.xml'
       
+        #main_file = 'metaworld/envs/assets_v2/sawyer_xyz/sawyer_button_press.xml'
         
-        while True:
-            self.file_name = build_env('metaworld/envs/assets_v2/sawyer_xyz/sawyer_button_press.xml',secondary_poses,3)
-            print(self.file_name)
-            try:
-                super().__init__(
-                    self.model_name,
-                    hand_low=hand_low,
-                    hand_high=hand_high,
-                )
-                print('done')
-                break
-            except:
-                print('failed')
-                pass
+        multi_object = multi_object_man(init_file_name=main_env_name)
+        main_envs_dir = 'metaworld/envs/assets_v2/sawyer_xyz/'
+        delta_x_objects = 0.35
+        xml_files = os.listdir(main_envs_dir)
+        xml_files.remove(main_env_name)
+        st_sec_file = random.sample(xml_files,1)[0]
+        xml_files.remove(st_sec_file)
+        nd_sec_file = random.sample(xml_files,1)[0]
+        multi_object.get_new_env([st_sec_file,nd_sec_file] , dx_idx,poses_list)
+        try:
+            multi_object.get_new_env([st_sec_file,nd_sec_file] , dx_idx,poses_list)
+            self.file_name = multi_object.get_file_name()
+            super().__init__(
+                self.model_name,
+                hand_low=hand_low,
+                hand_high=hand_high,
+            )
+            multi_object.multi_env_loaded()
+        except:
+            print('failed to load:',self.file_name)
+            multi_object.multi_env_not_loaded()
         self.init_config = {
             'obj_init_pos': np.array([0., 0.9, 0.115], dtype=np.float32),
             'hand_init_pos': np.array([0, 0.4, 0.2], dtype=np.float32),

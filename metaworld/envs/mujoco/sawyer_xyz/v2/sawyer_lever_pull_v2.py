@@ -6,7 +6,10 @@ from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
 
+from metaworld.envs.build_random_envs import build_env , multi_object_man
+import os
 
+import glob,random
 class SawyerLeverPullEnvV2(SawyerXYZEnv):
     """
     Motivation for V2:
@@ -25,8 +28,17 @@ class SawyerLeverPullEnvV2(SawyerXYZEnv):
 
         hand_low = (-0.5, 0.40, -0.15)
         hand_high = (0.5, 1, 0.5)
-        obj_low = (-0.1, 0.7, 0.0)
-        obj_high = (0.1, 0.8, 0.0)
+        main_file = 'sawyer_lever_pull'
+        
+        
+
+        main_envs_dir = 'metaworld/envs/assets_v2/sawyer_xyz_multi/'
+        env_xmls = glob.glob(os.path.join(main_envs_dir,main_file+'*'))
+        self.file_name = random.choice(env_xmls).split('/')[-1]
+
+        main_env_pos = float(self.file_name.split(',')[1])
+        obj_low = (main_env_pos, 0.7, 0.0)
+        obj_high = (main_env_pos, 0.8, 0.0)
 
         super().__init__(
             self.model_name,
@@ -54,6 +66,7 @@ class SawyerLeverPullEnvV2(SawyerXYZEnv):
 
     @property
     def model_name(self):
+        return full_v2_path_for(os.path.join('sawyer_xyz_multi',self.file_name))
         return full_v2_path_for('sawyer_xyz/sawyer_lever_pull.xml')
 
     @_assert_task_is_set

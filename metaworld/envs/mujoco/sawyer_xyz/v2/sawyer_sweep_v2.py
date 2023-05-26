@@ -6,6 +6,9 @@ from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
 
+from metaworld.envs.build_random_envs import build_env , multi_object_man
+import os
+
 
 class SawyerSweepEnvV2(SawyerXYZEnv):
 
@@ -16,6 +19,30 @@ class SawyerSweepEnvV2(SawyerXYZEnv):
         init_puck_z = 0.1
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1.0, 0.5)
+        main_file = 'sawyer_sweep_v2.xml'
+        multi_object = multi_object_man(init_file_name=main_file)
+        main_envs_dir = 'metaworld/envs/assets_v2/sawyer_xyz/'
+        xml_files = os.listdir(main_envs_dir)
+        poses_list = [0,1,2]
+        for pos in [0,1,2]:
+            poses_list = [0,1,2]
+            dx_idx = poses_list.pop(pos)
+            for st_sec_file in xml_files:
+                if main_file == st_sec_file: pass
+                for nd_sec_file in xml_files:
+                    if nd_sec_file == st_sec_file or nd_sec_file == main_file: pass         
+                    try:
+                        multi_object.get_new_env([st_sec_file,nd_sec_file] , dx_idx,poses_list)
+                        self.file_name = multi_object.get_file_name()
+                        super().__init__(
+                            self.model_name,
+                            hand_low=hand_low,
+                            hand_high=hand_high,
+                        )
+                        multi_object.multi_env_loaded()
+                    except:
+                        print('failed to load:',self.file_name)
+                        multi_object.multi_env_not_loaded()
         obj_low = (-0.1, 0.6, 0.02)
         obj_high = (0.1, 0.7, 0.02)
         goal_low = (.49, .6, 0.00)
