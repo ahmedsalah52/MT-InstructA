@@ -17,18 +17,50 @@ class SawyerCoffeePullEnvV2(SawyerXYZEnv):
 
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
-        main_file = 'sawyer_assembly_peg'
-        
-        
-        main_envs_dir = 'metaworld/envs/assets_v2/sawyer_xyz_multi/'
-        env_xmls = glob.glob(os.path.join(main_envs_dir,main_file+'*'))
-        self.file_name = random.choice(env_xmls).split('/')[-1]
+        main_file = 'sawyer_assembly_peg.xml'
+        main_envs_dir = 'metaworld/envs/assets_v2/sawyer_xyz/'
+        #env_xmls = glob.glob(os.path.join(main_envs_dir,main_file+'*'))
+        multi_object = multi_object_man(init_file_name=main_file)
 
-        main_env_pos = float(self.file_name.split(',')[1])
-        obj_low = (main_env_pos, 0.7, -.001)
-        obj_high = (main_env_pos, 0.75, +.001)
-        goal_low = (main_env_pos-0.05, 0.55, -.001)
-        goal_high = (main_env_pos+0.05, 0.65, +.001)
+        
+        xml_files = os.listdir(main_envs_dir)
+        
+        #multi_object.get_new_env(secondary_envs[0:2], dx_idx,poses_list)
+        poses_list = [0,1,2]
+        pos = random.choice(poses_list)
+
+        dx_idx = poses_list.pop(pos)
+        secondary_envs = random.sample(xml_files,3)
+        if main_file in secondary_envs: secondary_envs.remove(main_file)
+        multi_object.get_new_env(secondary_envs[0:2], dx_idx,poses_list)
+        while True:
+            try:
+                poses_list = [0,1,2]
+                pos = random.choice(poses_list)
+       
+                dx_idx = poses_list.pop(pos)
+                secondary_envs = random.sample(xml_files,3)
+                if main_file in secondary_envs: secondary_envs.remove(main_file)
+                multi_object.get_new_env(secondary_envs[0:2], dx_idx,poses_list)
+                self.file_name = multi_object.get_file_name()
+                super().__init__(
+                    self.model_name,
+                    hand_low=hand_low,
+                    hand_high=hand_high,
+                )
+                multi_object.multi_env_loaded()
+                break
+            except:
+                print('failed to load:',self.file_name)
+                multi_object.multi_env_not_loaded()
+
+        
+        
+
+        obj_low = (multi_object.get_dx_low(), 0.7, -.001)
+        obj_high = (multi_object.get_dx_high(), 0.75, +.001)
+        goal_low = (multi_object.get_dx_low()-0.05, 0.55, -.001)
+        goal_high = (multi_object.get_dx_high()+0.05, 0.65, +.001)
 
         super().__init__(
             self.model_name,

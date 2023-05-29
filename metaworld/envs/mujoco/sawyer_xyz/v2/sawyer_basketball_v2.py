@@ -37,10 +37,10 @@ class SawyerBasketballEnvV2(SawyerXYZEnv):
                 print('failed to load', self.file_name)
 
         main_env_pos = float(self.file_name.split(',')[1])
-        obj_low = (main_env_pos, 0.6, 0.0299)
-        obj_high = (main_env_pos, 0.7, 0.0301)
-        goal_low = (main_env_pos, 0.85, 0.)
-        goal_high = (main_env_pos, 0.9+1e-7, 0.)
+        obj_low = (main_env_pos+0.01, 0.6, 0.0299)
+        obj_high = (main_env_pos-0.01, 0.7, 0.0301)
+        goal_low = (main_env_pos+0.01, 0.85, 0.)
+        goal_high = (main_env_pos-0.01, 0.9+1e-7, 0.)
 
         self.init_config = {
             'obj_init_angle': .3,
