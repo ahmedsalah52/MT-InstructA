@@ -22,7 +22,7 @@
       
       <site name="goal" pos="0.1 0.8 0.02" size="0.02" rgba="0 0.8 0 1" />
 
-    <body name="box-0.350" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/-0.35button_press_topdown.mjcf" /></body><body name="soccer_ball01" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/0soccer.mjcf" /></body></worldbody>
+    <body name="box-0.350" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_push_v2/-0.35button_press_topdown.mjcf" /></body><body name="soccer_ball01" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_push_v2/0soccer.mjcf" /></body></worldbody>
 
     <actuator>
         <position ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="400" user="1" />

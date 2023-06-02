@@ -14,15 +14,47 @@ class SawyerFaucetCloseEnvV2(SawyerXYZEnv):
 
         hand_low = (-0.5, 0.40, -0.15)
         hand_high = (0.5, 1, 0.5)
-        main_file = 'sawyer_faucet'
-        
-        
+        main_file = 'sawyer_faucet.xml'
+        generate = False
+        if generate:
+            mjcfs_dir = 'metaworld/envs/assets_v2/sawyer_xyz_multi/mjcfs/'+main_file.split('.')[0]
+            if not os.path.isdir(mjcfs_dir):
+                os.system('mkdir '+mjcfs_dir)
+            multi_object = multi_object_man(init_file_name=main_file)
 
-        main_envs_dir = 'metaworld/envs/assets_v2/sawyer_xyz_multi/'
-        env_xmls = glob.glob(os.path.join(main_envs_dir,main_file+'*'))
-        self.file_name = random.choice(env_xmls).split('/')[-1]
+            main_envs_dir = 'metaworld/envs/assets_v2/sawyer_xyz/'
+            xml_files = os.listdir(main_envs_dir)
+            poses_list = [0,1,2]
+            for pos in [0,1,2]:
+                poses_list = [0,1,2]
+                dx_idx = poses_list.pop(pos)
+                for st_sec_file in xml_files:
+                    if main_file == st_sec_file: pass
+                    for nd_sec_file in xml_files:
+                        if nd_sec_file == st_sec_file or nd_sec_file == main_file: pass  
+                        try:
+                            multi_object.get_new_env([st_sec_file,nd_sec_file] , dx_idx,poses_list)
+                            self.file_name = multi_object.get_file_name()
+                            super().__init__(
+                                self.model_name,
+                                hand_low=hand_low,
+                                hand_high=hand_high,
+                            )
+                            multi_object.multi_env_loaded()
+                            
+                        except:
+                            print('failed to load:',self.file_name)
+                            multi_object.multi_env_not_loaded()
 
-        main_env_pos = float(self.file_name.split(',')[1])
+        else:
+            env_txt_file = open('metaworld/all_envs/'+main_file.split('.')[0]+'.txt','r')
+            env_txt_lines = env_txt_file.read().split('\n')
+            
+            env_txt_line = random.choice(env_txt_lines)
+            
+            self.file_name = env_txt_line
+            main_env_pos = float(self.file_name.split(',')[1])        
+
         obj_low = (main_env_pos, 0.8, 0.0)
         obj_high = (main_env_pos, 0.85, 0.0)
         self._handle_length = 0.175

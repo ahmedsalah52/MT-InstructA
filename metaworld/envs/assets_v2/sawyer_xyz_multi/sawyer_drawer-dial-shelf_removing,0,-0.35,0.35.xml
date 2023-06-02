@@ -13,7 +13,7 @@
         </body>
 
         <site name="goal" pos="0. 0.74 0.05" size="0.02" rgba="0 0.8 0 1" />
-    <body name="dial-0.350" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/-0.35dial.mjcf" /></body><body name="block0.351" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/0.35shelf_removing.mjcf" /></body></worldbody>
+    <body name="dial-0.350" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_drawer/-0.35dial.mjcf" /></body><body name="block0.351" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_drawer/0.35shelf_removing.mjcf" /></body></worldbody>
 
     <actuator>
         <position ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="400" user="1" />

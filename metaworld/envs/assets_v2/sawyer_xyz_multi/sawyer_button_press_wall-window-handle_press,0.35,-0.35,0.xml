@@ -20,7 +20,7 @@
         <body name="wall" pos="0.1 0.6 0">
           <include file="../objects/assets/wall.xml" />
         </body>
-    <body name="window-0.350" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/-0.35window.mjcf" /></body><body name="box01" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/0handle_press.mjcf" /></body></worldbody>
+    <body name="window-0.350" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_button_press_wall/-0.35window.mjcf" /></body><body name="box01" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_button_press_wall/0handle_press.mjcf" /></body></worldbody>
 
     <actuator>
         <position ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="400" user="1" />

@@ -16,7 +16,7 @@
         <body name="wall" pos="0.1 0.7 0">
           <include file="../objects/assets/wall.xml" />
         </body>
-    <body name="faucetBase-0.350" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/-0.35faucet.mjcf" /></body><body name="obj01" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/0pick_place_wall_v2.mjcf" /></body></worldbody>
+    <body name="faucetBase-0.350" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_button_press_topdown_wall/-0.35faucet.mjcf" /></body><body name="obj01" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_button_press_topdown_wall/0pick_place_wall_v2.mjcf" /></body></worldbody>
 
     <actuator>
         <position ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="400" user="1" />

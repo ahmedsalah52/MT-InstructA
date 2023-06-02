@@ -14,7 +14,7 @@
       </body>
 
       <site name="goal" pos="0. 0.7 0.27" size="0.02" rgba="0 0.8 0 1" />
-    <body name="stick-0.350" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/-0.35stick_obj.mjcf" /></body><body name="faucetBase01" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/0faucet.mjcf" /></body></worldbody>
+    <body name="stick-0.350" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_window_horizontal/-0.35stick_obj.mjcf" /></body><body name="faucetBase01" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_window_horizontal/0faucet.mjcf" /></body></worldbody>
 
     <actuator>
         <position ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="400" user="1" />

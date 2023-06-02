@@ -17,7 +17,7 @@
         <site name="goal_open" pos="0.175 0.785 0.125" size="0.005" rgba="0 .8 0 1" />
         <site name="goal_close" pos="-0.175 0.785 0.125" size="0.005" rgba="0 0 0.8 1" />
 
-    <body name="door-0.350" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/-0.35door_pull.mjcf" /></body><body name="obj01" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/0sweep_v2.mjcf" /></body></worldbody>
+    <body name="door-0.350" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_faucet/-0.35door_pull.mjcf" /></body><body name="obj01" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_faucet/0sweep_v2.mjcf" /></body></worldbody>
 
     <actuator>
         <position ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="400" user="1" />

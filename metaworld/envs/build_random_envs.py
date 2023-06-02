@@ -228,13 +228,12 @@ def build_env(main_env_path,poses,sec_files,main_pos):
     out_file_name = ''
     bodies_names = []
     secondary_envs_names = []
-    mjcf_dir = '../sawyer_xyz_multi/mjcfs'
     multi_envs_dir = 'metaworld/envs/assets_v2/sawyer_xyz_multi/'
-    mjcfs_save_dir = os.path.join(multi_envs_dir,'mjcfs')
     xml_dir   = os.path.split(main_env_path)[0]
     main_env_name = os.path.split(main_env_path)[1].split('.')[0]
     main_tree = ET.parse(main_env_path)
-    
+    mjcfs_save_dir = os.path.join(multi_envs_dir,'mjcfs',main_env_name)
+    mjcf_dir = os.path.join('../sawyer_xyz_multi/mjcfs',main_env_name)
 
   
     secondary_envs_trees = []

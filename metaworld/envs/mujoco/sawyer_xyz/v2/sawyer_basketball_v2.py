@@ -17,30 +17,24 @@ class SawyerBasketballEnvV2(SawyerXYZEnv):
 
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
+        main_file = 'sawyer_basketball.xml'
+        env_txt_file = open('metaworld/all_envs/sawyer_basketball.txt','r')
+        env_txt_lines = env_txt_file.read().split('\n')
         
-      
-        while True:
-            try:
-                main_file = 'sawyer_basketball'
-                main_envs_dir = 'metaworld/envs/assets_v2/sawyer_xyz_multi/'
-                env_xmls = glob.glob(os.path.join(main_envs_dir,main_file+'*'))
-                self.file_name = random.choice(env_xmls).split('/')[-1]
+        env_txt_line = random.choice(env_txt_lines)
 
-                super().__init__(
+        self.file_name = env_txt_line
+        main_env_pos = float(self.file_name.split(',')[1])
+
+        super().__init__(
                     self.model_name,
                     hand_low=hand_low,
                     hand_high=hand_high,
                 )
-                break
-            except:
-                os.system('rm '+os.path.join(main_envs_dir,self.file_name))
-                print('failed to load', self.file_name)
-
-        main_env_pos = float(self.file_name.split(',')[1])
-        obj_low = (main_env_pos+0.01, 0.6, 0.0299)
-        obj_high = (main_env_pos-0.01, 0.7, 0.0301)
-        goal_low = (main_env_pos+0.01, 0.85, 0.)
-        goal_high = (main_env_pos-0.01, 0.9+1e-7, 0.)
+        obj_low   = (main_env_pos ,0.6, 0.0299)
+        obj_high  = (main_env_pos, 0.7, 0.0301)
+        goal_low  = (main_env_pos, 0.85, 0.)
+        goal_high = (main_env_pos, 0.9+1e-7, 0.)
 
         self.init_config = {
             'obj_init_angle': .3,

@@ -26,26 +26,26 @@ class SawyerBinPickingEnvV2(SawyerXYZEnv):
 
         hand_low = (-0.5, 0.40, 0.07)
         hand_high = (0.5, 1, 0.5)
-        main_file = 'sawyer_bin_picking'
         
+        env_txt_file = open('metaworld/all_envs/sawyer_bin_picking.txt','r')
+        env_txt_lines = env_txt_file.read().split('\n')
         
+        env_txt_line = random.choice(env_txt_lines)
 
-        main_envs_dir = 'metaworld/envs/assets_v2/sawyer_xyz_multi/'
-        env_xmls = glob.glob(os.path.join(main_envs_dir,main_file+'*'))
-        self.file_name = random.choice(env_xmls).split('/')[-1]
-
+        self.file_name = env_txt_line
         main_env_pos = float(self.file_name.split(',')[1])
-        obj_low = (main_env_pos, 0.65, 0.02)
-        obj_high = (main_env_pos, 0.75, 0.02)
-        # Small bounds around the center of the target bin
-        goal_low = np.array([main_env_pos+0.1199, 0.699, -0.001])
-        goal_high = np.array([main_env_pos+0.1201, 0.701, +0.001])
 
         super().__init__(
-            self.model_name,
-            hand_low=hand_low,
-            hand_high=hand_high,
-        )
+                    self.model_name,
+                    hand_low=hand_low,
+                    hand_high=hand_high,
+                )
+        obj_low   = (main_env_pos  , 0.65, 0.02)
+        obj_high  = (main_env_pos, 0.75, 0.02)
+
+
+        goal_low  = np.array([main_env_pos+0.1199, 0.699, -0.001])
+        goal_high = np.array([main_env_pos+0.1201, 0.701, +0.001])
 
         self.init_config = {
             'obj_init_angle': 0.3,

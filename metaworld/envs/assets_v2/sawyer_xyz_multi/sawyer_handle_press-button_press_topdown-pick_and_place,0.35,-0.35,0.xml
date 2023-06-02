@@ -14,7 +14,7 @@
         <site name="goalPress" pos="0 -0.216 0.075" size="0.005" rgba="1 1 1 1" />
         <site name="goalPull" pos="0 -0.216 0.172" size="0.005" rgba="0 0 0 1" />
       </body>
-    <body name="box-0.350" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/-0.35button_press_topdown.mjcf" /></body><body name="obj01" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/0pick_and_place.mjcf" /></body></worldbody>
+    <body name="box-0.350" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_handle_press/-0.35button_press_topdown.mjcf" /></body><body name="obj01" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_handle_press/0pick_and_place.mjcf" /></body></worldbody>
 
     <actuator>
         <position ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="400" user="1" />

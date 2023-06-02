@@ -18,7 +18,7 @@
         <body name="wall" pos="0.1 0.6 0">
           <include file="../objects/assets/wall.xml" />
         </body>
-    <body name="obj-0.350" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/-0.35push_wall_v2.mjcf" /></body><body name="obj01" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/0reach_push_pick_and_place_wall.mjcf" /></body></worldbody>
+    <body name="obj-0.350" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_button_press_wall/-0.35push_wall_v2.mjcf" /></body><body name="obj01" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_button_press_wall/0reach_push_pick_and_place_wall.mjcf" /></body></worldbody>
 
     <actuator>
         <position ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="400" user="1" />
