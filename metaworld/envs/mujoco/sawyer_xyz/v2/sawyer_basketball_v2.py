@@ -18,7 +18,7 @@ class SawyerBasketballEnvV2(SawyerXYZEnv):
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         main_file = 'sawyer_basketball.xml'
-        env_txt_file = open('metaworld/all_envs/sawyer_basketball.txt','r')
+        env_txt_file = open('metaworld/all_envs/'+main_file.split('.')[0]+'.txt','r')
         env_txt_lines = env_txt_file.read().split('\n')
         
         env_txt_line = random.choice(env_txt_lines)
@@ -39,7 +39,7 @@ class SawyerBasketballEnvV2(SawyerXYZEnv):
         self.init_config = {
             'obj_init_angle': .3,
             'obj_init_pos': np.array([0, 0.6, 0.03], dtype=np.float32),
-            'hand_init_pos': np.array((0, 0.6, 0.2), dtype=np.float32),
+            'hand_init_pos': np.array((0, 0, 0.2), dtype=np.float32),
         }
         self.goal = np.array([0, 0.9, 0])
         self.obj_init_pos = self.init_config['obj_init_pos']

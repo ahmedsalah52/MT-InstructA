@@ -8,7 +8,7 @@ tasks = ['assembly-v2', 'basketball-v2', 'bin-picking-v2', 'box-close-v2', 'butt
 
 print(len(tasks))
 
-task = 'door-close-v2'
+task = 'basketball-v2'
 ml1 = metaworld.ML_1_multi(task) # Construct the benchmark, sampling tasks
 #env = ml1.train_classes[task]()  # Create an environment with task `pick_place`
 env = ml1.my_env_s
@@ -34,9 +34,16 @@ for i in range(500):
     corner3        = env.render(offscreen= True,camera_name='corner3')
     topview        = env.render(offscreen= True,camera_name='topview')
     
-    all     = cv2.hconcat([corner,corner2,corner3,cv2.flip(behindGripper, 0),topview])
+    topview        = cv2.rotate(topview, cv2.ROTATE_180)
+    behindGripper  = cv2.rotate(behindGripper, cv2.ROTATE_180)
 
-    cv2.imshow('show',cv2.cvtColor(all, cv2.COLOR_RGB2BGR))
+    all     = cv2.hconcat([corner,corner2,corner3,topview])
+
+    behindGripper  = cv2.resize(behindGripper, (all.shape[1],int(behindGripper.shape[0] * all.shape[1]/all.shape[0])))
+
+    final_frame = cv2.vconcat([all,behindGripper])
+    cv2.imshow('show',cv2.cvtColor(final_frame, cv2.COLOR_RGB2BGR))
+
     #print(a,reward)
     key = cv2.waitKey(0)
     if key & 0xFF == ord('w'):
@@ -44,9 +51,9 @@ for i in range(500):
     if key & 0xFF == ord('s'):
         y = -1
     if key & 0xFF == ord('d'):
-        x = 1
-    if key & 0xFF == ord('a'):
         x = -1
+    if key & 0xFF == ord('a'):
+        x = 1
     if key & 0xFF == ord('i'):
         z = 1
     if key & 0xFF == ord('k'):

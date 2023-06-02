@@ -20,19 +20,57 @@ for task in tasks:
         obs = env.reset()  # Reset environment
         x = y = z = g = 0
 
-        a = env.action_space.sample()  # Sample an action
-        obs, reward, done, info = env.step(a)  # Step the environoment with the sampled random action
-        corner         = env.render(offscreen= True,camera_name='corner')# corner,2,3, corner2, topview, gripperPOV, behindGripper'
-        corner2        = env.render(offscreen= True,camera_name='corner2')
-        behindGripper  = env.render(offscreen= True,camera_name='behindGripper')
-        corner3        = env.render(offscreen= True,camera_name='corner3')
-        topview        = env.render(offscreen= True,camera_name='topview')
-        
-        all     = cv2.hconcat([corner,corner2,corner3,cv2.flip(behindGripper, 0),topview])
+        for i in range(500):
+            a = env.action_space.sample()  # Sample an action
+            a[0] = x
+            a[1] = y
+            a[2] = z
+            a[3] = g
+            obs, reward, done, info = env.step(a)  # Step the environoment with the sampled random action
+            print(i,'-',reward)
+            x = y = z = g = 0
+            #env.render() 
+            corner         = env.render(offscreen= True,camera_name='corner')# corner,2,3, corner2, topview, gripperPOV, behindGripper'
+            corner2        = env.render(offscreen= True,camera_name='corner2')
+            behindGripper  = env.render(offscreen= True,camera_name='behindGripper')
+            corner3        = env.render(offscreen= True,camera_name='corner3')
+            topview        = env.render(offscreen= True,camera_name='topview')
+           
+            topview        = cv2.rotate(topview, cv2.ROTATE_180)
+            behindGripper  = cv2.rotate(behindGripper, cv2.ROTATE_180)
 
-        cv2.imshow('show',cv2.cvtColor(all, cv2.COLOR_RGB2BGR))
-        #print(a,reward)
-        key = cv2.waitKey(0)
-        if key & 0xFF == ord('q') or key & 0xFF == ord('w'): break
-    if key & 0xFF == ord('q'): break
+            all     = cv2.hconcat([corner,corner2,corner3,topview])
+           
+            behindGripper  = cv2.resize(behindGripper, (all.shape[1],int(behindGripper.shape[0] * all.shape[1]/all.shape[0])))
+
+            final_frame = cv2.vconcat([all,behindGripper])
+            cv2.imshow('show',cv2.cvtColor(final_frame, cv2.COLOR_RGB2BGR))
+
+            #print(a,reward)
+            key = cv2.waitKey(0)
+            if key & 0xFF == ord('w'):
+                y = 1
+            if key & 0xFF == ord('s'):
+                y = -1
+            if key & 0xFF == ord('d'):
+                x = -1
+            if key & 0xFF == ord('a'):
+                x = 1
+            if key & 0xFF == ord('i'):
+                z = 1
+            if key & 0xFF == ord('k'):
+                z = -1
+            if key & 0xFF == ord('n'):
+                g = 1
+            if key & 0xFF == ord('m'):
+                g = -1
+            if key & 0xFF == ord('q') or key & 0xFF == ord('z') or key & 0xFF == ord('x'):
+                break
+           
+        if key & 0xFF == ord('z') or key & 0xFF == ord('x'):
+            break
     
+    if key & 0xFF == ord('x'):
+        break
+    cv2.destroyAllWindows()
+    env.close()
