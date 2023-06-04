@@ -4,8 +4,10 @@ import time
 import cv2
 from metaworld.envs.mujoco.env_dict import ALL_V2_ENVIRONMENTS
 # removed 'stick-push-v2', 'stick-pull-v2','sweep-into-v2', 'sweep-v2',
-#[]116720  # problems: 'door-close-v2'
-tasks =  ['assembly-v2', 'basketball-v2', 'bin-picking-v2','box-close-v2', 'button-press-topdown-v2', 'button-press-topdown-wall-v2', 'button-press-v2', 'button-press-wall-v2', 'coffee-button-v2', 'coffee-pull-v2', 'coffee-push-v2', 'dial-turn-v2', 'disassemble-v2', 'door-lock-v2', 'door-open-v2', 'door-unlock-v2','drawer-close-v2', 'drawer-open-v2', 'faucet-open-v2', 'faucet-close-v2','handle-press-v2',  'handle-pull-v2','lever-pull-v2', 'pick-place-wall-v2',  'reach-v2', 'push-back-v2', 'push-v2', 'pick-place-v2', 'plate-slide-v2',  'soccer-v2', 'push-wall-v2', 'reach-wall-v2', 'shelf-place-v2',    'window-open-v2', 'window-close-v2']
+#[]116720  # problems: 'door-close-v2' , 'bin-picking-v2','dial-turn-v2'
+#not: so bad , door-open-v2 
+#error 0 drawer-close-v2
+tasks =  ['assembly-v2', 'basketball-v2','box-close-v2', 'button-press-topdown-v2', 'button-press-topdown-wall-v2', 'button-press-v2', 'button-press-wall-v2', 'coffee-button-v2', 'coffee-pull-v2', 'coffee-push-v2', 'dial-turn-v2', 'disassemble-v2', 'door-lock-v2', 'door-open-v2', 'door-unlock-v2','drawer-close-v2', 'drawer-open-v2', 'faucet-open-v2', 'faucet-close-v2','handle-press-v2',  'handle-pull-v2','lever-pull-v2', 'pick-place-wall-v2',  'reach-v2', 'push-back-v2', 'push-v2', 'pick-place-v2', 'plate-slide-v2',  'soccer-v2', 'push-wall-v2', 'reach-wall-v2', 'shelf-place-v2',    'window-open-v2', 'window-close-v2']
 print(len(tasks))
 counter = 4000
 for task in tasks:
@@ -44,7 +46,7 @@ for task in tasks:
             behindGripper  = cv2.resize(behindGripper, (all.shape[1],int(behindGripper.shape[0] * all.shape[1]/all.shape[0])))
 
             final_frame = cv2.vconcat([all,behindGripper])
-            cv2.imshow('show',cv2.cvtColor(final_frame, cv2.COLOR_RGB2BGR))
+            cv2.imshow(task,cv2.cvtColor(final_frame, cv2.COLOR_RGB2BGR))
 
             #print(a,reward)
             key = cv2.waitKey(0)
@@ -66,11 +68,11 @@ for task in tasks:
                 g = -1
             if key & 0xFF == ord('q') or key & 0xFF == ord('z') or key & 0xFF == ord('x'):
                 break
-           
+        cv2.destroyAllWindows()
+        env.close()
         if key & 0xFF == ord('z') or key & 0xFF == ord('x'):
             break
-    
+        
     if key & 0xFF == ord('x'):
         break
-    cv2.destroyAllWindows()
-    env.close()
+    
