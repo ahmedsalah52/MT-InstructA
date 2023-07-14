@@ -46,7 +46,9 @@ for task in tasks:
             behindGripper  = cv2.resize(behindGripper, (all.shape[1],int(behindGripper.shape[0] * all.shape[1]/all.shape[0])))
 
             final_frame = cv2.vconcat([all,behindGripper])
-            cv2.imshow(task,cv2.cvtColor(final_frame, cv2.COLOR_RGB2BGR))
+            final_frame = cv2.cvtColor(final_frame, cv2.COLOR_RGB2BGR)
+            final_frame = cv2.resize(final_frame,(1024,1024))
+            cv2.imshow(task,final_frame)
 
             #print(a,reward)
             key = cv2.waitKey(0)

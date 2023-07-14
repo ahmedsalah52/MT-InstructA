@@ -44,7 +44,9 @@ def move(from_xyz, to_xyz, p):
 
 
 class Policy(abc.ABC):
-
+    def __init__(self,x_shift) -> None:
+        super().__init__()
+        self.x_shift = x_shift
     @staticmethod
     @abc.abstractmethod
     def _parse_obs(obs):

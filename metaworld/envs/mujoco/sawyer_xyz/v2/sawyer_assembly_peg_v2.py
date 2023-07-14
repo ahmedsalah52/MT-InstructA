@@ -95,11 +95,12 @@ class SawyerNutAssemblyEnvV2(SawyerXYZEnv):
         env_txt_line = random.choice(env_txt_lines)
         
         self.file_name = env_txt_line
-        main_env_pos = float(self.file_name.split(',')[1])
-        obj_low   = (main_env_pos , 0.6, 0.02)
-        obj_high  = (main_env_pos, 0.6, 0.02)
-        goal_low  = (main_env_pos, 0.75, 0.1)
-        goal_high = (main_env_pos, 0.85, 0.1)
+        self.main_env_pos = float(self.file_name.split(',')[1])
+
+        obj_low   = (self.main_env_pos , 0.6, 0.02)
+        obj_high  = (self.main_env_pos, 0.6, 0.02)
+        goal_low  = (self.main_env_pos, 0.84, 0.1)
+        goal_high = (self.main_env_pos, 0.85, 0.1)
 
         super().__init__(
                     self.model_name,

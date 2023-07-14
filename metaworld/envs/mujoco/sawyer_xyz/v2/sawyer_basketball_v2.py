@@ -14,7 +14,6 @@ class SawyerBasketballEnvV2(SawyerXYZEnv):
     TARGET_RADIUS = 0.08
 
     def __init__(self):
-
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         main_file = 'sawyer_basketball.xml'
@@ -25,7 +24,7 @@ class SawyerBasketballEnvV2(SawyerXYZEnv):
 
         self.file_name = env_txt_line
         main_env_pos = float(self.file_name.split(',')[1])
-
+        self.x_shift = main_env_pos
         super().__init__(
                     self.model_name,
                     hand_low=hand_low,
@@ -85,6 +84,7 @@ class SawyerBasketballEnvV2(SawyerXYZEnv):
             'in_place_reward': in_place_reward,
             'obj_to_target': obj_to_target,
             'unscaled_reward': reward,
+            'x_shift' : self.x_shift,
         }
 
         return reward, info

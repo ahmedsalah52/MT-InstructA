@@ -6,6 +6,7 @@ from metaworld.policies.policy import Policy, assert_fully_parsed, move
 
 class SawyerBasketballV2Policy(Policy):
 
+    
     @staticmethod
     @assert_fully_parsed
     def _parse_obs(obs):
@@ -20,7 +21,7 @@ class SawyerBasketballV2Policy(Policy):
 
     def get_action(self, obs):
         o_d = self._parse_obs(obs)
-
+        o_d['hoop_x'] = self.x_shift
         action = Action({
             'delta_pos': np.arange(3),
             'grab_effort': 3

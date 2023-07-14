@@ -18,7 +18,7 @@ class SawyerButtonPressTopdownV2Policy(Policy):
 
     def get_action(self, obs):
         o_d = self._parse_obs(obs)
-
+        #o_d['button_pos'] = self.x_shift
         action = Action({
             'delta_pos': np.arange(3),
             'grab_effort': 3
