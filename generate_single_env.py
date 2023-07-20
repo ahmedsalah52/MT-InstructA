@@ -13,12 +13,15 @@ tasks = ['assembly-v2', 'basketball-v2', 'bin-picking-v2', 'box-close-v2', 'butt
 
 print(len(tasks))
 
-images_dir = '/datasets/metaworld/images'
+images_dir = '/datasets/metaworld/images2'
 json_file = '/datasets/metaworld/single_env.json'
 episode_num = 0
 data_dict = {}
-for i in range(1000):
-    for taskname in ['button-press-topdown-v2']:
+max_a = 0
+max_p = 0
+for taskname in ['button-press-topdown-v2']:
+    os.system('mkdir '+ os.path.join(images_dir,taskname))
+    for episode_num in range(500):
         sample_dir = os.path.join(images_dir,taskname,str(episode_num))
         os.system('mkdir '+sample_dir)
 
@@ -32,22 +35,27 @@ for i in range(1000):
         policy = SawyerButtonPressTopdownV2Policy(env.main_env_pos)
         episode_dict = defaultdict(list)
         prev_action = np.zeros(env.action_space.shape)
-        max_a = 0
         for i in range(200):
+            hand_pos = policy._parse_obs(obs)['hand_pos']
             a = policy.get_action(obs)
-            a[a>0] = 1
-            a[a<0] = -1
-            obs, reward, done, info = env.step(a/2)  # Step the environoment with the sampled random action
-            print(i,'action ',a,' reward ' ,round(reward,2),' state ',info['success'])
+
+            obs, reward, done, info = env.step(a)  # Step the environoment with the sampled random action
+            print(i,'hand_pos',hand_pos,'action ',a,' reward ' ,round(reward,2),' state ',info['success'])
             corner         = env.render(offscreen= True,camera_name='corner')# corner,2,3, corner2, topview, gripperPOV, behindGripper'
             corner2        = env.render(offscreen= True,camera_name='corner2')
             behindGripper  = env.render(offscreen= True,camera_name='behindGripper')
             corner3        = env.render(offscreen= True,camera_name='corner3')
             topview        = env.render(offscreen= True,camera_name='topview')
             
-            
+            corner  = cv2.resize(corner,(224,224))
+            corner2 = cv2.resize(corner2,(224,224))
+            behindGripper = cv2.resize(behindGripper,(224,224))
+            corner3 = cv2.resize(corner3,(224,224))
+            topview = cv2.resize(topview,(224,224))
+
+
             episode_dict['step'].append(i)
-            episode_dict['prev_action'].append(list(prev_action))
+            episode_dict['hand_pos'].append(list(hand_pos))
             episode_dict['action'].append(list(a))
             episode_dict['reward'].append(reward)
             episode_dict['state'].append(info['success'])
@@ -58,10 +66,10 @@ for i in range(1000):
             cv2.imwrite(sample_dir+'/'+str(i)+'_corner3.png'      ,cv2.cvtColor(corner3,cv2.COLOR_RGB2BGR))
             cv2.imwrite(sample_dir+'/'+str(i)+'_topview.png'      ,cv2.cvtColor(topview,cv2.COLOR_RGB2BGR))
             
-            prev_action    = a
-        
+            max_a = max(max_a,a.max())
+            max_p = max(max_p,hand_pos.max())
         data_dict[episode_num] = {'task_name':taskname,'data':episode_dict}
         episode_num +=1
-
+print('max action',max_a,' max pos ', max_p)
 with open(json_file, "w") as write_file:
     json.dump(data_dict, write_file) 

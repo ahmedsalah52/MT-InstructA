@@ -23,8 +23,8 @@ obs = env.reset()  # Reset environment
 policy = SawyerButtonPressTopdownV2Policy(env.main_env_pos)
 for i in range(200):
     a = policy.get_action(obs)
-    a[a>0] = 1
-    a[a<0] = -1
+    #a[a>1] = 1
+    #a[a<-1] = -1
     
     obs, reward, done, info = env.step(a/2)  # Step the environoment with the sampled random action
     print(i,'action ',a,' reward ' ,round(reward,2),' state ',info['success'])

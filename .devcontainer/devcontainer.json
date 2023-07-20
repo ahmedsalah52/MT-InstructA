@@ -8,7 +8,13 @@
 		// Update the 'dockerFile' property if you aren't using the standard 'Dockerfile' filename.
 		"dockerfile": "../Dockerfile"
 	},
-
+	"runArgs": [
+		"--gpus",
+		"all",
+		"--shm-size",
+		"24gb"
+		
+	],
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	// "features": {},
 
