@@ -9,6 +9,7 @@ import numpy as np
 
 from metaworld.envs import reward_utils
 from metaworld.envs.mujoco.mujoco_env import MujocoEnv, _assert_task_is_set
+import gymnasium 
 
 
 class SawyerMocapBase(MujocoEnv, metaclass=abc.ABCMeta):
@@ -401,6 +402,29 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             np.hstack((self._HAND_SPACE.high, gripper_high, obj_high, self._HAND_SPACE.high, gripper_high, obj_high, goal_high)),
             dtype=np.float64,
         ) if self.isV2 else Box(
+            np.hstack((self._HAND_SPACE.low, obj_low, goal_low)),
+            np.hstack((self._HAND_SPACE.high, obj_high, goal_high)),
+            dtype=np.float64,
+        )
+    
+
+    def observation_space_gymnasium(self):
+        obs_obj_max_len = self._obs_obj_max_len if self.isV2 else 6
+
+        obj_low = np.full(obs_obj_max_len, -np.inf)
+        obj_high = np.full(obs_obj_max_len, +np.inf)
+        goal_low = np.zeros(3) if self._partially_observable \
+            else self.goal_space.low
+        goal_high = np.zeros(3) if self._partially_observable \
+            else self.goal_space.high
+        gripper_low = -1.
+        gripper_high = +1.
+
+        return gymnasium.spaces.Box(
+            np.hstack((self._HAND_SPACE.low, gripper_low, obj_low, self._HAND_SPACE.low, gripper_low, obj_low, goal_low)),
+            np.hstack((self._HAND_SPACE.high, gripper_high, obj_high, self._HAND_SPACE.high, gripper_high, obj_high, goal_high)),
+            dtype=np.float64,
+        ) if self.isV2 else gymnasium.spaces.Box(
             np.hstack((self._HAND_SPACE.low, obj_low, goal_low)),
             np.hstack((self._HAND_SPACE.high, obj_high, goal_high)),
             dtype=np.float64,

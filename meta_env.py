@@ -33,19 +33,32 @@ class meta_env(Env):
         self.env = ml1.my_env_s
         task = random.choice(ml1.train_tasks)
         self.env.set_task(task)  # Set task
-        self.action_space = self.env.action_space
-        self.observation_space = self.env.observation_space
-        
-    def reset(self):
-        return self.env.reset()  # Reset environment
+        self.action_space = spaces.Box(-1, 1, shape=(4,)) #self.env.action_space
+        self.observation_space = self.env.observation_space_gymnasium()
+        self.steps = 0
+        self.max_steps = 200
+
+    def reset(self,seed=None, options=None):
+        super().reset(seed=seed)
+        self.steps = 0
+
+        return self.env.reset() ,  {} # Reset environment
         
     
     def render(self, mode='human'):
-        print('render')
-        return Image.fromarray(self.main_frame) 
+        return self.env.render(offscreen= True,camera_name='behindGripper')
+    
     def close (self):
         pass
 
+    def step(self,a):
+            
+        obs, reward, done, info = self.env.step(a)
+
+        if self.steps >= self.max_steps:
+            return obs, -10 , True ,done,info
+        self.steps+=1
+        return obs, reward, (info['success']==1.0),done,info
 
 
 def get_episode(model,taskname):

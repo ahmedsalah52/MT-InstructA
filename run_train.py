@@ -35,8 +35,8 @@ class CFG():
     instructs_file_dir = 'instructions/button_press.json'
     min_expert_prob = -1
     max_expert_prob = 1
-    steps_sampling_ratio = 0.5
-    start_from_model = 116
+    steps_sampling_ratio = 1
+    start_from_model = 121
 
 
 def train_epoch(model, train_loader, optimizer, lr_scheduler, step,criterion):

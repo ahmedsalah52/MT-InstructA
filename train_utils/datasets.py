@@ -124,7 +124,7 @@ def predict_action(model,images,encoded_command,hand_pos,device):
         logits  = model(batch)  
         actions = logits.cpu().detach().numpy()
         actions = actions.reshape(-1)
-        actions[0:3] = ((actions[0:3]*20)-10)
+        actions = ((actions*2)-1)
 
 
     return actions 
@@ -241,8 +241,10 @@ class Metaworld_Dataset_live:
         
 
         expert_a = torch.tensor(expert_a)
-        expert_a[0:3] -= expert_a[0:3].min(0, keepdim=True)[0]
-        expert_a[0:3] /= expert_a[0:3].max(0, keepdim=True)[0]
+        expert_a[expert_a>1]  = 1.0  
+        expert_a[expert_a<1]  = -1.0 
+        expert_a  += 1.0
+        expert_a  /= 2.0
        
 
         ret['image']       = self.data['image'][idx]
