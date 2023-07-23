@@ -1,7 +1,8 @@
 import torch.nn as nn
 import torch
 import math
-
+from transformers import DistilBertModel, DistilBertConfig, DistilBertTokenizer
+import timm
 
 class PositionalEncoding(nn.Module):
     def __init__(self, dim_model, dropout_p, max_len):
@@ -107,34 +108,28 @@ class Policy(nn.Module):
         self.policy_head = policy_head
         self.seq_length = seq_length
         self.emp_length = emp_length
-        
-        self.language_img_model.eval()
+        self.normalizing = nn.BatchNorm1d(384,8).to(device=device)
+        #self.language_img_model.eval()
 
        
     def forward(self,batch):
-        if 'embeddings' in batch.keys():
-            text_images_embeddings = batch['embeddings']
-        else:
-            batch_size,cams,ch,h,w  = batch['image'].shape
-            batch["image"] = torch.flatten(batch["image"], start_dim=0, end_dim=1)
-            image_features = self.language_img_model.encode_image(batch["image"])
-            text_features = self.language_img_model.encode_text(batch["caption"])
-            
-            image_features = torch.unflatten(image_features,dim = 0,sizes=(batch_size,cams))
-
-            text_images_embeddings = torch.cat([image_features,text_features[:,None,:]],dim=1)
-            text_images_embeddings = text_images_embeddings.flatten(1)
-            text_images_embeddings = text_images_embeddings.unflatten(-1,(self.seq_length-1,self.emp_length)) # batch ,384 , 8
+      
+        batch_size,cams,ch,h,w  = batch['image'].shape
+        batch["image"] = torch.flatten(batch["image"], start_dim=0, end_dim=1)
+        image_features = self.language_img_model.encode_image(batch["image"])
+        text_features = self.language_img_model.encode_text(batch["caption"])
         
-       
+        image_features = torch.unflatten(image_features,dim = 0,sizes=(batch_size,cams))
+
+        text_images_embeddings = torch.cat([image_features,text_features[:,None,:]],dim=1)
+        text_images_embeddings = text_images_embeddings.flatten(1)
+        text_images_embeddings = text_images_embeddings.unflatten(-1,(self.seq_length-1,self.emp_length)) # batch ,384 , 8
+    
+        text_images_embeddings = self.normalizing(text_images_embeddings)
 
         logits = self.policy_head(text_images_embeddings,batch['hand_pos'])
 
-
-        if 'embeddings' not in batch.keys():
-            return logits , text_images_embeddings.detach().cpu().squeeze(0)
-        else:
-            return logits
+        return logits
     
 
 class AvgMeter:
@@ -155,5 +150,110 @@ class AvgMeter:
         return text
 
 def get_lr(optimizer):
+    ret = []
     for param_group in optimizer.param_groups:
-        return param_group["lr"]
+        ret.append(param_group["lr"])
+    return ret
+    
+
+class ImageEncoder(nn.Module):
+    """
+    Encode images to a fixed size vector
+    """
+
+    def __init__(
+        self, model_name='resnet50', pretrained=True, trainable=True):
+        super().__init__()
+        self.model = timm.create_model(
+            model_name, pretrained, num_classes=0, global_pool="avg"
+        )
+        for p in self.model.parameters():
+            p.requires_grad = trainable
+
+    def forward(self, x):
+        return self.model(x)
+    
+class TextEncoder(nn.Module):
+    def __init__(self, model_name="distilbert-base-uncased", pretrained=True, trainable=True):
+        super().__init__()
+        if pretrained:
+            self.model = DistilBertModel.from_pretrained(model_name)
+        else:
+            self.model = DistilBertModel(config=DistilBertConfig())
+            
+        for p in self.model.parameters():
+            p.requires_grad = trainable
+
+        # we are using the CLS token hidden representation as the sentence's embedding
+        self.target_token_idx = 0
+
+    def forward(self, input_ids, attention_mask):
+        output = self.model(input_ids=input_ids, attention_mask=attention_mask)
+        last_hidden_state = output.last_hidden_state
+        return last_hidden_state[:, self.target_token_idx, :]
+class ProjectionHead(nn.Module):
+    def __init__(
+        self,
+        embedding_dim = 2048,
+        projection_dim=512,
+        dropout=0.1
+    ):
+        super().__init__()
+        self.projection = nn.Linear(embedding_dim, projection_dim)
+        self.gelu = nn.GELU()
+        self.fc = nn.Linear(projection_dim, projection_dim)
+        self.dropout = nn.Dropout(dropout)
+        self.layer_norm = nn.LayerNorm(projection_dim)
+    
+    def forward(self, x):
+        projected = self.projection(x)
+        x = self.gelu(projected)
+        x = self.fc(x)
+        x = self.dropout(x)
+        x = x + projected
+        x = self.layer_norm(x)
+        return x  
+    
+
+class Simple_policy(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+
+        self.image_encoder    = ImageEncoder()
+        self.text_encoder     = TextEncoder()
+        self.image_projection = ProjectionHead(embedding_dim=2048)
+        self.text_projection  = ProjectionHead(embedding_dim=768)
+        self.pos_emp = nn.Linear(3,512)
+        self.head = nn.Sequential(nn.Flatten(),
+                                    nn.Linear(7*512, 512),
+                                     nn.ReLU(),
+                                     nn.Linear(512,512),
+                                     nn.ReLU(),
+                                     nn.Linear(512,4),
+                                     nn.Sigmoid())
+    def forward(self,batch):
+        # Getting Image and Text Features
+       
+
+        batch_size,cams,ch,h,w  = batch['image'].shape
+        batch["image"] = torch.flatten(batch["image"], start_dim=0, end_dim=1)
+
+        image_features = self.image_encoder(batch["image"])
+        
+
+        text_features = self.text_encoder(
+            input_ids=batch["input_ids"], attention_mask=batch["attention_mask"]
+        )
+
+        image_features = torch.unflatten(image_features,dim = 0,sizes=(batch_size,cams))
+        
+        image_features = self.image_projection(image_features)
+        text_features  = self.text_projection(text_features)
+        pos_embeddings = self.pos_emp(batch['hand_pos'])
+        text_images_embeddings = torch.cat([image_features,text_features[:,None,:],pos_embeddings[:,None,:]],dim=1)
+
+        logits = self.head(text_images_embeddings)
+
+        return logits
+    

@@ -8,7 +8,7 @@ from torch import nn
 import torch.nn.functional as F
 from tqdm import tqdm
 import clip
-from train_utils.model import Transformer,Policy,AvgMeter
+from train_utils.model import Transformer,Policy,AvgMeter,Simple_policy
 from train_utils.datasets import Metaworld_Dataset
 
 import metaworld
@@ -22,6 +22,7 @@ from metaworld.policies import * #SawyerBasketballV2Policy
 
 from PIL import Image
 from train_utils.datasets import predict_action
+from transformers import DistilBertTokenizer
 
 class CFG():
     device = 'cpu' #"cuda" if torch.cuda.is_available() else "cpu"
@@ -66,7 +67,7 @@ def main():
     variations_per_action = 3,
     device=CFG.device
     ).to(CFG.device) 
-    clip_model , preprocess = clip.load("ViT-B/32", device=CFG.device)
+    """    clip_model , preprocess = clip.load("ViT-B/32", device=CFG.device)
     
     policy = Policy(language_img_model=clip_model,
                     policy_head=policy_head,
@@ -74,8 +75,12 @@ def main():
                     emp_length=8,
                     device=CFG.device
                     )
-    policy.policy_head.load_state_dict(torch.load('best_19.pt'))
-        
+    """   
+    policy = Simple_policy()
+    policy.load_state_dict(torch.load('last_20.pt'))
+
+    policy = policy.to(CFG.device)
+
     task = 'button-press-topdown-v2'
     ml1 = metaworld.ML_1_multi(task) # Construct the benchmark, sampling tasks
     #env = ml1.train_classes[task]()  # Create an environment with task `pick_place`
@@ -88,8 +93,15 @@ def main():
 
     x = y = z = g = 0
     expert_policy = SawyerButtonPressTopdownV2Policy(env.main_env_pos)
+    images_transform = transforms.Compose([
+    transforms.ToTensor(), 
+    transforms.Resize((224,224)),
+    transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
+    ])
 
-    for i in range(500):
+    tokenizer = DistilBertTokenizer.from_pretrained("distilbert-base-uncased")
+
+    for i in range(50):
         hand_pos = expert_policy._parse_obs(obs)['hand_pos'].astype(np.float32)
 
 
@@ -99,8 +111,20 @@ def main():
         corner3        = env.render(offscreen= True,camera_name='corner3')
         topview        = env.render(offscreen= True,camera_name='topview')
         
+
+
+        input_imgs = []
+        for image in [corner,corner2,behindGripper,corner3,topview]:
+            input_imgs.append(images_transform(Image.fromarray(image, "RGB")))
+
+        input_imgs = torch.stack(input_imgs)
+
+
+        encoded_command = tokenizer(list(['press the red button of the yellow device']), padding=True, truncation=True, max_length=200)
+
+
         #a = predict_action(policy,[corner,corner2,behindGripper,corner3,topview],'press the button',preprocess,clip.tokenize)
-        a , _ = predict_action(policy,[corner,corner2,behindGripper,corner3,topview],'press the button',hand_pos,preprocess,clip.tokenize,CFG.device)
+        a = predict_action(policy,input_imgs,encoded_command,hand_pos,CFG.device)
 
 
         topview        = cv2.rotate(topview, cv2.ROTATE_180)
@@ -111,7 +135,9 @@ def main():
         behindGripper  = cv2.resize(behindGripper, (all.shape[1],int(behindGripper.shape[0] * all.shape[1]/all.shape[0])))
 
         final_frame = cv2.vconcat([all,behindGripper])
-        cv2.imshow('show',cv2.cvtColor(final_frame, cv2.COLOR_RGB2BGR))
+        final_frame = cv2.resize(final_frame,(1024,1024))
+        final_frame = cv2.cvtColor(final_frame, cv2.COLOR_RGB2BGR)
+        cv2.imshow('show',final_frame)
 
         #print(a,reward)
         key = cv2.waitKey(1)

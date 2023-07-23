@@ -35,12 +35,14 @@ for i in range(500):
     topview        = cv2.rotate(topview, cv2.ROTATE_180)
     behindGripper  = cv2.rotate(behindGripper, cv2.ROTATE_180)
     behindGripper  = cv2.resize(behindGripper, (256,256))
-    #all     = cv2.hconcat([corner,corner2,corner3,topview])
+    all     = cv2.hconcat([corner,corner2,corner3,topview])
 
-    #behindGripper  = cv2.resize(behindGripper, (all.shape[1],int(behindGripper.shape[0] * all.shape[1]/all.shape[0])))
+    behindGripper  = cv2.resize(behindGripper, (all.shape[1],int(behindGripper.shape[0] * all.shape[1]/all.shape[0])))
 
-    #final_frame = cv2.vconcat([all,behindGripper])
-    cv2.imshow('show',cv2.cvtColor(behindGripper, cv2.COLOR_RGB2BGR))
+    final_frame = cv2.vconcat([all,behindGripper])
+    final_frame = cv2.resize(final_frame,(1024,1024))
+    final_frame = cv2.cvtColor(final_frame, cv2.COLOR_RGB2BGR)
+    cv2.imshow('show',final_frame)
 
     #print(a,reward)
     key = cv2.waitKey(0)

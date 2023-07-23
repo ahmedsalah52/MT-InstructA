@@ -91,6 +91,15 @@ class Metaworld_Dataset:
        
         return ret
     
+def process_command(command,tokenizer):
+    encoded_command = tokenizer(list([command]), padding=True, truncation=True, max_length=200)
+    ret = {}
+    for k,v in encoded_command.items():
+        empty_tensor = np.zeros((12),dtype=int)
+        empty_tensor[0:len(v[0])] =  v[0]
+        v[0] =  list(empty_tensor)
+        ret[k] =  v
+    return ret
 
 def prepare_batch(batch):
     batch['image'] = batch['image'].permute(2,0,1,3,4,5)
@@ -98,24 +107,29 @@ def prepare_batch(batch):
 
     return batch
 
-def predict_action(model,images,text,hand_pos,preprocess,tokenize,device):
-    input_imgs = []
-    for image in images:
-        input_imgs.append(preprocess(Image.fromarray(image, "RGB")))
+def predict_action(model,images,encoded_command,hand_pos,device):
+    with torch.no_grad():
 
-    input_imgs = torch.stack(input_imgs).unsqueeze(0).to(device)
-    text = tokenize(text).to(device)
-    hand_pos = torch.tensor(hand_pos).reshape(1,-1).to(device)
-    batch = {'image':input_imgs,'caption':text,'hand_pos':hand_pos}
-    logits , embeddings = model(batch)  
-    actions = logits.cpu().detach().numpy()
-    actions = actions.reshape(-1)
-    actions[0:3] = ((actions[0:3]*20)-10)
+        
+        batch = {
+                key: torch.tensor(values[0]).unsqueeze(0)
+                for key, values in encoded_command.items()
+            }
 
 
-    return actions , embeddings
+        batch['image']    = images.unsqueeze(0)
+        batch['hand_pos'] = torch.tensor(hand_pos).reshape(1,-1)
 
-def get_episode(model,taskname,images_transform,clip,command,prob_expert_generate,steps_sampling_ratio,device):
+        batch = {k:v.to(device) for k,v in batch.items()}
+        logits  = model(batch)  
+        actions = logits.cpu().detach().numpy()
+        actions = actions.reshape(-1)
+        actions[0:3] = ((actions[0:3]*20)-10)
+
+
+    return actions 
+
+def get_episode(model,taskname,images_transform,tokenizer,command,prob_expert_generate,steps_sampling_ratio,device):
     ml1 = metaworld.ML_1_multi(taskname) # Construct the benchmark, sampling tasks
     #env = ml1.train_classes[task]()  # Create an environment with task `pick_place`
     env = ml1.my_env_s
@@ -124,6 +138,9 @@ def get_episode(model,taskname,images_transform,clip,command,prob_expert_generat
     obs = env.reset()  # Reset environment
     policy = SawyerButtonPressTopdownV2Policy(env.main_env_pos)
     episode_dict = defaultdict(list)
+    print('Command:',command)
+    print('env:',env.file_name)
+
     for i in range(200):
         hand_pos = policy._parse_obs(obs)['hand_pos'].astype(np.float32)
         expert_a = policy.get_action(obs)
@@ -141,23 +158,37 @@ def get_episode(model,taskname,images_transform,clip,command,prob_expert_generat
                 cv2.cvtColor(corner3,cv2.COLOR_RGB2BGR),      
                 cv2.cvtColor(topview,cv2.COLOR_RGB2BGR)      
         ]
+
+
+        input_imgs = []
+        for image in images:
+            input_imgs.append(images_transform(Image.fromarray(image, "RGB")))
+
+        input_imgs = torch.stack(input_imgs)
+
+
+        encoded_command = process_command(command, tokenizer)
         
-        a , embeddings = predict_action(model,images,command,hand_pos,images_transform,clip.tokenize,device)
-        
-        
+
         if random.random()<prob_expert_generate :
             #expert
             action_to_take = expert_a
         else:
             #model
-            action_to_take = a
+            action_to_take  = predict_action(model,input_imgs,encoded_command,hand_pos,device)
 
         if random.random()<steps_sampling_ratio:
+
+            
             #episode_dict['pred_a'].append(a)
             episode_dict['expert_a'].append(list(expert_a))
-            episode_dict['embeddings'].append(embeddings)
+            episode_dict['image'].append(input_imgs)
             #episode_dict['step'].append(i)
             episode_dict['hand_pos'].append(hand_pos)
+            episode_dict['caption'].append(command)
+            episode_dict['encoded_command'].append(encoded_command)
+            
+            
             #episode_dict['reward'].append(reward)
             #episode_dict['state'].append(info['success'])
 
@@ -171,11 +202,11 @@ def get_episode(model,taskname,images_transform,clip,command,prob_expert_generat
     return episode_dict
 
 class Metaworld_Dataset_live:
-    def __init__(self,model,images_transform,clip,prob_expert_generate,CFG) -> None:
+    def __init__(self,model,images_transform,tokenizer,prob_expert_generate,CFG) -> None:
         self.model  = model
         self.device = CFG.device
         self.images_transform = images_transform
-        self.clip = clip
+        self.tokenizer = tokenizer
         self.prob_expert_generate = prob_expert_generate    
         self.steps_sampling_ratio = CFG.steps_sampling_ratio
         f = open(CFG.instructs_file_dir)
@@ -194,10 +225,12 @@ class Metaworld_Dataset_live:
 
         #taskname = self.data['taskname'][idx]
         #instruct = random.choice(self.instructons[taskname][0:100])
+        ret = {
+                key: torch.tensor(values[0])
+                for key, values in self.data['encoded_command'][idx].items()
+            }
 
-        ret = {}
-       
-
+               
         #step        = data['step'][idx]
         hand_pos    = self.data['hand_pos'][idx]
         expert_a    = self.data['expert_a'][idx]
@@ -212,14 +245,14 @@ class Metaworld_Dataset_live:
         expert_a[0:3] /= expert_a[0:3].max(0, keepdim=True)[0]
        
 
-        ret['embeddings']  = self.data['embeddings'][idx]
+        ret['image']       = self.data['image'][idx]
         ret['expert_a']    = expert_a
         #ret['pred_a']      = pred_a
         #ret['state']       = self.data['state'][idx]
         ret['hand_pos']    = torch.tensor(hand_pos)
         #ret['reward']      = torch.tensor(reward)
-        #ret['caption']     = instruct
-        
+        ret['caption']      = self.data['caption'][idx]
+       
        
         return ret
 
@@ -239,11 +272,11 @@ class Metaworld_Dataset_live:
         data_dict = defaultdict(list)
         taskname = random.choice(self.tasks_names)
 
-        command = random.choice(self.instructons[taskname][0:100])
-
-
+        
         for i in tqdm(range(episodes)):
-            episode_dict = get_episode(model,taskname,self.images_transform,self.clip,command,self.prob_expert_generate,self.steps_sampling_ratio,self.device)
+            command = random.choice(self.instructons[taskname][0:100])
+            
+            episode_dict = get_episode(model,taskname,self.images_transform,self.tokenizer,command,self.prob_expert_generate,self.steps_sampling_ratio,self.device)
             
             for key, data in episode_dict.items():
                 data_dict[key] += data
