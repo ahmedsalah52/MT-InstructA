@@ -28,6 +28,8 @@ class SawyerButtonPressTopdownV2Policy(Policy):
         action['grab_effort'] = 1.
 
         return action.array
+    
+    
 
     @staticmethod
     def _desired_pos(o_d):

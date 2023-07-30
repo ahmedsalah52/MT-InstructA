@@ -9,7 +9,7 @@ tasks = ['assembly-v2', 'basketball-v2', 'bin-picking-v2', 'box-close-v2', 'butt
 
 print(len(tasks))
 
-task = 'button-press-topdown-v2'
+task = 'assembly-v2'
 ml1 = metaworld.ML_1_multi(task) # Construct the benchmark, sampling tasks
 #env = ml1.train_classes[task]()  # Create an environment with task `pick_place`
 env = ml1.my_env_s
@@ -26,7 +26,7 @@ for i in range(200):
     #a[a>1] = 1
     #a[a<-1] = -1
     
-    obs, reward, done, info = env.step(a/2)  # Step the environoment with the sampled random action
+    obs, reward, done, info = env.step(a)  # Step the environoment with the sampled random action
     print(i,'action ',a,' reward ' ,round(reward,2),' state ',info['success'])
     x = y = z = g = 0
     #env.render() 
@@ -47,7 +47,7 @@ for i in range(200):
     final_frame = cv2.cvtColor(final_frame, cv2.COLOR_RGB2BGR)
     final_frame = cv2.resize(final_frame, (final_frame.shape[1]//2,final_frame.shape[0]//2))
     cv2.imshow('show',final_frame)
-    key = cv2.waitKey(0)
+    key = cv2.waitKey(1)
     if key == ord('q'): break
 
 cv2.destroyAllWindows()

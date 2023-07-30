@@ -60,24 +60,24 @@ class LeakyReLU(nn.LeakyReLU):
 
 def main():
 
-    task_name  = "button-press-topdown-v2"
-    
+    task_name  =  'basketball-v2' #'assembly-v2' "button-press-topdown-v2"#
+    lr = 3e-5
     policy_kwargs = dict(
     features_extractor_class=CustomMLP,
     features_extractor_kwargs=dict(features_dim=256),
     activation_fn= LeakyReLU, 
-    net_arch = [256,256,256]
+    net_arch = [256,256,256,256]
     )
-    env = meta_env(task_name,True)
+    env = meta_env(task_name,False)
 
 
-    model = SAC("MlpPolicy", env,policy_kwargs=policy_kwargs, verbose=1,buffer_size=10000,batch_size=256,learning_rate=3e-4,replay_buffer_class = Custom_replay_buffer) #,replay_buffer_class = HerReplayBuffer,replay_buffer_kwargs={ 'n_envs':10}
-    #model = SAC.load("button-press-topdown-v2", env, verbose=1,buffer_size=10000,batch_size=512)
+    model = SAC("MlpPolicy", env,policy_kwargs=policy_kwargs, verbose=1,buffer_size=10000,batch_size=256,learning_rate=lr) 
+    #model = SAC.load("trained_agents/assembly-v2/39", env, verbose=1,buffer_size=10000,batch_size=256,learning_rate=lr)
     # now save the replay buffer too
     #checkpoint_callback = meta_Callback(env=env,save_dir='logs/episodes')
     for i in tqdm(range(200)):
         model.learn(total_timesteps=10000, log_interval=5)
-        model.save(os.path.join('trained_agents',task_name,str(i)))
-        model.save_replay_buffer(os.path.join("buffers",task_name,str(i)))
+        #model.save(os.path.join('trained_agents',task_name,str(i)))
+        #model.save_replay_buffer(os.path.join("buffers",task_name,str(i)))
 
 main()
