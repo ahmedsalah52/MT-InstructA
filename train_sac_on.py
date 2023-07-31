@@ -22,6 +22,7 @@ from tqdm import tqdm
 #import threading
 import _thread
 
+from stable_baselines3.common.callbacks import CheckpointCallback
 
 from stable_baselines3.common.env_checker import check_env
 from stable_baselines3 import SAC
@@ -29,7 +30,7 @@ from meta_env import meta_env,meta_Callback,Custom_replay_buffer
 
 from stable_baselines3.common.torch_layers import MlpExtractor,BaseFeaturesExtractor
 from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv
-
+import sys
 
 class CustomMLP(BaseFeaturesExtractor):
 
@@ -60,24 +61,33 @@ class LeakyReLU(nn.LeakyReLU):
 
 def main():
 
-    task_name  =  'basketball-v2' #'assembly-v2' "button-press-topdown-v2"#
-    lr = 3e-5
+    task_name  = sys.argv[1]  # "button-press-topdown-v2" #'basketball-v2' #'assembly-v2' "button-press-topdown-v2"#
+    
+    configs = json.load(open(os.path.join('training_configs',task_name+'.json')))
+    
     policy_kwargs = dict(
-    features_extractor_class=CustomMLP,
-    features_extractor_kwargs=dict(features_dim=256),
-    activation_fn= LeakyReLU, 
-    net_arch = [256,256,256,256]
+    features_extractor_class=getattr(sys.modules[__name__], configs['features_extractor_class']),
+    features_extractor_kwargs=dict(features_dim=configs['features_dim']),
+    activation_fn= getattr(sys.modules[__name__], configs['activation']), 
+    net_arch = configs['net_arch']
     )
-    env = meta_env(task_name,False)
+    checkpoint_callback = CheckpointCallback(
+    save_freq=configs['buffer_size'],
+    save_path="./logs/"+task_name,
+    name_prefix=task_name,
+    save_replay_buffer=True,
+    save_vecnormalize=True,
+    )
+    env = meta_env(task_name,configs['render'])
 
-
-    model = SAC("MlpPolicy", env,policy_kwargs=policy_kwargs, verbose=1,buffer_size=10000,batch_size=256,learning_rate=lr) 
+    print('training on Task:',task_name, ' - ','with rendering' if configs['render'] else 'without rendering')
+    
+    model = SAC("MlpPolicy", env,policy_kwargs=policy_kwargs, verbose=configs['verbose'],buffer_size=configs['buffer_size'],train_freq=configs['train_freq'],batch_size=configs['batch_size'],learning_rate=configs['lr']) 
     #model = SAC.load("trained_agents/assembly-v2/39", env, verbose=1,buffer_size=10000,batch_size=256,learning_rate=lr)
-    # now save the replay buffer too
-    #checkpoint_callback = meta_Callback(env=env,save_dir='logs/episodes')
-    for i in tqdm(range(200)):
-        model.learn(total_timesteps=10000, log_interval=5)
-        #model.save(os.path.join('trained_agents',task_name,str(i)))
-        #model.save_replay_buffer(os.path.join("buffers",task_name,str(i)))
+   
+    model.learn(total_timesteps=configs['total_timesteps'], log_interval=configs['log_interval'],callback=checkpoint_callback)
+       
+    print()
+    print('done training on Task:',task_name, ' - ','with rendering' if configs['render'] else 'without rendering',' with success ',env.success_counter)
 
 main()

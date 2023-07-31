@@ -60,7 +60,7 @@ class LeakyReLU(nn.LeakyReLU):
 
 def main():
 
-    task_name  = "button-press-topdown-v2"
+    task_name  = 'coffee-button-v2'
     
     policy_kwargs = dict(
     features_extractor_class=CustomMLP,
