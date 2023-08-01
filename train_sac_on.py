@@ -82,7 +82,7 @@ def main():
 
     print('training on Task:',task_name, ' - ','with rendering' if configs['render'] else 'without rendering')
     
-    model = SAC("MlpPolicy", env,policy_kwargs=policy_kwargs, verbose=configs['verbose'],buffer_size=configs['buffer_size'],train_freq=configs['train_freq'],batch_size=configs['batch_size'],learning_rate=configs['lr']) 
+    model = SAC("MlpPolicy", env,policy_kwargs=policy_kwargs, verbose=configs['verbose'],buffer_size=configs['buffer_size'],train_freq=configs['train_freq'],gradient_steps=configs["gradient_steps"],batch_size=configs['batch_size'],learning_rate=configs['lr']) 
     #model = SAC.load("trained_agents/assembly-v2/39", env, verbose=1,buffer_size=10000,batch_size=256,learning_rate=lr)
    
     model.learn(total_timesteps=configs['total_timesteps'], log_interval=configs['log_interval'],callback=checkpoint_callback)
