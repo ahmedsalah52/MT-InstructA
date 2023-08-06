@@ -123,7 +123,20 @@ class meta_env(Env):
         info['images'] = images
         info['file_order'] = self.env.file_order
         #if done and not (info['success']==1.0): reward -= 50
+
+        reward += self.additional_reward(obs)
+
         return obs, reward, done ,(info['success']==1.0),info
+    
+    
+    def additional_reward(self,obs):
+        hand_pos = obs[:3]
+        x = hand_pos[0]
+        x_shift = self.env.x_shift
+
+        delta_x = abs(x_shift - x)
+        reward = (0.7 - delta_x)/0.7
+        return reward
 
     def get_visual_obs(self):
         corner         = self.env.render(offscreen= True,camera_name='corner')# corner,2,3, corner2, topview, gripperPOV, behindGripper'

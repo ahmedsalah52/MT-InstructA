@@ -30,6 +30,8 @@ from meta_env import meta_env,meta_Callback,Custom_replay_buffer
 
 from stable_baselines3.common.torch_layers import MlpExtractor,BaseFeaturesExtractor
 from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv
+from typing import Callable
+
 import sys
 
 class CustomMLP(BaseFeaturesExtractor):
@@ -59,12 +61,37 @@ class LeakyReLU(nn.LeakyReLU):
     def __init__(self, negative_slope: float = 0.01, inplace: bool = False) -> None:
         super().__init__(negative_slope, inplace)
 
+
+def linear_schedule(initial_value: float,min_value: float) -> Callable[[float], float]:
+    """
+    Linear learning rate schedule.
+
+    :param initial_value: Initial learning rate.
+    :return: schedule that computes
+      current learning rate depending on remaining progress
+    """
+    def func(progress_remaining: float) -> float:
+        """
+        Progress will decrease from 1 (beginning) to 0.
+
+        :param progress_remaining:
+        :return: current learning rate
+        """
+        ret =  progress_remaining * initial_value
+        
+        return max(ret,min_value) 
+
+    return func
+
+
 def main():
 
     task_name  = sys.argv[1]  # "button-press-topdown-v2" #'basketball-v2' #'assembly-v2' "button-press-topdown-v2"#
     
     configs = json.load(open(os.path.join('training_configs',task_name+'.json')))
     
+
+
     policy_kwargs = dict(
     features_extractor_class=getattr(sys.modules[__name__], configs['features_extractor_class']),
     features_extractor_kwargs=dict(features_dim=configs['features_dim']),
@@ -82,7 +109,7 @@ def main():
 
     print('training on Task:',task_name, ' - ','with rendering' if configs['render'] else 'without rendering')
     
-    model = SAC("MlpPolicy", env,policy_kwargs=policy_kwargs, verbose=configs['verbose'],buffer_size=configs['buffer_size'],train_freq=configs['train_freq'],gradient_steps=configs["gradient_steps"],batch_size=configs['batch_size'],learning_rate=configs['lr']) 
+    model = SAC("MlpPolicy", env,policy_kwargs=policy_kwargs, verbose=configs['verbose'],buffer_size=configs['buffer_size'],train_freq=configs['train_freq'],gradient_steps=configs["gradient_steps"],batch_size=configs['batch_size'],learning_rate=linear_schedule(initial_value=configs['lr'],min_value=configs['lr']*1e-2)) 
     #model = SAC.load("trained_agents/assembly-v2/39", env, verbose=1,buffer_size=10000,batch_size=256,learning_rate=lr)
    
     model.learn(total_timesteps=configs['total_timesteps'], log_interval=configs['log_interval'],callback=checkpoint_callback)

@@ -67,3 +67,6 @@ COPY --chown=$USER:$USER . $HOME/code/metaworld
 
 ENTRYPOINT ["docker/entrypoint-headless.sh"]
 ENV SHELL /bin/bash
+
+
+#sudo apt-get install libglfw3 libglew2.0 libgl1-mesa-glx libosmesa3

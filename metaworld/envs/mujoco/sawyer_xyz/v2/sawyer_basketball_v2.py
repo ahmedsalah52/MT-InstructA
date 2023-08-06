@@ -30,9 +30,9 @@ class SawyerBasketballEnvV2(SawyerXYZEnv):
                     hand_low=hand_low,
                     hand_high=hand_high,
                 )
-        obj_low   = (main_env_pos ,0.6, 0.0299)
-        obj_high  = (main_env_pos, 0.7, 0.0301)
-        goal_low  = (main_env_pos, 0.85, 0.)
+        obj_low   = (main_env_pos ,0.5, 0.0299)
+        obj_high  = (main_env_pos, 0.5, 0.0301)
+        goal_low  = (main_env_pos, 0.9, 0.)
         goal_high = (main_env_pos, 0.9+1e-7, 0.)
 
         self.init_config = {

@@ -96,6 +96,7 @@ class SawyerNutAssemblyEnvV2(SawyerXYZEnv):
             
         self.file_name = env_txt_lines[self.file_order]
         self.main_env_pos = float(self.file_name.split(',')[1])
+        self.x_shift = self.main_env_pos
 
         obj_low   = (self.main_env_pos , 0.6, 0.02)
         obj_high  = (self.main_env_pos, 0.6, 0.02)
