@@ -55,6 +55,7 @@ class SawyerDoorUnlockEnvV2(SawyerXYZEnv):
             
             self.file_name = env_txt_line
             main_env_pos = float(self.file_name.split(',')[1])        
+        self.x_shift = main_env_pos
 
         obj_low = (main_env_pos, 0.8, 0.15)
         obj_high = (main_env_pos, 0.85, 0.15)

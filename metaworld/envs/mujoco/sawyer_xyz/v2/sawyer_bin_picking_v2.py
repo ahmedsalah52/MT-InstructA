@@ -34,7 +34,7 @@ class SawyerBinPickingEnvV2(SawyerXYZEnv):
 
         self.file_name = env_txt_line
         main_env_pos = float(self.file_name.split(',')[1])
-
+        self.x_shift = main_env_pos
         super().__init__(
                     self.model_name,
                     hand_low=hand_low,

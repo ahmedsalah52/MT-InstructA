@@ -56,7 +56,7 @@ class SawyerBoxCloseEnvV2(SawyerXYZEnv):
             
             self.file_name = env_txt_line
             main_env_pos = float(self.file_name.split(',')[1])        
-
+        self.x_shift = main_env_pos
         obj_low   = (main_env_pos, 0.5, 0.02)
         obj_high  = (main_env_pos, 0.55, 0.02)
         goal_low  = (main_env_pos-0.05, 0.7, 0.133)

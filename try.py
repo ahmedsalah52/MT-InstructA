@@ -23,3 +23,39 @@ for episode_num in range(episodes):
     data_dict[episode_num] = {'task_name':taskname,'data':episode_dict}
 
 print(data_dict)
+
+
+
+
+class CustomMLP(BaseFeaturesExtractor):
+
+
+    """
+    :param observation_space: (gym.Space)
+    :param features_dim: (int) Number of features extracted.
+        This corresponds to the number of unit for the last layer.
+    """
+
+    def __init__(self, observation_space: spaces.Box, net_arch = [256]):
+        super().__init__( observation_space = observation_space,features_dim = net_arch[-1])
+        n_input_channels = observation_space.shape[0]
+
+        net_arch = net_arch[:-1] # exclude the last layer, it will be added in the 
+        modules = []
+        for i , layer_dim in enumerate(net_arch):
+            modules.append(nn.Linear(n_input_channels, layer_dim))
+            if i == 0:
+                modules.append(nn.LayerNorm(layer_dim))
+            else:
+                modules.append(LeakyReLU())
+            n_input_channels = layer_dim
+
+        self.linear = nn.Sequential(*modules)
+
+    def forward(self, observations: th.Tensor) -> th.Tensor:
+        
+        features = self.linear(observations)
+
+
+        return features
+

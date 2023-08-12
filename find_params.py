@@ -33,6 +33,8 @@ from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv
 from typing import Callable
 
 import sys
+import optuna
+
 
 class CustomMLP(BaseFeaturesExtractor):
 
@@ -84,20 +86,18 @@ def linear_schedule(initial_value: float,min_value: float) -> Callable[[float], 
     return func
 
 
-def main():
+def run_trial(configs):
 
     task_name  = sys.argv[1]  # "button-press-topdown-v2" #'basketball-v2' #'assembly-v2' "button-press-topdown-v2"#
     
-    configs = json.load(open(os.path.join('training_configs',task_name+'.json')))
     
-
-
     policy_kwargs = dict(
     features_extractor_class=getattr(sys.modules[__name__], configs['features_extractor_class']),
     features_extractor_kwargs=dict(features_dim=configs['features_dim']),
     activation_fn= getattr(sys.modules[__name__], configs['activation']), 
     net_arch = configs['net_arch'],
     share_features_extractor=False
+
     )
     checkpoint_callback = CheckpointCallback(
     save_freq=configs['buffer_size'],
@@ -110,12 +110,38 @@ def main():
 
     print('training on Task:',task_name, ' - ','with rendering' if configs['render'] else 'without rendering')
     
-    model = SAC("MlpPolicy", env,policy_kwargs=policy_kwargs, verbose=configs['verbose'],buffer_size=configs['buffer_size'],train_freq=configs['train_freq'],gradient_steps=configs["gradient_steps"],batch_size=configs['batch_size'],learning_rate=linear_schedule(initial_value=configs['lr'],min_value=configs['lr_min'])) 
-    #model = SAC.load("trained_agents/assembly-v2/39", env, verbose=1,buffer_size=10000,batch_size=256,learning_rate=lr)
+    model = SAC("MlpPolicy", env,policy_kwargs=policy_kwargs, verbose=configs['verbose'],buffer_size=configs['buffer_size'],train_freq=configs['train_freq'],gradient_steps=configs["gradient_steps"],batch_size=configs['batch_size'],learning_rate=configs['lr']) 
    
     model.learn(total_timesteps=configs['total_timesteps'], log_interval=configs['log_interval'],callback=checkpoint_callback)
        
     print()
     print('done training on Task:',task_name, ' - ','with rendering' if configs['render'] else 'without rendering',' with success ',env.success_counter)
+    return env.total_rewards
+
+
+def objective(trial):
+    configs = json.load(open(os.path.join('training_configs','search.json')))
+
+    # 2. Suggest values of the hyperparameters using a trial object.
+    n_layers                  = trial.suggest_int('n_layers', 1, 5)
+    layer_size                = trial.suggest_categorical('layer_size', [256, 512,1024])
+    freq                      = trial.suggest_categorical('train_freq', [1,10,25,50])
+    configs['train_freq']     = freq
+    configs['gradient_steps'] = freq
+    configs['net_arch']       = [layer_size] * n_layers
+    print(configs)
+    success = run_trial(configs)
+
+
+    return success
+def main():
+    study = optuna.create_study(direction='maximize')
+    study.optimize(objective, n_trials=10)
+
+    trial = study.best_trial
+
+    print('Accuracy: {}'.format(trial.value))
+    print("Best hyperparameters: {}".format(trial.params))
+    print("best_params",study.best_params)
 
 main()

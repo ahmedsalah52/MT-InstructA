@@ -76,6 +76,7 @@ class meta_env(Env):
         self.dump_states = True
         self.save_images = save_images
         self.success_counter = 0
+        self.total_rewards = 0
         
 
 
@@ -94,6 +95,7 @@ class meta_env(Env):
         #obs = {'state':obs,'render':images}
         
         self.steps = 0
+        self.total_rewards = 0
         return obs ,  {'images':images,'file_order':self.env.file_order,'success':0.0} # Reset environment
         
     
@@ -124,8 +126,9 @@ class meta_env(Env):
         info['file_order'] = self.env.file_order
         #if done and not (info['success']==1.0): reward -= 50
 
-        reward += self.additional_reward(obs)
-
+        #reward += self.additional_reward(obs)
+        
+        self.total_rewards += reward
         return obs, reward, done ,(info['success']==1.0),info
     
     
