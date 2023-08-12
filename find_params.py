@@ -35,6 +35,7 @@ from typing import Callable
 import sys
 import optuna
 
+configs = json.load(open(os.path.join('training_configs','search.json')))
 
 class CustomMLP(BaseFeaturesExtractor):
 
@@ -86,8 +87,8 @@ def linear_schedule(initial_value: float,min_value: float) -> Callable[[float], 
     return func
 
 
-def run_trial(configs):
-
+def run_trial():
+    global configs
     task_name  = sys.argv[1]  # "button-press-topdown-v2" #'basketball-v2' #'assembly-v2' "button-press-topdown-v2"#
     
     
@@ -120,23 +121,27 @@ def run_trial(configs):
 
 
 def objective(trial):
-    configs = json.load(open(os.path.join('training_configs','search.json')))
+    global configs
 
     # 2. Suggest values of the hyperparameters using a trial object.
     n_layers                  = trial.suggest_int('n_layers', 1, 5)
     layer_size                = trial.suggest_categorical('layer_size', [256, 512,1024])
     freq                      = trial.suggest_categorical('train_freq', [1,10,25,50])
+    configs['lr']             = trial.suggest_float("lr", 1e-6, 3e-4, log=True)
     configs['train_freq']     = freq
     configs['gradient_steps'] = freq
     configs['net_arch']       = [layer_size] * n_layers
+    configs['features_dim']   = layer_size
+
     print(configs)
-    success = run_trial(configs)
+    success = run_trial()
 
 
     return success
 def main():
+    global configs
     study = optuna.create_study(direction='maximize')
-    study.optimize(objective, n_trials=10)
+    study.optimize(objective, n_trials=configs["trials"])
 
     trial = study.best_trial
 

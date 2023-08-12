@@ -1,12 +1,11 @@
 {
     "features_extractor_class":   "CustomMLP",
-    "features_dim":               256,
-    "lr":                         3e-5,
     "activation":                 "LeakyReLU",
     "batch_size":                 256,
     "render":                     0,
     "buffer_size":                10000,
     "verbose":                    1,
-    "total_timesteps":            1000000,
-    "log_interval":               5
+    "total_timesteps":            100000,
+    "log_interval":               5,
+    "trials":                     100
     }
