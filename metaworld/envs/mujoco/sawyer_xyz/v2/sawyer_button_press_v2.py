@@ -56,11 +56,10 @@ class SawyerButtonPressEnvV2(SawyerXYZEnv):
             env_txt_file = open('metaworld/all_envs/'+main_file.split('.')[0]+'.txt','r')
             env_txt_lines = env_txt_file.read().split('\n')
             
-            env_txt_line = random.choice(env_txt_lines)
-            
-            self.file_name = env_txt_line
+            self.file_order  = random.choice(range(len(env_txt_lines)))    
+            self.file_name = env_txt_lines[self.file_order]
             main_env_pos = float(self.file_name.split(',')[1])        
-
+        self.x_shift = main_env_pos
         obj_low =  (main_env_pos, 0.85, 0.115)
         obj_high = (main_env_pos, 0.9, 0.115)
 

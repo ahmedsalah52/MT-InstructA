@@ -9,7 +9,7 @@ tasks = ['assembly-v2', 'basketball-v2', 'bin-picking-v2', 'box-close-v2', 'butt
 
 print(len(tasks))
 
-task = 'assembly-v2'
+task = 'door-open-v2'
 ml1 = metaworld.ML_1_multi(task) # Construct the benchmark, sampling tasks
 #env = ml1.train_classes[task]()  # Create an environment with task `pick_place`
 env = ml1.my_env_s
@@ -20,7 +20,7 @@ task = ml1.train_tasks[0]
 env.set_task(task)  # Set task
 
 obs = env.reset()  # Reset environment
-policy = SawyerButtonPressTopdownV2Policy(env.main_env_pos)
+policy = SawyerDoorOpenV2Policy(env.x_shift)
 for i in range(200):
     a = policy.get_action(obs)
     #a[a>1] = 1
@@ -47,7 +47,7 @@ for i in range(200):
     final_frame = cv2.cvtColor(final_frame, cv2.COLOR_RGB2BGR)
     final_frame = cv2.resize(final_frame, (final_frame.shape[1]//2,final_frame.shape[0]//2))
     cv2.imshow('show',final_frame)
-    key = cv2.waitKey(1)
+    key = cv2.waitKey(100)
     if key == ord('q'): break
 
 cv2.destroyAllWindows()

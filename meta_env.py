@@ -96,6 +96,7 @@ class meta_env(Env):
         
         self.steps = 0
         self.total_rewards = 0
+        self.prev_reward = 0
         return obs ,  {'images':images,'file_order':self.env.file_order,'success':0.0} # Reset environment
         
     
@@ -128,8 +129,12 @@ class meta_env(Env):
 
         #reward += self.additional_reward(obs)
         
-        self.total_rewards += reward
-        return obs, reward, done ,(info['success']==1.0),info
+
+        d_reward = reward - self.prev_reward
+        self.prev_reward = reward
+        self.total_rewards += d_reward
+
+        return obs, d_reward, done ,(info['success']==1.0),info
     
     
     def additional_reward(self,obs):

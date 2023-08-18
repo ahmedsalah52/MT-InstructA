@@ -22,3 +22,34 @@ Accuracy: 23.0
 Best hyperparameters: {'n_layers': 3, 'layer_size': 512, 'train_freq': 1}
 best_params {'n_layers': 3, 'layer_size': 512, 'train_freq': 1}
 """
+
+
+"""
+done training on Task: coffee-button-v2  -  without rendering  with success  7211
+[I 2023-08-12 13:23:28,263] Trial 9 finished with value: 7211.0 and parameters: {'n_layers': 3, 'layer_size': 256, 'train_freq': 1}. Best is trial 9 with value: 7211.0.
+Accuracy: 7211.0
+Best hyperparameters: {'n_layers': 3, 'layer_size': 256, 'train_freq': 1}
+best_params {'n_layers': 3, 'layer_size': 256, 'train_freq': 1}
+"""
+
+# rewards
+
+
+"""
+done training on Task: door-lock-v2  -  without rendering  with success  0
+[I 2023-08-14 13:50:06,696] Trial 99 finished with value: 0.0 and parameters: {'n_layers': 5, 'layer_size': 256, 'train_freq': 50, 'lr': 5.675639358434636e-06}.
+Best is trial 18 with value: 213.50307929803.
+Accuracy: 213.50307929803
+Best hyperparameters: {'n_layers': 1, 'layer_size': 1024, 'train_freq': 10, 'lr': 1.975060076558358e-06}
+best_params {'n_layers': 1, 'layer_size': 1024, 'train_freq': 10, 'lr': 1.975060076558358e-06}
+"""
+
+
+"""done training on Task: box-close-v2  -  without rendering  with success  1
+[I 2023-08-14 20:43:48,359] Trial 99 finished with value: 89.45183983338566 and parameters: {'n_layers': 2, 'layer_size': 1024, 'train_freq': 1, 'lr': 3.762724674138361e-06}.
+Best is trial 94 with value: 150.58974249931484.
+Accuracy: 150.58974249931484
+Best hyperparameters: {'n_layers': 2, 'layer_size': 1024, 'train_freq': 1, 'lr': 2.1991491525034707e-06}
+best_params {'n_layers': 2, 'layer_size': 1024, 'train_freq': 1, 'lr': 2.1991491525034707e-06}
+"""
+

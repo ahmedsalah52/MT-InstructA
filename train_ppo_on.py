@@ -25,7 +25,7 @@ import _thread
 from stable_baselines3.common.callbacks import CheckpointCallback
 
 from stable_baselines3.common.env_checker import check_env
-from stable_baselines3 import SAC
+from stable_baselines3 import SAC,PPO
 from meta_env import meta_env,meta_Callback,Custom_replay_buffer
 
 from stable_baselines3.common.torch_layers import MlpExtractor,BaseFeaturesExtractor
@@ -53,6 +53,8 @@ class CustomMLP(BaseFeaturesExtractor):
     def forward(self, observations: th.Tensor) -> th.Tensor:
         
         features = self.linear(observations)
+
+
         return features
 
 class LeakyReLU(nn.LeakyReLU):
@@ -108,7 +110,7 @@ def main():
 
     print('training on Task:',task_name, ' - ','with rendering' if configs['render'] else 'without rendering')
     
-    model = SAC("MlpPolicy", env,policy_kwargs=policy_kwargs, verbose=configs['verbose'],buffer_size=configs['buffer_size'],train_freq=configs['train_freq'],gradient_steps=configs["gradient_steps"],batch_size=configs['batch_size'],learning_rate=linear_schedule(initial_value=configs['lr'],min_value=configs['lr_min'])) 
+    model = PPO("MlpPolicy", env,policy_kwargs=policy_kwargs, verbose=configs['verbose'],batch_size=configs['batch_size'],learning_rate=linear_schedule(initial_value=configs['lr'],min_value=configs['lr_min'])) 
     #model = SAC.load("trained_agents/assembly-v2/39", env, verbose=1,buffer_size=10000,batch_size=256,learning_rate=lr)
    
     model.learn(total_timesteps=configs['total_timesteps'], log_interval=configs['log_interval'],callback=checkpoint_callback)
