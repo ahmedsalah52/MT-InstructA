@@ -11,6 +11,8 @@ from metaworld.envs import reward_utils
 from metaworld.envs.mujoco.mujoco_env import MujocoEnv, _assert_task_is_set
 import gymnasium 
 
+from metaworld.envs.build_random_envs import build_env , multi_object_man
+import os
 
 class SawyerMocapBase(MujocoEnv, metaclass=abc.ABCMeta):
     """
@@ -634,3 +636,4 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             caging_and_gripping = (caging_and_gripping + reach) / 2
 
         return caging_and_gripping
+    

@@ -20,13 +20,11 @@ tasks =  ['assembly-v2', 'basketball-v2','box-close-v2', 'button-press-topdown-v
 
 print(len(tasks))
 
-task = 'door-lock-v2'
+task = 'coffee-button-v2'
 ml1 = metaworld.ML_1_multi(task) # Construct the benchmark, sampling tasks
 #env = ml1.train_classes[task]()  # Create an environment with task `pick_place`
 env = ml1.my_env_s
-task = random.choice(ml1.train_tasks)
-env.set_task(task)  # Set task
-
+env.set_task(ml1.train_tasks[0])  # Set task
 obs = env.reset()  # Reset environment
 x = y = z = g = 0
 #policy = SawyerBasketballV2Policy(env.x_shift)
@@ -34,7 +32,9 @@ for i in range(500):
     #a = policy.get_action(obs)
     a  = np.array([x,y,z,g])
     obs, reward, done, info = env.step(a)  # Step the environoment with the sampled random action
-    print(i,'-',reward,' - ',obs[:3] ,additional_reward(env.x_shift,obs))
+    #print(i,'-',reward,' - ',obs[:3] )
+    print(i,'action ',a,' reward ' ,round(reward,2),' state ',info['success'])
+
     x = y = z = g = 0
     #env.render() 
     corner         = env.render(offscreen= True,camera_name='corner')# corner,2,3, corner2, topview, gripperPOV, behindGripper'

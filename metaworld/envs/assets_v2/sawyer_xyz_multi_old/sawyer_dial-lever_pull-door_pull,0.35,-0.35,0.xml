@@ -15,7 +15,7 @@
 
         <site name="goal" pos="0. 0.74 0.07" size="0.02" rgba=".8 0 0 1" />
 
- --&gt;    <body name="lever-0.350" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/-0.35lever_pull.mjcf" /></body><body name="door01" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/0door_pull.mjcf" /></body></worldbody>
+ --&gt;    <body name="lever-0.350" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_dial/-0.35lever_pull.mjcf" /></body><body name="door01" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_dial/0door_pull.mjcf" /></body></worldbody>
 
     <actuator>
         <position ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="400" user="1" />

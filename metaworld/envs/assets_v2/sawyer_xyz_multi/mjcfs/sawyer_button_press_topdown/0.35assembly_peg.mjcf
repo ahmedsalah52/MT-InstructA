@@ -1,8 +1,8 @@
-<mujoco><body name="RoundNut0.35" pos="0.35 0.6 0.02" quat="1 0 0 1">
+<mujoco><body name="RoundNut0.35" pos="0.35 0.3 0.02" quat="1 0 0 1">
             <include file="../objects/assets/assembly_peg.xml" />
 
         </body>
-        <body name="peg0.35" pos="0.35 0.8 0.05">
+        <body name="peg0.35" pos="0.35 0.5 0.05">
           
           <geom material="asmbly_metal" pos="0 0 0" rgba="1 0.3 0.3 1" size="0.02 0.05" type="cylinder" conaffinity="1" contype="1" group="1" friction="1 0.005 0.0001" />
           <site name="pegTop" pos="0 0 0.05" size="0.005" rgba="0 0.8 0 1" />

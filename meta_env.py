@@ -130,11 +130,11 @@ class meta_env(Env):
         #reward += self.additional_reward(obs)
         
 
-        d_reward = reward - self.prev_reward
-        self.prev_reward = reward
-        self.total_rewards += d_reward
+        #d_reward = reward - self.prev_reward
+        #self.prev_reward = reward
+        #self.total_rewards += d_reward
 
-        return obs, d_reward, done ,(info['success']==1.0),info
+        return obs, reward, done ,(info['success']==1.0),info
     
     
     def additional_reward(self,obs):

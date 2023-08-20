@@ -5,12 +5,12 @@ from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
 
-from metaworld.envs.build_random_envs import build_env , multi_object_man
+from metaworld.envs.build_random_envs import Multi_task_env
 import os
 import glob,random
 
 
-class SawyerWindowOpenEnvV2(SawyerXYZEnv):
+class SawyerWindowOpenEnvV2(SawyerXYZEnv,Multi_task_env):
     """
     Motivation for V2:
         When V1 scripted policy failed, it was often due to limited path length.
@@ -23,55 +23,16 @@ class SawyerWindowOpenEnvV2(SawyerXYZEnv):
     TARGET_RADIUS = 0.05
 
     def __init__(self):
+        Multi_task_env.__init__(self)
 
-        hand_low = (-0.5, 0.40, 0.05)
-        hand_high = (0.5, 1, 0.5)
+        hand_low = (-1, 0.30, 0.05)
+        hand_high = (1, 1.3, 0.5)
         main_file = 'sawyer_window_horizontal.xml'
-        
-        generate = False
-        if generate:
-            mjcfs_dir = 'metaworld/envs/assets_v2/sawyer_xyz_multi/mjcfs/'+main_file.split('.')[0]
-            if not os.path.isdir(mjcfs_dir):
-                os.system('mkdir '+mjcfs_dir)
-            multi_object = multi_object_man(init_file_name=main_file)
-
-            main_envs_dir = 'metaworld/envs/assets_v2/sawyer_xyz/'
-            xml_files = os.listdir(main_envs_dir)
-            poses_list = [0,1,2]
-            for pos in [0,1,2]:
-                poses_list = [0,1,2]
-                dx_idx = poses_list.pop(pos)
-                for st_sec_file in xml_files:
-                    if main_file == st_sec_file: pass
-                    for nd_sec_file in xml_files:
-                        if nd_sec_file == st_sec_file or nd_sec_file == main_file: pass  
-                        try:
-                            multi_object.get_new_env([st_sec_file,nd_sec_file] , dx_idx,poses_list)
-                            self.file_name = multi_object.get_file_name()
-                            super().__init__(
-                                self.model_name,
-                                hand_low=hand_low,
-                                hand_high=hand_high,
-                            )
-                            multi_object.multi_env_loaded()
-                            
-                        except:
-                            print('failed to load:',self.file_name)
-                            multi_object.multi_env_not_loaded()
-
-        else:
-            env_txt_file = open('metaworld/all_envs/'+main_file.split('.')[0]+'.txt','r')
-            env_txt_lines = env_txt_file.read().split('\n')
-            
-            env_txt_line = random.choice(env_txt_lines)
-            
-            self.file_name = env_txt_line
-            main_env_pos = float(self.file_name.split(',')[1])        
-
-        obj_low = (main_env_pos, 0.7, 0.16)
-        obj_high = (main_env_pos, 0.9, 0.16)
-
-        super().__init__(
+        self.generate_env(main_file)
+        obj_low  = (self.task_offsets_min[0],  self.task_offsets_min[1], 0.16)
+        obj_high = (self.task_offsets_max[0],  self.task_offsets_max[1], 0.16)
+        SawyerXYZEnv.__init__(
+            self,
             self.model_name,
             hand_low=hand_low,
             hand_high=hand_high,

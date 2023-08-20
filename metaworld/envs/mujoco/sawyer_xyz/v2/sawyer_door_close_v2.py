@@ -12,58 +12,16 @@ import glob,random
 
 class SawyerDoorCloseEnvV2(SawyerDoorEnvV2):
     def __init__(self):
+        super().__init__()
 
-        
-        main_file = 'sawyer_door_pull.xml'
-        generate = False
-        if generate:
-            mjcfs_dir = 'metaworld/envs/assets_v2/sawyer_xyz_multi/mjcfs/'+main_file.split('.')[0]
-            if not os.path.isdir(mjcfs_dir):
-                os.system('mkdir '+mjcfs_dir)
-            multi_object = multi_object_man(init_file_name=main_file)
-
-            main_envs_dir = 'metaworld/envs/assets_v2/sawyer_xyz/'
-            xml_files = os.listdir(main_envs_dir)
-            poses_list = [0,1,2]
-            for pos in [0,1,2]:
-                poses_list = [0,1,2]
-                dx_idx = poses_list.pop(pos)
-                for st_sec_file in xml_files:
-                    if main_file == st_sec_file: pass
-                    for nd_sec_file in xml_files:
-                        if nd_sec_file == st_sec_file or nd_sec_file == main_file: pass  
-                        try:
-                            multi_object.get_new_env([st_sec_file,nd_sec_file] , dx_idx,poses_list)
-                            self.file_name = multi_object.get_file_name()
-                            super().__init__(
-                                self.model_name,
-                                hand_low=hand_low,
-                                hand_high=hand_high,
-                            )
-                            multi_object.multi_env_loaded()
-                            
-                        except:
-                            print('failed to load:',self.file_name)
-                            multi_object.multi_env_not_loaded()
-
-        else:
-            env_txt_file = open('metaworld/all_envs/'+main_file.split('.')[0]+'.txt','r')
-            env_txt_lines = env_txt_file.read().split('\n')
-            
-            self.file_order  = random.choice(range(len(env_txt_lines)))
-            
-            self.file_name = env_txt_lines[self.file_order]
-            main_env_pos = float(self.file_name.split(',')[1])        
-        self.x_shift = main_env_pos
-
-        goal_low = (main_env_pos+.2, 0.65, 0.1499)
-        goal_high = (main_env_pos+.3, 0.75, 0.1501)
+        goal_low  = (self.task_offsets_min[0]-.3,self.task_offsets_min[1] + 0.5, 0.1499)
+        goal_high = (self.task_offsets_max[0]-.3,self.task_offsets_max[1] + 0.5, 0.1501)
         
 
         self.init_config = {
             'obj_init_angle': 0.3,
             'obj_init_pos': np.array([0.1, 0.95, 0.15], dtype=np.float32),
-            'hand_init_pos': np.array([-0.5, 0.6, 0.2], dtype=np.float32),
+            'hand_init_pos': np.array([0, 0.6, 0.2], dtype=np.float32),
         }
         self.goal = np.array([0.2, 0.8, 0.15])
         self.obj_init_pos = self.init_config['obj_init_pos']

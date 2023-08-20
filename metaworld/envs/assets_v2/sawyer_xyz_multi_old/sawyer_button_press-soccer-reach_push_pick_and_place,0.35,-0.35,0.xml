@@ -12,7 +12,7 @@
           <site name="buttonStart" pos="0 -0.1935 0" size="0.005" rgba="0 0.8 0 1" />
           <site name="hole" pos="0 -0.1 0" size="0.005" rgba="0 0.8 0 1" />
         </body>
-    <body name="soccer_ball-0.350" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/-0.35soccer.mjcf" /></body><body name="obj01" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/0reach_push_pick_and_place.mjcf" /></body></worldbody>
+    <body name="soccer_ball-0.350" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_button_press/-0.35soccer.mjcf" /></body><body name="obj01" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_button_press/0reach_push_pick_and_place.mjcf" /></body></worldbody>
 
     <actuator>
         <position ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="400" user="1" />

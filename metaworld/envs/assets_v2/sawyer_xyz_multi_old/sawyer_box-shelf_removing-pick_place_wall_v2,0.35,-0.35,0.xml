@@ -17,7 +17,7 @@
             <include file="../objects/assets/boxtop.xml" />
         </body>
         <site name="goal" pos="0. 0.7 0.05" size="0.02" rgba="0 0.8 0 1" />
-    <body name="block-0.350" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/-0.35shelf_removing.mjcf" /></body><body name="obj01" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/0pick_place_wall_v2.mjcf" /></body></worldbody>
+    <body name="block-0.350" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_box/-0.35shelf_removing.mjcf" /></body><body name="obj01" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_box/0pick_place_wall_v2.mjcf" /></body></worldbody>
 
     <actuator>
         <position ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="400" user="1" />

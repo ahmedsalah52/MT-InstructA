@@ -3,36 +3,24 @@ import random
 import xml.etree.ElementTree as ET
 from collections import defaultdict
 import mujoco_py
-
+import os, json
+import numpy as np
 class multi_object_man():
-    def __init__(self,delta_x_objects = 0.35 , x_margin = 0.01,main_envs_dir = 'metaworld/envs/assets_v2/sawyer_xyz/' ,init_file_name = ''):
-        self.delta_x_objects = delta_x_objects
-        self.x_margin = x_margin
+    def __init__(self,main_envs_dir = 'metaworld/envs/assets_v2/sawyer_xyz/' ,init_file_name = ''):
+        
         self.main_envs_dir = main_envs_dir
         self.init_file_name = init_file_name
 
-        self.i_iter = 0
-        self.j_iter = 0
-
-    def get_new_env(self,secondary_files,dx_idx,poses_list):
+        
+    def get_new_env(self,main_rot,secondary_files,secondary_poses):
         #poses_list = [0,1,2]
         #dx_idx = poses_list.pop(random.randrange(len(poses_list)))
         
-        self.dx_dict = {0:-self.delta_x_objects , 1:0 , 2:self.delta_x_objects}
-        self.dx = self.dx_dict[dx_idx]
-        self.x_margin = self.x_margin
-
-        secondary_poses = [self.dx_dict[poses_list[0]],self.dx_dict[poses_list[1]]]
         
-        self.file_name = build_env(os.path.join(self.main_envs_dir,self.init_file_name),secondary_poses,secondary_files,self.dx)
+        self.file_name = build_env(os.path.join(self.main_envs_dir,self.init_file_name),main_rot,secondary_poses,secondary_files)
 
         self.text_file_name = self.init_file_name.split('.')[0]+ '.txt'
 
-    def get_dx_high(self):
-        return self.dx + self.x_margin
-    
-    def get_dx_low(self):
-        return self.dx - self.x_margin
     
     def get_file_name(self):
         return self.file_name
@@ -74,19 +62,6 @@ class multi_object_man():
         else:
             print('_________________________________________________________ repeated failure: ',self.file_name)
 
-def test_mjcf_file(filepath):
-    try:
-        # parse the mjcf file
-        tree = ET.parse(filepath)
-        root = tree.getroot()
-
-        # load the mjcf model
-        model = mujoco_py.load_model_from_xml(ET.tostring(root))
-
-        return True
-    except Exception as e:
-        return False, str(e)
-
 def write_mjcf_file(body_trees: list, includes: list, filepath: str):
     root = ET.Element('mujoco')
     for body_tree in body_trees:
@@ -99,32 +74,6 @@ def write_mjcf_file(body_trees: list, includes: list, filepath: str):
     with open(filepath, 'wb') as f:
         tree.write(f)
 
-
-def save_mjcf(body_trees, dependency_includes, file_path):
-    # Create the root element and add the body tree as a child
-    root = ET.Element("mujoco")
-    
-   
-    # Add the dependency includes as child elements of the root
-    for include_path in dependency_includes:
-        include_elem = ET.Element("include")
-        include_elem.set("file", include_path)
-        root.append(include_elem)
-    
-    
-    for body_tree in body_trees:
-        root.append(body_tree)
-
-    # Create the .mjcf file
-    tree = ET.ElementTree(root)
-    tree.write(file_path)
-
-    # Optionally, pretty-print the .mjcf file
-    # Note: this requires the 'xml.dom.minidom' module
-    # from xml.dom import minidom
-    # xml_str = minidom.parseString(ET.tostring(root)).toprettyxml(indent="  ")
-    # with open(file_path, "w") as f:
-    #     f.write(xml_str)
 
 def add_body_to_tree(main_tree, body_file,internal_file_dir,unique):
     # Parse the body file
@@ -178,13 +127,23 @@ def kill_duplicates(includes):
             check.append(inc.attrib['file'])
     return ret
             
-def edit_body_pos(body_list, pos_offset):
+def edit_body_pos(body_list, pos_offset_rot):
+    pos_offset = pos_offset_rot[0:2]
+    new_euler  = pos_offset_rot[2:]
     bodies = []
     for body in body_list:
         body.set('name', body.attrib.get('name')+str(pos_offset))
         pos = body.get('pos').split()
-        new_pos = [ pos_offset, float(pos[1]), float(pos[2])]
+        new_pos = [ pos_offset[0], float(pos[1])+pos_offset[1], float(pos[2])]
         body.set('pos', ' '.join(map(str, new_pos)))
+
+        # Modify the rotation
+        euler = body.get('euler')
+        if euler != None:
+            euler = euler.split()
+            new_euler = [float(euler[0])+new_euler[0] , float(euler[1])+new_euler[1], float(euler[2])+new_euler[2] ]
+        body.set('euler', ' '.join(map(str, new_euler)))
+
         bodies.append(body)
     return bodies
 
@@ -206,18 +165,7 @@ def add_includes_to_tree(tree, includes):
 
     return tree
 
-def add_bodies_to_tree(tree, body_list):
-    # get the worldbody element
-    worldbody = tree.find('worldbody')
-
-    # add each body to the worldbody
-    for body in body_list:
-        worldbody.append(body)
-
-    return tree
-#main_env = main_env_file_name
-#poses = [0 , 0.5]
-def build_env(main_env_path,poses,sec_files,main_pos):
+def build_env(main_env_path,main_rot,sec_poses,sec_files):
     #load main env xml file
     #load to random envs files
     #pick the body and independents sections in a dict
@@ -232,6 +180,16 @@ def build_env(main_env_path,poses,sec_files,main_pos):
     xml_dir   = os.path.split(main_env_path)[0]
     main_env_name = os.path.split(main_env_path)[1].split('.')[0]
     main_tree = ET.parse(main_env_path)
+    root = main_tree.getroot()
+    bodies = root.findall(".//body")
+    for body in bodies:
+        euler = body.get('euler')
+        if euler != None:
+            euler = euler.split()
+            euler = body.get('euler').split()
+            main_rot = [float(euler[0])+main_rot[0] , float(euler[1])+main_rot[1], float(euler[2])+main_rot[2] ]
+        body.set('euler', ' '.join(map(str, main_rot)))
+
     mjcfs_save_dir = os.path.join(multi_envs_dir,'mjcfs',main_env_name)
     mjcf_dir = os.path.join('../sawyer_xyz_multi/mjcfs',main_env_name)
 
@@ -244,7 +202,8 @@ def build_env(main_env_path,poses,sec_files,main_pos):
         bodies_names.append(secondary_env_name+'.mjcf')
     
     envs = defaultdict(list)
-    for i,(pos_offset , tree) in enumerate(zip(poses,secondary_envs_trees)):
+    for i,(pos_offset , tree) in enumerate(zip(sec_poses,secondary_envs_trees)):
+        
         bodies_names[i] = str(pos_offset)+bodies_names[i]
         bodies = get_bodies(tree)
         write_mjcf_file(edit_body_pos(bodies,pos_offset), get_tree_includes(tree)  , os.path.join(mjcfs_save_dir,bodies_names[i]))
@@ -262,12 +221,11 @@ def build_env(main_env_path,poses,sec_files,main_pos):
         out_file_name += sec_env
 
 
-    for pos in [main_pos] + poses:
+    """for pos in [main_pos] + poses:
         out_file_name += ','
-        out_file_name += str(pos)
+        out_file_name += str(pos)"""
         
     out_file_name += '.xml'
-    print(out_file_name)
 
     main_tree.write(os.path.join(multi_envs_dir,out_file_name))
     return out_file_name
@@ -276,7 +234,56 @@ def build_env(main_env_path,poses,sec_files,main_pos):
 
 
 
-    
+class Multi_task_env():
+    def __init__(self):
+        self.main_poses_dict  = json.load(open(os.path.join('configs/env_configs/main_poses_dict.json')))
 
-    
 
+    def generate_env(self,main_file):
+        main_poses_dict = self.main_poses_dict 
+        main_task_name = main_file.split('.')[0]
+        
+        main_envs_dir = 'metaworld/envs/assets_v2/sawyer_xyz/'
+        mjcfs_dir = 'metaworld/envs/assets_v2/sawyer_xyz_multi/mjcfs/'+main_task_name
+        if not os.path.isdir(mjcfs_dir):
+            os.system('mkdir -p '+mjcfs_dir)
+
+
+        main_task_name = main_task_name[7:] # remove sawyer_
+        poses_list    = [0,1,2]
+        task_variants = json.load(open(os.path.join('metaworld/all_envs',main_task_name+'.json')))
+        self.file_order  = random.choice(range(len(task_variants)))
+        task_variant     = task_variants[self.file_order]
+        #task_variant[2] = 'plate_slide'
+
+        self.task_variant  = task_variant
+
+        main_task_index = task_variant.index(main_task_name)
+        task_variant.pop(main_task_index)
+        poses_list.pop(main_task_index)
+
+        
+        task_key = main_task_name if main_task_name in main_poses_dict.keys() else 'default' 
+        main_task_offsets = main_poses_dict[task_key]['main'][str(main_task_index)]['offset']
+        main_task_range   = main_poses_dict[task_key]['main'][str(main_task_index)]['range']
+        main_rot          = main_poses_dict[task_key]['main'][str(main_task_index)]['rot']
+      
+        
+
+        secondary_poses= []  
+        for i in range(len(poses_list)):
+            task_key = task_variant[i] if task_variant[i] in main_poses_dict.keys() else 'default' 
+            task_offsets = main_poses_dict[task_key]['sec'][str(poses_list[i])]['offset']
+            task_range   = main_poses_dict[task_key]['sec'][str(poses_list[i])]['range']
+            sec_rot      = main_poses_dict[task_key]['sec'][str(poses_list[i])]['rot']
+            task_offsets_min = np.array(task_offsets) - np.array(task_range)
+            task_offsets_max = np.array(task_offsets) + np.array(task_range)
+            
+            sec_offset = list(np.random.uniform(task_offsets_min, task_offsets_max))
+            secondary_poses.append(sec_offset+sec_rot)
+            
+        task_variant = ['sawyer_'+task+'.xml' for task in task_variant]
+        
+        self.file_name = build_env(os.path.join(main_envs_dir ,main_file),main_rot,secondary_poses,task_variant)
+        self.task_offsets_min = np.array(main_task_offsets) - np.array(main_task_range)
+        self.task_offsets_max = np.array(main_task_offsets) + np.array(main_task_range)

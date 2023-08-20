@@ -24,7 +24,7 @@
         </body>
 
 
-    <body name="RoundNut00" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/0assembly_peg.mjcf" /></body><body name="stick0.351" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/0.35stick_obj.mjcf" /></body></worldbody>
+    <body name="RoundNut00" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_bin_picking/0assembly_peg.mjcf" /></body><body name="stick0.351" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_bin_picking/0.35stick_obj.mjcf" /></body></worldbody>
 
     <actuator>
         <position ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="400" user="1" />

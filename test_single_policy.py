@@ -9,7 +9,7 @@ tasks = ['assembly-v2', 'basketball-v2', 'bin-picking-v2', 'box-close-v2', 'butt
 
 print(len(tasks))
 
-task = 'door-open-v2'
+task = 'button-press-topdown-v2'
 ml1 = metaworld.ML_1_multi(task) # Construct the benchmark, sampling tasks
 #env = ml1.train_classes[task]()  # Create an environment with task `pick_place`
 env = ml1.my_env_s
@@ -20,7 +20,7 @@ task = ml1.train_tasks[0]
 env.set_task(task)  # Set task
 
 obs = env.reset()  # Reset environment
-policy = SawyerDoorOpenV2Policy(env.x_shift)
+policy = SawyerDoorOpenV2Policy()
 for i in range(200):
     a = policy.get_action(obs)
     #a[a>1] = 1

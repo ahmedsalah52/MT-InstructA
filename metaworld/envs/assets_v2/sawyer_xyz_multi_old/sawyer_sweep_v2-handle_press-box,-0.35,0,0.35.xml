@@ -17,7 +17,7 @@
 
       <site name="hand-goal-site" pos="0 0 0" size="0.01" rgba="1 0.5 0.5 0" />
       <site name="goal" pos="0 0 0" size="0.01" rgba="0.5 0.5 1 1" />
-    <body name="box00" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/0handle_press.mjcf" /></body><body name="boxbody0.351" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/0.35box.mjcf" /></body></worldbody>
+    <body name="box00" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_sweep_v2/0handle_press.mjcf" /></body><body name="boxbody0.351" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_sweep_v2/0.35box.mjcf" /></body></worldbody>
 
     <actuator>
         <position ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="400" user="1" />

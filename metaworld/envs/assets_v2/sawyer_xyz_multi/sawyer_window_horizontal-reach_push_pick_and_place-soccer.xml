@@ -1,0 +1,25 @@
+<mujoco>
+    <include file="../objects/assets/soccer_dependencies.xml" />
+    <include file="../objects/assets/xyz_base_dependencies.xml" />
+
+    <include file="../objects/assets/block_dependencies.xml" />
+    <include file="../scene/basic_scene.xml" />
+    <include file="../objects/assets/window_dependencies.xml" />
+    <worldbody>
+      <include file="../objects/assets/xyz_base.xml" />
+
+      <body name="window" pos="-0.1 0.785 0.202" euler="0 0 0">
+        <include file="../objects/assets/window_horiz.xml" />
+      </body>
+
+      <site name="goal" pos="0. 0.7 0.27" size="0.02" rgba="0 0.8 0 1" />
+    <body name="obj[-0.5348959397297105, -0.33834823686477195]0" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_window_horizontal/[-0.5348959397297105, -0.33834823686477195, 0, 0, 1.57]reach_push_pick_and_place.mjcf" /></body><body name="soccer_ball[-0.005724072808383919, -0.029767945570100342]1" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_window_horizontal/[-0.005724072808383919, -0.029767945570100342, 0, 0, 0]soccer.mjcf" /></body></worldbody>
+
+    <actuator>
+        <position ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="400" user="1" />
+        <position ctrllimited="true" ctrlrange="-1 1" joint="l_close" kp="400" user="1" />
+    </actuator>
+    <equality>
+        <weld body1="mocap" body2="hand" solref="0.02 1" />
+    </equality>
+</mujoco>

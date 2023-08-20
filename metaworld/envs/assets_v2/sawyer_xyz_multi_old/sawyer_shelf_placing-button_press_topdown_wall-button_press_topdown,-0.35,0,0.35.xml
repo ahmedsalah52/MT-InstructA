@@ -20,7 +20,7 @@
         <body name="shelf" pos="0 .8 0">
             <include file="../objects/assets/shelf.xml" />
         </body>
-    <body name="box00" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/0button_press_topdown_wall.mjcf" /></body><body name="box0.351" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/0.35button_press_topdown.mjcf" /></body></worldbody>
+    <body name="box00" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_shelf_placing/0button_press_topdown_wall.mjcf" /></body><body name="box0.351" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_shelf_placing/0.35button_press_topdown.mjcf" /></body></worldbody>
 
     <actuator>
         <position ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="400" user="1" />

@@ -18,7 +18,7 @@
 
       </body>
 
-  <body name="puck_channel-0.350" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/-0.35plate_slide.mjcf" /></body><body name="faucetBase01" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/0faucet.mjcf" /></body></worldbody>
+  <body name="puck_channel-0.350" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_basketball/-0.35plate_slide.mjcf" /></body><body name="faucetBase01" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_basketball/0faucet.mjcf" /></body></worldbody>
   <actuator>
       <position ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="400" user="1" />
       <position ctrllimited="true" ctrlrange="-1 1" joint="l_close" kp="400" user="1" />

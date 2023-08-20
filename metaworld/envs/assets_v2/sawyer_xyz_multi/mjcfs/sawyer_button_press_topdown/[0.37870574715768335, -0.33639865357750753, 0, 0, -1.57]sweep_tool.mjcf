@@ -1,0 +1,10 @@
+<mujoco><body name="club[0.37870574715768335, -0.33639865357750753]" pos="0.37870574715768335 0.3636013464224924 0.02" euler="0 0 -1.57">
+        <include file="../objects/assets/club.xml" />
+      </body>
+
+      <body name="obj[0.37870574715768335, -0.33639865357750753]" pos="0.37870574715768335 0.26360134642249244 0.03" euler="0 0 -1.57">
+        <geom material="club_red" type="sphere" size=".03" />
+        <geom class="club_col" type="sphere" size=".03" mass=".01" />
+      </body>
+
+      </mujoco>

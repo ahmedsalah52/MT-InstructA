@@ -1,0 +1,29 @@
+<mujoco>
+    <include file="../objects/assets/doorlock_dependencies.xml" />
+  <include file="../objects/assets/wall_dependencies.xml" />
+
+    <include file="../objects/assets/xyz_base_dependencies.xml" />
+  <include file="../objects/assets/buttonbox_dependencies.xml" />
+  <include file="../scene/basic_scene.xml" />
+  <include file="../objects/assets/puck_goal_dependencies.xml" />
+    <worldbody>
+        <include file="../objects/assets/xyz_base.xml" />
+
+        <body name="puck_channel" pos="0. 0.6 0.015" euler="0 0 -1.57">
+            <include file="../objects/assets/puck.xml" />
+
+        </body>
+        <body name="puck_goal" pos="0. 0.85 0" euler="0 0 -1.57">
+            <include file="../objects/assets/puck_goal.xml" />
+        </body>
+        <site name="goal" pos="0 0.85 .02" size="0.015" rgba="0.8 0 0 1" />
+    <body name="box[-0.541084560785924, -0.3421920767175169]0" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_plate_slide/[-0.541084560785924, -0.3421920767175169, 0, 0, 1.57]button_press_wall.mjcf" /></body><body name="door[-0.011586204173349837, -0.031876705088963286]1" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_plate_slide/[-0.011586204173349837, -0.031876705088963286, 0, 0, 0]door_lock.mjcf" /></body></worldbody>
+
+    <actuator>
+        <position ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="400" user="1" />
+        <position ctrllimited="true" ctrlrange="-1 1" joint="l_close" kp="400" user="1" />
+    </actuator>
+    <equality>
+        <weld body1="mocap" body2="hand" solref="0.02 1" />
+    </equality>
+</mujoco>

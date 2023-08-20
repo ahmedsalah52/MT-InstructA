@@ -33,7 +33,7 @@ from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv
 from typing import Callable
 
 import sys
-
+import wandb
 class CustomMLP(BaseFeaturesExtractor):
 
 
@@ -104,11 +104,21 @@ def main():
     save_replay_buffer=True,
     save_vecnormalize=True,
     )
-    env = meta_env(task_name,configs['render'])
+    run = wandb.init(
+    project="sb3",
+    config=configs,
+    sync_tensorboard=True,  # auto-upload sb3's tensorboard metrics
+    monitor_gym=True,  # auto-upload the videos of agents playing the game
+    save_code=True,  # optional
+    )
 
+    
+    
+    env = meta_env(task_name,configs['render'])
+    
     print('training on Task:',task_name, ' - ','with rendering' if configs['render'] else 'without rendering')
     
-    model = SAC("MlpPolicy", env,policy_kwargs=policy_kwargs, verbose=configs['verbose'],buffer_size=configs['buffer_size'],train_freq=configs['train_freq'],gradient_steps=configs["gradient_steps"],batch_size=configs['batch_size'],learning_rate=linear_schedule(initial_value=configs['lr'],min_value=configs['lr_min'])) 
+    model = SAC("MlpPolicy", env,policy_kwargs=policy_kwargs, verbose=configs['verbose'],buffer_size=configs['buffer_size'],train_freq=configs['train_freq'],gradient_steps=configs["gradient_steps"],batch_size=configs['batch_size'],learning_rate=linear_schedule(initial_value=configs['lr'],min_value=configs['lr_min']),tensorboard_log=f"runs/{run.id}")
     #model = SAC.load("trained_agents/assembly-v2/39", env, verbose=1,buffer_size=10000,batch_size=256,learning_rate=lr)
    
     model.learn(total_timesteps=configs['total_timesteps'], log_interval=configs['log_interval'],callback=checkpoint_callback)

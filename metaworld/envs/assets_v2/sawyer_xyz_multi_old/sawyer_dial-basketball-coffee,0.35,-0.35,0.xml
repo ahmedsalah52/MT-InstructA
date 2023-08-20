@@ -15,7 +15,7 @@
 
         <site name="goal" pos="0. 0.74 0.07" size="0.02" rgba=".8 0 0 1" />
 
- --&gt;    <body name="bsktball-0.350" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/-0.35basketball.mjcf" /></body><body name="obj01" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/0coffee.mjcf" /></body></worldbody>
+ --&gt;    <body name="bsktball-0.350" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_dial/-0.35basketball.mjcf" /></body><body name="obj01" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_dial/0coffee.mjcf" /></body></worldbody>
 
     <actuator>
         <position ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="400" user="1" />
