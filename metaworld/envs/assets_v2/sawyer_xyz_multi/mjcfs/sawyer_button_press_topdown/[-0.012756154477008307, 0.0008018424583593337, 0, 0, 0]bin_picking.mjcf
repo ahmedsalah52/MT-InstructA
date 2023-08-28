@@ -1,0 +1,15 @@
+<mujoco><body name="obj[-0.012756154477008307, 0.0008018424583593337]" pos="-0.012756154477008307 0.7008018424583593 0.04" euler="0 0 0">
+            <include file="../objects/assets/objA.xml" />
+        </body>
+
+
+        <body name="bin_start[-0.012756154477008307, 0.0008018424583593337]" pos="-0.012756154477008307 0.7008018424583593 0.0" euler="0 0 0">
+            <include file="../objects/assets/binA.xml" />
+        </body>
+
+        <body name="bin_goal[-0.012756154477008307, 0.0008018424583593337]" pos="-0.012756154477008307 0.7008018424583593 0.0" euler="0 0 0">
+            <include file="../objects/assets/binB.xml" />
+        </body>
+
+
+    </mujoco>

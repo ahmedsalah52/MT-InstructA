@@ -1,6 +1,6 @@
 import json,glob,os
 line = "sawyer_button_press_topdown-handle_press-basketball,0.35,-0.35,0.xml"
-
+from collections import defaultdict
 
 def get_sorted_from(line):
     line = line[7:-4]
@@ -17,11 +17,16 @@ def get_sorted_from(line):
 
 def get_tasks_list(main_file):
     env_txt_file = open(main_file,'r')
+    print('main',main_file)
+    main_env_name = main_file.split('.')[0].split('/')[-1].split('-')[0][7:]
     env_txt_lines = env_txt_file.read().split('\n')
 
-    out = []
+    out = defaultdict(list)
     for line in env_txt_lines:
-        out.append(get_sorted_from(line))
+        sorted_line  = get_sorted_from(line)
+        print(sorted_line)
+        idx = sorted_line.index(main_env_name)
+        out[idx].append(sorted_line)
     return out
 
 

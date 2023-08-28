@@ -1,0 +1,9 @@
+<mujoco><body name="box[-0.006181843659680442, -0.04149231447706317]" pos="-0.006181843659680442 0.8585076855229369 0.12" euler="0 0 0">
+          <include file="../objects/assets/buttonbox.xml" />
+          <site name="buttonStart" pos="0 -0.1935 0" size="0.005" rgba="0 0.8 0 1" />
+          <site name="hole" pos="0 -0.1 0" size="0.005" rgba="0 0.8 0 1" />
+        </body>
+        <body name="wall[-0.006181843659680442, -0.04149231447706317]" pos="-0.006181843659680442 0.5585076855229368 0.0" euler="0 0 0">
+          <include file="../objects/assets/wall.xml" />
+        </body>
+    </mujoco>

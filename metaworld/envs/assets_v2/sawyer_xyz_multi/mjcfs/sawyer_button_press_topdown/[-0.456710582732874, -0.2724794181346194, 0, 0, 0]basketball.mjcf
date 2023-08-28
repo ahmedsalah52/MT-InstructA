@@ -1,0 +1,9 @@
+<mujoco><body name="bsktball[-0.456710582732874, -0.2724794181346194]" pos="-0.456710582732874 0.3275205818653806 0.03" euler="0 0 0">
+        <include file="../objects/assets/basketball.xml" />
+      </body>
+      <body name="basket_goal[-0.456710582732874, -0.2724794181346194]" pos="-0.456710582732874 0.6275205818653806 0.0" euler="0 0 0">
+         <include file="../objects/assets/basketballhoop.xml" />
+
+      </body>
+
+  </mujoco>

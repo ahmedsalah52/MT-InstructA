@@ -1,0 +1,12 @@
+<mujoco><body name="obj[0.5411003689624392, -0.31285051532270053]" pos="0.5411003689624392 0.28714948467729945 0.015" euler="0 0 0">
+        <include file="../objects/assets/block.xml" />
+
+      </body>
+
+      <body name="wall[0.5411003689624392, -0.31285051532270053]" pos="0.5411003689624392 0.43714948467729947 0.06" euler="0 0 0">
+        <geom material="wall_brick" type="box" size=".12 .01 .06" />
+        <geom class="wall_col" type="box" size=".12 .01 .06" />
+      </body>
+
+      
+      </mujoco>

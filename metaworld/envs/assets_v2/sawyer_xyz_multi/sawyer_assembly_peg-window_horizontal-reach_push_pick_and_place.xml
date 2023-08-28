@@ -19,7 +19,7 @@
           <geom material="asmbly_metal" pos="0 0 0" rgba="1 0.3 0.3 1" size="0.02 0.05" type="cylinder" conaffinity="1" contype="1" group="1" friction="1 0.005 0.0001" />
           <site name="pegTop" pos="0 0 0.05" size="0.005" rgba="0 0.8 0 1" />
         </body>
-    <body name="window[-0.008678556259313741, 0.00099729838516223]0" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[-0.008678556259313741, 0.00099729838516223, 0, 0, 0]window_horizontal.mjcf" /></body><body name="obj[0.5205315441343015, -0.25418888050105576]1" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[0.5205315441343015, -0.25418888050105576, 0, 0, 0]reach_push_pick_and_place.mjcf" /></body></worldbody>
+    <body name="window[0.0017510689907120503, -7.471222754641292e-05]0" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[0.0017510689907120503, -7.471222754641292e-05, 0, 0, 0]window_horizontal.mjcf" /></body><body name="obj[0.4919081106192883, -0.29581979796430335]1" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[0.4919081106192883, -0.29581979796430335, 0, 0, 0]reach_push_pick_and_place.mjcf" /></body></worldbody>
 
     <actuator>
         <position ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="400" user="1" />

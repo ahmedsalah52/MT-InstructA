@@ -1,0 +1,7 @@
+<mujoco><body name="box[0.4605402126927938, -0.2814885830550501]" pos="0.4605402126927938 0.5985114169449499 0.0" euler="0 0 0">
+        <include file="../objects/assets/handle_press.xml" />
+
+        <site name="goalPress" pos="0 -0.216 0.075" size="0.005" rgba="1 1 1 1" />
+        <site name="goalPull" pos="0 -0.216 0.172" size="0.005" rgba="0 0 0 1" />
+      </body>
+    </mujoco>

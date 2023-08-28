@@ -20,7 +20,7 @@ tasks =  ['assembly-v2', 'basketball-v2','box-close-v2', 'button-press-topdown-v
 
 print(len(tasks))
 
-task = 'coffee-button-v2'
+task = 'coffee-pull-v2' #'coffee-pull-v2'#,  #'coffee-button-v2'
 ml1 = metaworld.ML_1_multi(task) # Construct the benchmark, sampling tasks
 #env = ml1.train_classes[task]()  # Create an environment with task `pick_place`
 env = ml1.my_env_s

@@ -1,0 +1,7 @@
+<mujoco><body name="boxbody[-0.5150175126228975, -0.31406820554754655]" pos="-0.5150175126228975 0.4859317944524535 0.0" euler="0 0 0">
+            <include file="../objects/assets/box.xml" />
+        </body>
+        <body name="boxbodytop[-0.5150175126228975, -0.31406820554754655]" pos="-0.5150175126228975 0.4859317944524535 0.0" quat="1 0 0 1" euler="0 0 0">
+            <include file="../objects/assets/boxtop.xml" />
+        </body>
+        </mujoco>

@@ -251,7 +251,7 @@ class Multi_task_env():
 
         main_task_name = main_task_name[7:] # remove sawyer_
         poses_list    = [0,1,2]
-        task_variants = json.load(open(os.path.join('metaworld/all_envs',main_task_name+'.json')))
+        task_variants = json.load(open(os.path.join('metaworld/all_envs',main_task_name+'.json')))["0"]
         self.file_order  = random.choice(range(len(task_variants)))
         task_variant     = task_variants[self.file_order]
         #task_variant[2] = 'plate_slide'

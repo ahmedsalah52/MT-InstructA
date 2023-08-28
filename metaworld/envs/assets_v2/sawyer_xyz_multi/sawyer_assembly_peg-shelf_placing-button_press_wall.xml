@@ -11,17 +11,17 @@
     <worldbody>
 
         <include file="../objects/assets/xyz_base.xml" />
-        <body name="RoundNut" pos="0.1 0.6 0.02" quat="1 0 0 1" euler="0 0 -1.57">
+        <body name="RoundNut" pos="0.1 0.6 0.02" quat="1 0 0 1" euler="0 0 1.57">
             <freejoint />
             <include file="../objects/assets/assembly_peg.xml" />
 
         </body>
-        <body name="peg" pos="0.1 0.8 0.05" euler="0 0 -1.57">
+        <body name="peg" pos="0.1 0.8 0.05" euler="0 0 1.57">
           
           <geom material="asmbly_metal" pos="0 0 0" rgba="1 0.3 0.3 1" size="0.02 0.05" type="cylinder" conaffinity="1" contype="1" group="1" friction="1 0.005 0.0001" />
           <site name="pegTop" pos="0 0 0.05" size="0.005" rgba="0 0.8 0 1" />
         </body>
-    <body name="obj[-0.49767740507766256, -0.26001914231075374]0" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[-0.49767740507766256, -0.26001914231075374, 0, 0, 1.57]shelf_placing.mjcf" /></body><body name="box[0.022210167544524567, -0.02985235194328304]1" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[0.022210167544524567, -0.02985235194328304, 0, 0, 0]button_press_wall.mjcf" /></body></worldbody>
+    <body name="obj[-0.019770702711310595, -0.014036421618641957]0" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[-0.019770702711310595, -0.014036421618641957, 0, 0, 0]shelf_placing.mjcf" /></body><body name="box[0.4522856549900426, -0.2867919343996065]1" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[0.4522856549900426, -0.2867919343996065, 0, 0, 0]button_press_wall.mjcf" /></body></worldbody>
 
     <actuator>
         <position ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="400" user="1" />

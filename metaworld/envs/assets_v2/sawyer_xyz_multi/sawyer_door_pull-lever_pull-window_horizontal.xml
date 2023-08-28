@@ -8,12 +8,12 @@
   <worldbody>
     <include file="../objects/assets/xyz_base.xml" />
 
-    <body name="door" pos="0 0.9 0.15" euler="0 0 1.57">
+    <body name="door" pos="0 0.9 0.15" euler="0 0 0">
       <include file="../objects/assets/doorlockB.xml" />
     </body>
 
     <site name="goal" pos="-0.49 0.46 0.15" size="0.02" rgba="0 0.8 0 1" />
-  <body name="lever[-0.043221399868983684, -0.027720405718069042]0" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_door_pull/[-0.043221399868983684, -0.027720405718069042, 0, 0, 0]lever_pull.mjcf" /></body><body name="window[0.5614659113079541, -0.32877456232771407]1" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_door_pull/[0.5614659113079541, -0.32877456232771407, 0, 0, -1.57]window_horizontal.mjcf" /></body></worldbody>
+  <body name="lever[-0.024798545386680006, 0.011789631819190315]0" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_door_pull/[-0.024798545386680006, 0.011789631819190315, 0, 0, 0]lever_pull.mjcf" /></body><body name="window[0.46404394042578745, 0.08383152212249276]1" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_door_pull/[0.46404394042578745, 0.08383152212249276, 0, 0, 0]window_horizontal.mjcf" /></body></worldbody>
   <actuator>
       <position ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="400" user="1" />
       <position ctrllimited="true" ctrlrange="-1 1" joint="l_close" kp="400" user="1" />

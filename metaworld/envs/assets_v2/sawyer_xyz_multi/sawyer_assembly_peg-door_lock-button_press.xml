@@ -9,17 +9,17 @@
     <worldbody>
 
         <include file="../objects/assets/xyz_base.xml" />
-        <body name="RoundNut" pos="0.1 0.6 0.02" quat="1 0 0 1" euler="0 0 -1.57">
+        <body name="RoundNut" pos="0.1 0.6 0.02" quat="1 0 0 1" euler="0 0 1.57">
             <freejoint />
             <include file="../objects/assets/assembly_peg.xml" />
 
         </body>
-        <body name="peg" pos="0.1 0.8 0.05" euler="0 0 -1.57">
+        <body name="peg" pos="0.1 0.8 0.05" euler="0 0 1.57">
           
           <geom material="asmbly_metal" pos="0 0 0" rgba="1 0.3 0.3 1" size="0.02 0.05" type="cylinder" conaffinity="1" contype="1" group="1" friction="1 0.005 0.0001" />
           <site name="pegTop" pos="0 0 0.05" size="0.005" rgba="0 0.8 0 1" />
         </body>
-    <body name="door[-0.46440570889718485, -0.3451637723009375]0" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[-0.46440570889718485, -0.3451637723009375, 0, 0, 1.57]door_lock.mjcf" /></body><body name="box[-0.04329338568564093, -0.03143378090955483]1" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[-0.04329338568564093, -0.03143378090955483, 0, 0, 0]button_press.mjcf" /></body></worldbody>
+    <body name="door[0.004825208998389341, -0.04813165401715235]0" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[0.004825208998389341, -0.04813165401715235, 0, 0, 0]door_lock.mjcf" /></body><body name="box[0.5153452489116623, -0.2689255088067891]1" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[0.5153452489116623, -0.2689255088067891, 0, 0, 0]button_press.mjcf" /></body></worldbody>
 
     <actuator>
         <position ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="400" user="1" />

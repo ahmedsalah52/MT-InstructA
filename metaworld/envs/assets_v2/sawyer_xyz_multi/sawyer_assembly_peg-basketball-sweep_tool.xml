@@ -19,7 +19,7 @@
           <geom material="asmbly_metal" pos="0 0 0" rgba="1 0.3 0.3 1" size="0.02 0.05" type="cylinder" conaffinity="1" contype="1" group="1" friction="1 0.005 0.0001" />
           <site name="pegTop" pos="0 0 0.05" size="0.005" rgba="0 0.8 0 1" />
         </body>
-    <body name="bsktball[-0.4963543366659569, -0.26472632897229853]0" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[-0.4963543366659569, -0.26472632897229853, 0, 0, 1.57]basketball.mjcf" /></body><body name="club[0.0424271510642356, 0.030441855233315496]1" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[0.0424271510642356, 0.030441855233315496, 0, 0, 0]sweep_tool.mjcf" /></body></worldbody>
+    <body name="bsktball[0.04295872496153724, 0.005460311134594539]0" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[0.04295872496153724, 0.005460311134594539, 0, 0, 0]basketball.mjcf" /></body><body name="club[0.5324107436290613, -0.3016243283380072]1" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[0.5324107436290613, -0.3016243283380072, 0, 0, 0]sweep_tool.mjcf" /></body></worldbody>
 
     <actuator>
         <position ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="400" user="1" />

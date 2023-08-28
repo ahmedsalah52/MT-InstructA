@@ -1,0 +1,10 @@
+<mujoco><body name="soccer_ball[-0.4542710842788512, -0.30621586241246423]" pos="-0.4542710842788512 0.29378413758753574 0.03" euler="0 0 0">
+        <include file="../objects/assets/soccer_ball.xml" />
+      </body>
+
+       <body name="goal_whole[-0.4542710842788512, -0.30621586241246423]" pos="-0.4542710842788512 0.5937841375875358 0.0" euler="0 0 0">
+         <include file="../objects/assets/soccer_goal.xml" />
+
+      </body>
+
+      </mujoco>

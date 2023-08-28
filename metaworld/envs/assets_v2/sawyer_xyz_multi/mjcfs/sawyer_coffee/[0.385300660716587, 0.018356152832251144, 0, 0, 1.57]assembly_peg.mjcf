@@ -1,0 +1,10 @@
+<mujoco><body name="RoundNut[0.385300660716587, 0.018356152832251144]" pos="0.385300660716587 0.6183561528322511 0.02" quat="1 0 0 1" euler="0 0 1.57">
+            <include file="../objects/assets/assembly_peg.xml" />
+
+        </body>
+        <body name="peg[0.385300660716587, 0.018356152832251144]" pos="0.385300660716587 0.8183561528322512 0.05" euler="0 0 1.57">
+          
+          <geom material="asmbly_metal" pos="0 0 0" rgba="1 0.3 0.3 1" size="0.02 0.05" type="cylinder" conaffinity="1" contype="1" group="1" friction="1 0.005 0.0001" />
+          <site name="pegTop" pos="0 0 0.05" size="0.005" rgba="0 0.8 0 1" />
+        </body>
+    </mujoco>

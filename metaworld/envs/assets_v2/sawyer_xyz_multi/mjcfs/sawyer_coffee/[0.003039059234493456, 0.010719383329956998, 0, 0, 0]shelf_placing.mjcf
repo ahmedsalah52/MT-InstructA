@@ -1,0 +1,9 @@
+<mujoco><body name="obj[0.003039059234493456, 0.010719383329956998]" pos="0.003039059234493456 0.610719383329957 0.02" euler="0 0 0">
+            <inertial pos="0 0 0" mass="0.01" diaginertia="100000 100000 100000" />
+            <geom name="objGeom" type="box" pos="0 0 0" solimp="0.99 0.99 0.01" size="0.02 0.02 0.02" rgba="0 0 1 1" solref="0.01 1" contype="1" conaffinity="1" friction="2 0.1 0.002" condim="4" />
+        </body>
+
+        <body name="shelf[0.003039059234493456, 0.010719383329956998]" pos="0.003039059234493456 0.8107193833299571 0.0" euler="0 0 0">
+            <include file="../objects/assets/shelf.xml" />
+        </body>
+    </mujoco>

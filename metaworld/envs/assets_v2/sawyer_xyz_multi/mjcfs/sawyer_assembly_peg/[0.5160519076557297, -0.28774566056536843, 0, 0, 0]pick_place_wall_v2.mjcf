@@ -1,0 +1,13 @@
+<mujoco><body name="obj[0.5160519076557297, -0.28774566056536843]" pos="0.5160519076557297 0.31225433943463154 0.02" euler="0 0 0">
+
+          <inertial pos="0 0 0" mass=".75" diaginertia="8.80012e-04 8.80012e-04 8.80012e-04" />
+          <geom name="objGeom" type="cylinder" pos="0 0 0" solimp="0.99 0.99 0.01" size="0.02 0.02" rgba="1 0 0 1" solref="0.01 1" contype="1" conaffinity="1" friction="1 0.1 0.002" condim="4" material="block_wood" />
+      </body>
+
+      <body name="wall[0.5160519076557297, -0.28774566056536843]" pos="0.5160519076557297 0.46225433943463157 0.06" euler="0 0 0">
+        <geom material="wall_brick" type="box" size=".12 .01 .06" />
+        <geom class="wall_col" type="box" size=".12 .01 .06" />
+      </body>
+
+      
+      </mujoco>

@@ -9,12 +9,12 @@
   <worldbody>
     <include file="../objects/assets/xyz_base.xml" />
 
-    <body name="door" pos="0 0.9 0.15" euler="0 0 -1.57">
+    <body name="door" pos="0 0.9 0.15" euler="0 0 0">
       <include file="../objects/assets/doorlockB.xml" />
     </body>
 
     <site name="goal" pos="-0.49 0.46 0.15" size="0.02" rgba="0 0.8 0 1" />
-  <body name="block[-0.36208979918434914, -0.26838315670387536]0" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_door_pull/[-0.36208979918434914, -0.26838315670387536, 0, 0, 1.57]shelf_removing.mjcf" /></body><body name="boxbody[-0.04307322182998527, 0.0021902038891292164]1" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_door_pull/[-0.04307322182998527, 0.0021902038891292164, 0, 0, 0]box.mjcf" /></body></worldbody>
+  <body name="block[0.03986228868244361, -0.026954994311014925]0" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_door_pull/[0.03986228868244361, -0.026954994311014925, 0, 0, 0]shelf_removing.mjcf" /></body><body name="boxbody[0.5353702237010057, -0.33240171826502957]1" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_door_pull/[0.5353702237010057, -0.33240171826502957, 0, 0, 0]box.mjcf" /></body></worldbody>
   <actuator>
       <position ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="400" user="1" />
       <position ctrllimited="true" ctrlrange="-1 1" joint="l_close" kp="400" user="1" />

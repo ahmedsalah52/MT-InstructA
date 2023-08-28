@@ -1,0 +1,8 @@
+<mujoco><body name="puck_channel[-0.045129952699188305, -0.02173517668003523]" pos="-0.045129952699188305 0.5782648233199648 0.015" euler="0 0 0">
+            <include file="../objects/assets/puck.xml" />
+
+        </body>
+        <body name="puck_goal[-0.045129952699188305, -0.02173517668003523]" pos="-0.045129952699188305 0.8282648233199648 0.0" euler="0 0 0">
+            <include file="../objects/assets/puck_goal.xml" />
+        </body>
+        </mujoco>
