@@ -11,7 +11,7 @@ import os
 import glob,random
 class SawyerCoffeeButtonEnvV2(SawyerXYZEnv,Multi_task_env):
 
-    def __init__(self):
+    def __init__(self,main_pos_index):
         Multi_task_env.__init__(self)
 
         self.max_dist = 0.03
@@ -19,6 +19,8 @@ class SawyerCoffeeButtonEnvV2(SawyerXYZEnv,Multi_task_env):
         hand_low = (-0.7, 0.40, 0.05)
         hand_high = (0.7, 1, 0.5)
         main_file = 'sawyer_coffee.xml'
+        self.main_pos_index = main_pos_index
+
         self.generate_env(main_file)
 
         obj_low =  (self.task_offsets_min[0], self.task_offsets_min[1], -.001)

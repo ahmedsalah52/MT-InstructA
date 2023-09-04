@@ -16,15 +16,11 @@ from metaworld.policies import * #SawyerBasketballV2Policy
 import numpy as np
 import json
 import os
-from collections import defaultdict
-import cv2
-from tqdm import tqdm
-#import threading
-import _thread
+
 
 from stable_baselines3.common.callbacks import CheckpointCallback
 
-from stable_baselines3.common.env_checker import check_env
+#from stable_baselines3.common.env_checker import check_env
 from stable_baselines3 import SAC
 from meta_env import meta_env,meta_Callback,Custom_replay_buffer
 
@@ -46,14 +42,11 @@ class CustomMLP(BaseFeaturesExtractor):
     def __init__(self, observation_space: spaces.Box, features_dim: int = 256):
         super().__init__( observation_space = observation_space,features_dim = features_dim)
         n_input_channels = observation_space.shape[0]
-
         self.linear = nn.Sequential(nn.Linear(n_input_channels, features_dim),
                                     nn.LayerNorm(features_dim))
 
     def forward(self, observations: th.Tensor) -> th.Tensor:
-        
-        features = self.linear(observations)
-        return features
+        return self.linear(observations)
 
 class LeakyReLU(nn.LeakyReLU):
     def __init__(self, negative_slope: float = 0.01, inplace: bool = False) -> None:
@@ -82,14 +75,21 @@ def linear_schedule(initial_value: float,min_value: float) -> Callable[[float], 
     return func
 
 
-def main():
+def run(task_pos):
 
     task_name  = sys.argv[1]  # "button-press-topdown-v2" #'basketball-v2' #'assembly-v2' "button-press-topdown-v2"#
+    task_poses = ['Right','Mid','Left']
+
+    
     
     configs = json.load(open(os.path.join('training_configs',task_name+'.json')))
+    configs['task_name'] = task_name
+    configs['task_pos']  = task_pos
+
+    run_name   = task_name + '_' + task_poses[task_pos] + '_ID' + str(configs['run_id'])
+    save_path  = "./logs/"+run_name
+    load_path  = "./logs/"+task_name + '_' + task_poses[1] + '_ID' + str(configs['run_id'])
     
-
-
     policy_kwargs = dict(
     features_extractor_class=getattr(sys.modules[__name__], configs['features_extractor_class']),
     features_extractor_kwargs=dict(features_dim=configs['features_dim']),
@@ -99,13 +99,14 @@ def main():
     )
     checkpoint_callback = CheckpointCallback(
     save_freq=configs['buffer_size'],
-    save_path="./logs/"+task_name,
-    name_prefix=task_name,
+    save_path=save_path,
+    name_prefix=run_name,
     save_replay_buffer=True,
     save_vecnormalize=True,
     )
     run = wandb.init(
-    project="sb3",
+    project="Metaworld single pos",
+    name = run_name,
     config=configs,
     sync_tensorboard=True,  # auto-upload sb3's tensorboard metrics
     monitor_gym=True,  # auto-upload the videos of agents playing the game
@@ -114,16 +115,23 @@ def main():
 
     
     
-    env = meta_env(task_name,configs['render'])
+    env = meta_env(task_name,task_pos,configs['render'],configs['episode_length'])
     
     print('training on Task:',task_name, ' - ','with rendering' if configs['render'] else 'without rendering')
+    if task_pos == 1:
+        model = SAC("MlpPolicy", env,policy_kwargs=policy_kwargs, verbose=configs['verbose'],buffer_size=configs['buffer_size'],train_freq=configs['train_freq'],gradient_steps=configs["gradient_steps"],batch_size=configs['batch_size'],learning_rate=linear_schedule(initial_value=configs['lr'],min_value=configs['lr_min']),tensorboard_log=f"runs/{run.id}")
+        total_timesteps = configs['total_timesteps']
+    else:
+        model = SAC.load(os.path.join(load_path,task_name+'_Mid_ID{}_2000000_steps'.format(configs['run_id'])),env, verbose=configs['verbose'],buffer_size=configs['buffer_size'],train_freq=configs['train_freq'],gradient_steps=configs["gradient_steps"],batch_size=configs['batch_size'],learning_rate=linear_schedule(initial_value=configs['lr'],min_value=configs['lr_min']),tensorboard_log=f"runs/{run.id}")
+        total_timesteps = configs['total_timesteps']//2
     
-    model = SAC("MlpPolicy", env,policy_kwargs=policy_kwargs, verbose=configs['verbose'],buffer_size=configs['buffer_size'],train_freq=configs['train_freq'],gradient_steps=configs["gradient_steps"],batch_size=configs['batch_size'],learning_rate=linear_schedule(initial_value=configs['lr'],min_value=configs['lr_min']),tensorboard_log=f"runs/{run.id}")
-    #model = SAC.load("trained_agents/assembly-v2/39", env, verbose=1,buffer_size=10000,batch_size=256,learning_rate=lr)
-   
-    model.learn(total_timesteps=configs['total_timesteps'], log_interval=configs['log_interval'],callback=checkpoint_callback)
+    model.learn(total_timesteps=total_timesteps, log_interval=configs['log_interval'],callback=checkpoint_callback)
        
     print()
     print('done training on Task:',task_name, ' - ','with rendering' if configs['render'] else 'without rendering',' with success ',env.success_counter)
 
+
+def main():
+    for pos in [1,0,2]:
+        run(pos)
 main()

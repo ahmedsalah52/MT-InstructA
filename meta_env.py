@@ -29,6 +29,7 @@ from stable_baselines3.common.callbacks import BaseCallback,CheckpointCallback
 import copy
 from gymnasium.spaces import Dict, Box,Space
 from stable_baselines3.common.buffers import ReplayBuffer
+from metaworld.envs.mujoco.env_dict import ALL_V2_ENVIRONMENTS_multi
 
 from typing import Any, Dict, Generator, List, Optional, Union
 
@@ -58,19 +59,19 @@ class Custom_replay_buffer(ReplayBuffer):
         super().add(obs,next_obs,action,reward,done,infos)
 
 class meta_env(Env):
-    def __init__(self,taskname,save_images) -> None:
+    def __init__(self,taskname,task_pos,save_images,episode_length = 200) -> None:
         super().__init__()
         self.taskname = taskname
-        ml1 = metaworld.ML_1_multi(taskname) # Construct the benchmark, sampling tasks
-        self.env = ml1.my_env_s
-        task = random.choice(ml1.train_tasks)
-        self.env.set_task(task)  # Set task
+        self.task_pos = task_pos
+        self.env = self.get_env()
+       
+
         self.action_space = spaces.Box(-1, 1, shape=(4,)) #self.env.action_space
         #self.observation_space = Dict({'state' :self.env.observation_space_gymnasium() , 'render': Box(0, 255, shape=(5,224,224,3), dtype=np.uint8)})
         self.observation_space = self.env.observation_space_gymnasium()
         self.steps = 0
         self.episode_number = 0
-        self.max_steps = 200
+        self.max_steps = episode_length
         self.end_episode = False
         self.current_episode = defaultdict(list)
         self.dump_states = True
@@ -78,14 +79,18 @@ class meta_env(Env):
         self.success_counter = 0
         self.total_rewards = 0
         
+    def get_env(self):
+        env = ALL_V2_ENVIRONMENTS_multi[self.taskname](self.task_pos)
+        env._freeze_rand_vec = False
+        env._set_task_called = True
+        env._partially_observable = self.taskname not in ['assembly-v2', 'coffee-pull-v2', 'coffee-push-v2']
 
+        return env
 
     def reset(self,seed=None, options=None):
         super().reset(seed=seed)
-        ml1 = metaworld.ML_1_multi(self.taskname) # Construct the benchmark, sampling tasks
-        self.env = ml1.my_env_s
-        task = random.choice(ml1.train_tasks)
-        self.env.set_task(task)  # Set task
+        self.env = self.get_env()
+
         obs = self.env.reset()
         images = None
         #if self.dump_states:
@@ -97,6 +102,7 @@ class meta_env(Env):
         self.steps = 0
         self.total_rewards = 0
         self.prev_reward = 0
+        
         return obs ,  {'images':images,'file_order':self.env.file_order,'success':0.0} # Reset environment
         
     
@@ -108,11 +114,9 @@ class meta_env(Env):
         pass
 
     def step(self,a):
-        
-      
         images = None
         obs, reward, done, info = self.env.step(a)
-        self.steps+=1
+        self.steps +=1
         done = self.steps >= self.max_steps
 
         self.end_episode = done or (info['success']==1.0)
@@ -125,6 +129,7 @@ class meta_env(Env):
      
         info['images'] = images
         info['file_order'] = self.env.file_order
+
         #if done and not (info['success']==1.0): reward -= 50
 
         #reward += self.additional_reward(obs)
@@ -133,7 +138,6 @@ class meta_env(Env):
         #d_reward = reward - self.prev_reward
         #self.prev_reward = reward
         #self.total_rewards += d_reward
-
         return obs, reward, done ,(info['success']==1.0),info
     
     
@@ -147,7 +151,7 @@ class meta_env(Env):
         return reward
 
     def get_visual_obs(self):
-        corner         = self.env.render(offscreen= True,camera_name='corner')# corner,2,3, corner2, topview, gripperPOV, behindGripper'
+        corner         = self.env.render(offscreen= True,camera_name='corner') # corner,2,3, corner2, topview, gripperPOV, behindGripper'
         corner2        = self.env.render(offscreen= True,camera_name='corner2')
         behindGripper  = self.env.render(offscreen= True,camera_name='behindGripper')
         corner3        = self.env.render(offscreen= True,camera_name='corner3')

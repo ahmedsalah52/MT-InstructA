@@ -11,9 +11,11 @@ import glob,random
 
 
 class SawyerDoorCloseEnvV2(SawyerDoorEnvV2):
-    def __init__(self):
-        super().__init__()
+    def __init__(self,main_pos_index):
+        super().__init__(main_pos_index)
 
+
+        
         goal_low  = (self.task_offsets_min[0]-.3,self.task_offsets_min[1] + 0.5, 0.1499)
         goal_high = (self.task_offsets_max[0]-.3,self.task_offsets_max[1] + 0.5, 0.1501)
         

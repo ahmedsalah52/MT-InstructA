@@ -12,12 +12,15 @@ import glob
 class SawyerNutAssemblyEnvV2(SawyerXYZEnv,Multi_task_env):
     WRENCH_HANDLE_LENGTH = 0.02
 
-    def __init__(self):   
+    def __init__(self,main_pos_index):   
         Multi_task_env.__init__(self)
      
         hand_low  = (-0.7, 0.3, 0.05)
         hand_high = (0.7 , 1.3, 0.5)       
         main_file = 'sawyer_assembly_peg.xml'
+        
+        self.main_pos_index = main_pos_index
+
         self.generate_env(main_file)
 
         obj_low   = (self.task_offsets_min[0], self.task_offsets_min[1], 0.02)
