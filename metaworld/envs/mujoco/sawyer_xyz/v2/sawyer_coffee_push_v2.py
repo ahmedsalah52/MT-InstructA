@@ -19,15 +19,16 @@ class SawyerCoffeePushEnvV2(SawyerXYZEnv):
         hand_high = (0.7, 1, 0.5)
         main_file = 'sawyer_coffee.xml'
         
-        self.generate_env(main_file)
+        if isinstance(self,Multi_task_env):
+            self.generate_env(main_file)
+            obj_low =  (self.task_offsets_min[0], self.task_offsets_min[1] - 0.4, 0.001)
+            obj_high = (self.task_offsets_max[0], self.task_offsets_max[1] - 0.4, 0.001)
 
-
-        obj_low =  (self.task_offsets_min[0], self.task_offsets_min[1] - 0.4, 0.001)
-        obj_high = (self.task_offsets_max[0], self.task_offsets_max[1] - 0.4, 0.001)
-
-        goal_low  = (self.task_offsets_min[0], self.task_offsets_min[1] - 0.25,  0.001)
-        goal_high = (self.task_offsets_max[0], self.task_offsets_max[1] - 0.25,  0.001)
-
+            goal_low  = (self.task_offsets_min[0], self.task_offsets_min[1] - 0.25,  0.001)
+            goal_high = (self.task_offsets_max[0], self.task_offsets_max[1] - 0.25,  0.001)
+        else:
+            raise Exception("this class shouldn't be called directly") 
+        
         SawyerXYZEnv.__init__(
             self,
             self.model_name,

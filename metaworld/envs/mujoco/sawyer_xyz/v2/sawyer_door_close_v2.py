@@ -11,8 +11,8 @@ import glob,random
 
 
 class SawyerDoorCloseEnvV2(SawyerDoorEnvV2):
-    def __init__(self,main_pos_index):
-        super().__init__(main_pos_index)
+    def __init__(self):
+        super().__init__()
 
 
         

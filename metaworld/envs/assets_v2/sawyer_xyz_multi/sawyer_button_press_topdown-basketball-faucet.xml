@@ -13,7 +13,7 @@
           <site name="buttonStart" pos="0 -0.1935 0" size="0.005" rgba="0 0.8 0 1" />
           <site name="hole" pos="0 -0.1 0" size="0.005" rgba="0 0.8 0 1" />
         </body>
-    <body name="bsktball[-0.5425565456364757, -0.3129759358247348]0" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_button_press_topdown/[-0.5425565456364757, -0.3129759358247348, 0, 0, 0]basketball.mjcf" /></body><body name="faucetBase[0.4759345570881283, -0.3440715027165156]1" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_button_press_topdown/[0.4759345570881283, -0.3440715027165156, 0, 0, 0]faucet.mjcf" /></body></worldbody>
+    <body name="bsktball[-0.4571304807049358, -0.34108020867491684]0" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_button_press_topdown/[-0.4571304807049358, -0.34108020867491684, 0, 0, 0]basketball.mjcf" /></body><body name="faucetBase[0.47155309961221464, -0.262355690751245]1" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_button_press_topdown/[0.47155309961221464, -0.262355690751245, 0, 0, 0]faucet.mjcf" /></body></worldbody>
 
     <actuator>
         <position ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="400" user="1" />

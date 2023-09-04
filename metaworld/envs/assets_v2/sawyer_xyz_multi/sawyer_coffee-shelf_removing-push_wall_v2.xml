@@ -18,7 +18,7 @@
           <include file="../objects/assets/coffeemachine.xml" />
         </body>
         <site name="mug_goal" pos="0 0.6 0.02" size="0.01" rgba="0 1 0 1" />
-    <body name="block[-0.04666514367667873, 0.017162522059823646]0" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_coffee/[-0.04666514367667873, 0.017162522059823646, 0, 0, 0]shelf_removing.mjcf" /></body><body name="obj[0.46259787795740437, -0.25565487084835004]1" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_coffee/[0.46259787795740437, -0.25565487084835004, 0, 0, 0]push_wall_v2.mjcf" /></body></worldbody>
+    <body name="block[-0.4536300848020932, -0.28631640456717733]0" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_coffee/[-0.4536300848020932, -0.28631640456717733, 0, 0, 0]shelf_removing.mjcf" /></body><body name="obj[0.4844232745265789, -0.30741509281806567]1" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_coffee/[0.4844232745265789, -0.30741509281806567, 0, 0, 0]push_wall_v2.mjcf" /></body></worldbody>
 
     <actuator>
         <position ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="400" user="1" />
