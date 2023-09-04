@@ -9,17 +9,15 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _asser
 from metaworld.envs.build_random_envs import Multi_task_env
 import os
 import glob,random
-class SawyerCoffeeButtonEnvV2(SawyerXYZEnv,Multi_task_env):
+class SawyerCoffeeButtonEnvV2(SawyerXYZEnv):
 
-    def __init__(self,main_pos_index):
-        Multi_task_env.__init__(self)
+    def __init__(self):
 
         self.max_dist = 0.03
 
         hand_low = (-0.7, 0.40, 0.05)
         hand_high = (0.7, 1, 0.5)
         main_file = 'sawyer_coffee.xml'
-        self.main_pos_index = main_pos_index
 
         self.generate_env(main_file)
 

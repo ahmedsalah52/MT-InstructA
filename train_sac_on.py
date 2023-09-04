@@ -75,7 +75,7 @@ def linear_schedule(initial_value: float,min_value: float) -> Callable[[float], 
     return func
 
 
-def run(task_pos):
+def run_training(task_pos):
 
     task_name  = sys.argv[1]  # "button-press-topdown-v2" #'basketball-v2' #'assembly-v2' "button-press-topdown-v2"#
     task_poses = ['Right','Mid','Left']
@@ -133,5 +133,5 @@ def run(task_pos):
 
 def main():
     for pos in [1,0,2]:
-        run(pos)
+        run_training(pos)
 main()

@@ -237,12 +237,15 @@ def build_env(main_env_path,main_rot,sec_poses,sec_files):
 class Multi_task_env():
     def __init__(self):
         self.main_poses_dict  = json.load(open(os.path.join('configs/env_configs/main_poses_dict.json')))
-
+        self.json_file_data   = None
 
     def generate_env(self,main_file):
         main_poses_dict = self.main_poses_dict 
+        task_variant = self.task_variant
+        poses_list    = [0,1,2]
+
         main_task_name = main_file.split('.')[0]
-        
+
         main_envs_dir = 'metaworld/envs/assets_v2/sawyer_xyz/'
         mjcfs_dir = 'metaworld/envs/assets_v2/sawyer_xyz_multi/mjcfs/'+main_task_name
         if not os.path.isdir(mjcfs_dir):
@@ -250,13 +253,13 @@ class Multi_task_env():
 
 
         main_task_name = main_task_name[7:] # remove sawyer_
-        poses_list    = [0,1,2]
-        task_variants = json.load(open(os.path.join('metaworld/all_envs',main_task_name+'.json')))["0"]
-        self.file_order  = random.choice(range(len(task_variants)))
-        task_variant     = task_variants[self.file_order]
-        #task_variant[2] = 'plate_slide'
-
-        self.task_variant  = task_variant
+        if self.json_file_data == None: 
+            self.json_file_data = json.load(open(os.path.join('metaworld/all_envs',main_task_name+'.json')))
+        if self.main_pos_index == None: self.main_pos_index = random.choice(poses_list)
+        if task_variant == None:
+            task_variants    = self.json_file_data[str(self.main_pos_index)]
+            self.file_order  = random.choice(range(len(task_variants)))
+            task_variant     = task_variants[self.file_order][:]
 
         main_task_index = task_variant.index(main_task_name)
         task_variant.pop(main_task_index)

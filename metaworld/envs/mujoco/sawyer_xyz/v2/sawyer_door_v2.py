@@ -11,14 +11,12 @@ import os
 import glob,random
 
 
-class SawyerDoorEnvV2(SawyerXYZEnv,Multi_task_env):
-    def __init__(self,main_pos_index):
-        Multi_task_env.__init__(self)
+class SawyerDoorEnvV2(SawyerXYZEnv):
+    def __init__(self):
 
         hand_low = (-0.7, 0.40, 0.05)
         hand_high = (0.7, 1, 0.5)
         main_file = 'sawyer_door_pull.xml'
-        self.main_pos_index = main_pos_index
 
         self.generate_env(main_file)
 

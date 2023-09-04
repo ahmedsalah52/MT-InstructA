@@ -11,24 +11,22 @@ from metaworld.envs.build_random_envs import Multi_task_env
 import os
 import glob,random
 
-class SawyerCoffeePushEnvV2(SawyerXYZEnv,Multi_task_env):
+class SawyerCoffeePushEnvV2(SawyerXYZEnv):
 
-    def __init__(self,main_pos_index=1):
-        Multi_task_env.__init__(self)
+    def __init__(self):
 
         hand_low = (-0.7, 0.2, 0.05)
         hand_high = (0.7, 1, 0.5)
         main_file = 'sawyer_coffee.xml'
-        self.main_pos_index = main_pos_index
-
+        
         self.generate_env(main_file)
 
 
-        obj_low =  (self.task_offsets_min[0], self.task_offsets_min[1] - 0.4, 0)
-        obj_high = (self.task_offsets_max[0], self.task_offsets_max[1] - 0.4, 0)
+        obj_low =  (self.task_offsets_min[0], self.task_offsets_min[1] - 0.4, 0.001)
+        obj_high = (self.task_offsets_max[0], self.task_offsets_max[1] - 0.4, 0.001)
 
-        goal_low  = (self.task_offsets_min[0], self.task_offsets_min[1] - 0.25,  0)
-        goal_high = (self.task_offsets_max[0], self.task_offsets_max[1] - 0.25,  0)
+        goal_low  = (self.task_offsets_min[0], self.task_offsets_min[1] - 0.25,  0.001)
+        goal_high = (self.task_offsets_max[0], self.task_offsets_max[1] - 0.25,  0.001)
 
         SawyerXYZEnv.__init__(
             self,

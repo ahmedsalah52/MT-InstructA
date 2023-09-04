@@ -13,7 +13,7 @@
           <site name="buttonStart" pos="0 -0.1935 0" size="0.005" rgba="0 0.8 0 1" />
           <site name="hole" pos="0 -0.1 0" size="0.005" rgba="0 0.8 0 1" />
         </body>
-    <body name="obj[0.021487093636279125, -0.04296245258693946]0" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_button_press_topdown/[0.021487093636279125, -0.04296245258693946, 0, 0, 0]shelf_placing.mjcf" /></body><body name="faucetBase[0.48260380935656993, -0.33034437185110316]1" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_button_press_topdown/[0.48260380935656993, -0.33034437185110316, 0, 0, 0]faucet.mjcf" /></body></worldbody>
+    <body name="obj[-0.49846202785107296, -0.29762190499319674]0" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_button_press_topdown/[-0.49846202785107296, -0.29762190499319674, 0, 0, 0]shelf_placing.mjcf" /></body><body name="faucetBase[0.5162829119009135, -0.2629582952901121]1" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_button_press_topdown/[0.5162829119009135, -0.2629582952901121, 0, 0, 0]faucet.mjcf" /></body></worldbody>
 
     <actuator>
         <position ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="400" user="1" />

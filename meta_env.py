@@ -30,6 +30,7 @@ import copy
 from gymnasium.spaces import Dict, Box,Space
 from stable_baselines3.common.buffers import ReplayBuffer
 from metaworld.envs.mujoco.env_dict import ALL_V2_ENVIRONMENTS_multi
+from metaworld.envs.build_random_envs import Multi_task_env
 
 from typing import Any, Dict, Generator, List, Optional, Union
 
@@ -61,10 +62,23 @@ class Custom_replay_buffer(ReplayBuffer):
 class meta_env(Env):
     def __init__(self,taskname,task_pos,save_images,episode_length = 200) -> None:
         super().__init__()
+        class multi_task_V2(ALL_V2_ENVIRONMENTS_multi[taskname],Multi_task_env):
+            def __init__(self,main_pos_index=None , task_variant = None) -> None:
+                Multi_task_env.__init__(self)
+                self.main_pos_index = main_pos_index
+                self.task_variant = task_variant
+
+            def reset_variant(self):
+                ALL_V2_ENVIRONMENTS_multi[taskname].__init__(self)
+                self._freeze_rand_vec = False
+                self._set_task_called = True
+                self._partially_observable = False #taskname not in ['assembly-v2', 'coffee-pull-v2', 'coffee-push-v2']
+
         self.taskname = taskname
         self.task_pos = task_pos
-        self.env = self.get_env()
-       
+        self.env = multi_task_V2(main_pos_index=task_pos)
+        self.env.reset_variant()  
+
 
         self.action_space = spaces.Box(-1, 1, shape=(4,)) #self.env.action_space
         #self.observation_space = Dict({'state' :self.env.observation_space_gymnasium() , 'render': Box(0, 255, shape=(5,224,224,3), dtype=np.uint8)})
@@ -78,18 +92,13 @@ class meta_env(Env):
         self.save_images = save_images
         self.success_counter = 0
         self.total_rewards = 0
-        
-    def get_env(self):
-        env = ALL_V2_ENVIRONMENTS_multi[self.taskname](self.task_pos)
-        env._freeze_rand_vec = False
-        env._set_task_called = True
-        env._partially_observable = self.taskname not in ['assembly-v2', 'coffee-pull-v2', 'coffee-push-v2']
 
-        return env
+    
+
 
     def reset(self,seed=None, options=None):
         super().reset(seed=seed)
-        self.env = self.get_env()
+        self.env.reset_variant()  
 
         obs = self.env.reset()
         images = None

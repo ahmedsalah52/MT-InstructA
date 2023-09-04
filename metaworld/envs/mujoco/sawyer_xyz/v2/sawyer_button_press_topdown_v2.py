@@ -10,15 +10,13 @@ import os
 import glob,random,json
 
 
-class SawyerButtonPressTopdownEnvV2(SawyerXYZEnv,Multi_task_env):
+class SawyerButtonPressTopdownEnvV2(SawyerXYZEnv):
 
-    def __init__(self,main_pos_index):
-        Multi_task_env.__init__(self)
+    def __init__(self):
 
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         main_file = 'sawyer_button_press_topdown.xml'
-        self.main_pos_index = main_pos_index
         self.generate_env(main_file)
         
         obj_low  = (self.task_offsets_min[0],  self.task_offsets_min[1], 0.115)
