@@ -108,7 +108,39 @@ def _make_tasks(classes, args_kwargs, kwargs_override, seed=None):
     return tasks 
 
 
-def _make_tasks_multi(classes, args_kwargs, kwargs_override, seed=None):
+def _make_tasks_multi(classes, class_args,args_kwargs, kwargs_override, seed=None):
+    if seed is not None:
+        st0 = np.random.get_state()
+        np.random.seed(seed)
+    tasks = []
+    for (env_name, args) in args_kwargs.items():
+        assert len(args['args']) == 0
+        env_cls = classes[env_name]
+        env = env_cls(**class_args)
+        env._freeze_rand_vec = False
+        env._set_task_called = True
+        rand_vecs = []
+        kwargs = args['kwargs'].copy()
+        del kwargs['task_id']
+        env._set_task_inner(**kwargs)
+        for _ in range(_N_GOALS):
+            env.reset()
+            rand_vecs.append(env._last_rand_vec)
+        unique_task_rand_vecs = np.unique(np.array(rand_vecs), axis=0)
+        assert unique_task_rand_vecs.shape[0] == _N_GOALS
+
+        env.close()
+        for rand_vec in rand_vecs:
+            kwargs = args['kwargs'].copy()
+            del kwargs['task_id']
+            kwargs.update(dict(rand_vec=rand_vec, env_cls=env_cls))
+            kwargs.update(kwargs_override)
+            tasks.append(_encode_task(env_name, kwargs))
+    if seed is not None:
+        np.random.set_state(st0)
+    return tasks , env
+
+def _make_tasks_single(classes,args_kwargs, kwargs_override, seed=None):
     if seed is not None:
         st0 = np.random.get_state()
         np.random.seed(seed)
@@ -139,7 +171,6 @@ def _make_tasks_multi(classes, args_kwargs, kwargs_override, seed=None):
     if seed is not None:
         np.random.set_state(st0)
     return tasks , env
-
 
 def _ml1_env_names():
     tasks = list(_env_dict.ML1_V2['train'])
@@ -177,7 +208,7 @@ class ML_1_multi(Benchmark):
 
     ENV_NAMES = _ml1_env_names()
 
-    def __init__(self, env_name, seed=None):
+    def __init__(self, env_name,class_args, seed=None):
         super().__init__()
         if not env_name in _env_dict.ALL_V2_ENVIRONMENTS_multi:
             raise ValueError(f"{env_name} is not a V2 environment")
@@ -189,12 +220,35 @@ class ML_1_multi(Benchmark):
         args_kwargs = _env_dict.ML1_args_kwargs[env_name]
 
         self._train_tasks  ,env = _make_tasks_multi(self._train_classes,
+                                                    class_args,
                                         {env_name: args_kwargs},
                                         _ML_OVERRIDE,
                                         seed=seed)
         self.my_env_s = env
 
-     
+
+
+class ML_1_single(Benchmark):
+
+    ENV_NAMES = _ml1_env_names()
+
+    def __init__(self, env_name, seed=None):
+        super().__init__()
+        if not env_name in _env_dict.ALL_V2_ENVIRONMENTS:
+            raise ValueError(f"{env_name} is not a V2 environment")
+        cls = _env_dict.ALL_V2_ENVIRONMENTS[env_name]
+        self._train_classes = OrderedDict([(env_name, cls)])
+
+        self._test_classes = self._train_classes
+        self._train_ = OrderedDict([(env_name, cls)])
+        args_kwargs = _env_dict.ML1_args_kwargs[env_name]
+
+        self._train_tasks  ,env = _make_tasks_single(self._train_classes,
+                                        {env_name: args_kwargs},
+                                        _ML_OVERRIDE,
+                                        seed=seed)
+        self.my_env_s = env
+
 
 class MT1(Benchmark):
 

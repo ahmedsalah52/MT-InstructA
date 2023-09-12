@@ -18,7 +18,7 @@
           <geom material="asmbly_metal" pos="0 0 0" rgba="1 0.3 0.3 1" size="0.02 0.05" type="cylinder" conaffinity="1" contype="1" group="1" friction="1 0.005 0.0001" />
           <site name="pegTop" pos="0 0 0.05" size="0.005" rgba="0 0.8 0 1" />
         </body>
-    <body name="faucetBase[-0.024199506379188843, -0.028833357562325215]0" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[-0.024199506379188843, -0.028833357562325215, 0, 0, 0]faucet.mjcf" /></body><body name="drawer[0.49431498605721846, -0.3048268164944487]1" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[0.49431498605721846, -0.3048268164944487, 0, 0, 0]drawer.mjcf" /></body></worldbody>
+    <body name="faucetBase[-0.5064844939751526, -0.31704454445267155]0" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[-0.5064844939751526, -0.31704454445267155, 0, 0, 0]faucet.mjcf" /></body><body name="drawer[0.5028927533775105, -0.3171238727377776]1" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[0.5028927533775105, -0.3171238727377776, 0, 0, 0]drawer.mjcf" /></body></worldbody>
 
     <actuator>
         <position ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="400" user="1" />

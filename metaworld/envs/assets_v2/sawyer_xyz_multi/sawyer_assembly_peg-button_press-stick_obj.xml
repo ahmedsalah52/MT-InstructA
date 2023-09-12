@@ -20,7 +20,7 @@
           <geom material="asmbly_metal" pos="0 0 0" rgba="1 0.3 0.3 1" size="0.02 0.05" type="cylinder" conaffinity="1" contype="1" group="1" friction="1 0.005 0.0001" />
           <site name="pegTop" pos="0 0 0.05" size="0.005" rgba="0 0.8 0 1" />
         </body>
-    <body name="box[0.025602671222421866, -0.020629409480141105]0" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[0.025602671222421866, -0.020629409480141105, 0, 0, 0]button_press.mjcf" /></body><body name="stick[0.5457397178554835, -0.34014769916344656]1" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[0.5457397178554835, -0.34014769916344656, 0, 0, 0]stick_obj.mjcf" /></body></worldbody>
+    <body name="box[-0.45291892605017586, -0.32821963710643565]0" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[-0.45291892605017586, -0.32821963710643565, 0, 0, 0]button_press.mjcf" /></body><body name="stick[0.5197355915225267, -0.2575669589912425]1" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[0.5197355915225267, -0.2575669589912425, 0, 0, 0]stick_obj.mjcf" /></body></worldbody>
 
     <actuator>
         <position ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="400" user="1" />

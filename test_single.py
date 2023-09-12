@@ -23,26 +23,34 @@ tasks =  ['assembly-v2', 'basketball-v2','box-close-v2', 'button-press-topdown-v
 
 print(len(tasks))
 
-task = 'button-press-topdown-v2' #'coffee-pull-v2'#,  #'coffee-button-v2'
-#ml1 = metaworld.ML_1_multi(task) # Construct the benchmark, sampling tasks
-#env = ml1.train_classes[task]()  # Create an environment with task `pick_place`
-#env = ml1.my_env_s
+taskname = 'door-lock-v2' #'soccer-v2'#'button-press-topdown-v2' #'door-lock-v2' 
+multi = True
+pos = None
+variant = ['soccer','button_press_topdown','door_lock']
 
-class multi_task_V2(ALL_V2_ENVIRONMENTS_multi[task],Multi_task_env):
-    def __init__(self,main_pos_index=None , task_variant = None) -> None:
-        Multi_task_env.__init__(self)
-        self.main_pos_index = main_pos_index
-        self.task_variant = task_variant
 
-    def reset_variant(self):
-        ALL_V2_ENVIRONMENTS_multi[task].__init__(self)
-        self._freeze_rand_vec = False
-        self._set_task_called = True
-        self._partially_observable = False# task not in ['assembly-v2', 'coffee-pull-v2', 'coffee-push-v2']
+class task_manager():
+    def __init__(self,taskname,pos=1,variant=None,multi = True):
+        self.env_args = {'main_pos_index':pos , 'task_variant':variant}
+        self.task_name = taskname
+        self.multi = multi
+    def reset(self):
+        if self.multi:
+            ml1 = metaworld.ML_1_multi(self.task_name,self.env_args)
+        else:
+            ml1 = metaworld.ML_1_single(self.task_name)
 
-env = multi_task_V2(main_pos_index=1)
-env.reset_variant()
- #
+        self.task_ = random.choice(ml1.train_tasks)
+        self.env = ml1.my_env_s
+        self.env.set_task(self.task_)  # Set task
+        return self.env
+
+
+task_man = task_manager(taskname,pos,variant=variant,multi=multi)
+
+
+env = task_man.reset()
+
 #env.set_task(ml1.train_tasks[0])  # Set task
 obs = env.reset()  # Reset environment
 x = y = z = g = 0
@@ -51,6 +59,8 @@ for i in range(500):
     #a = policy.get_action(obs)
     a  = np.array([x,y,z,g])
     obs, reward, done, info = env.step(a)  # Step the environoment with the sampled random action
+    print(obs)
+
     read_obs = {
             'hand_pos': obs[:3],
             'gripper': obs[3],
@@ -60,8 +70,8 @@ for i in range(500):
         #    'unused_info_2': obs[-1],
         }
     #print(i,'-',reward,' - ',obs[:3] )
-    print(i,'action ',a,' reward ' ,round(reward,2),' state ',info['success'],'pos ',env.main_pos_index)
-    print(read_obs)
+    print(i,'action ',a,' reward ' ,round(reward,2),' state ',info['success'])
+    #print(read_obs)
 
     x = y = z = g = 0
     #env.render() 

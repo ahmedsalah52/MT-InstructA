@@ -19,7 +19,7 @@
           <geom material="asmbly_metal" pos="0 0 0" rgba="1 0.3 0.3 1" size="0.02 0.05" type="cylinder" conaffinity="1" contype="1" group="1" friction="1 0.005 0.0001" />
           <site name="pegTop" pos="0 0 0.05" size="0.005" rgba="0 0.8 0 1" />
         </body>
-    <body name="box[-0.0261790907260136, 0.004271337862686561]0" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[-0.0261790907260136, 0.004271337862686561, 0, 0, 0]handle_press.mjcf" /></body><body name="door[0.518032813892276, -0.2906526486375694]1" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[0.518032813892276, -0.2906526486375694, 0, 0, 0]door_lock.mjcf" /></body></worldbody>
+    <body name="box[-0.5157190721689007, -0.3274166385691543]0" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[-0.5157190721689007, -0.3274166385691543, 0, 0, 0]handle_press.mjcf" /></body><body name="door[0.5129714703059324, -0.26241324756396256]1" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[0.5129714703059324, -0.26241324756396256, 0, 0, 0]door_lock.mjcf" /></body></worldbody>
 
     <actuator>
         <position ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="400" user="1" />

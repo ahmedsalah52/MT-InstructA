@@ -260,11 +260,12 @@ class Multi_task_env():
             task_variants    = self.json_file_data[str(self.main_pos_index)]
             self.file_order  = random.choice(range(len(task_variants)))
             task_variant     = task_variants[self.file_order][:]
-
+            
+        self.current_task_variant = task_variant
+        
         main_task_index = task_variant.index(main_task_name)
         task_variant.pop(main_task_index)
         poses_list.pop(main_task_index)
-
         
         task_key = main_task_name if main_task_name in main_poses_dict.keys() else 'default' 
         main_task_offsets = main_poses_dict[task_key]['main'][str(main_task_index)]['offset']

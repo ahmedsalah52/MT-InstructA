@@ -20,7 +20,7 @@
           <geom material="asmbly_metal" pos="0 0 0" rgba="1 0.3 0.3 1" size="0.02 0.05" type="cylinder" conaffinity="1" contype="1" group="1" friction="1 0.005 0.0001" />
           <site name="pegTop" pos="0 0 0.05" size="0.005" rgba="0 0.8 0 1" />
         </body>
-    <body name="soccer_ball[-0.045769652486469796, 0.012463047388798332]0" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[-0.045769652486469796, 0.012463047388798332, 0, 0, 0]soccer.mjcf" /></body><body name="stick[0.526365890102642, -0.3383580352925863]1" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[0.526365890102642, -0.3383580352925863, 0, 0, 0]stick_obj.mjcf" /></body></worldbody>
+    <body name="soccer_ball[-0.4837873554561193, -0.33676982083004636]0" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[-0.4837873554561193, -0.33676982083004636, 0, 0, 0]soccer.mjcf" /></body><body name="stick[0.4864333129753289, -0.31856752834078583]1" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[0.4864333129753289, -0.31856752834078583, 0, 0, 0]stick_obj.mjcf" /></body></worldbody>
 
     <actuator>
         <position ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="400" user="1" />

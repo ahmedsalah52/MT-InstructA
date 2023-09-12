@@ -18,15 +18,15 @@ import json
 import os
 
 
-from stable_baselines3.common.callbacks import CheckpointCallback
 
 #from stable_baselines3.common.env_checker import check_env
 from stable_baselines3 import SAC
 from meta_env import meta_env,meta_Callback,Custom_replay_buffer
 
 from stable_baselines3.common.torch_layers import MlpExtractor,BaseFeaturesExtractor
-from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv
 from typing import Callable
+from stable_baselines3.common.callbacks import CheckpointCallback,CallbackList ,EvalCallback
+from stable_baselines3.common.monitor import Monitor
 
 import sys
 import wandb
@@ -75,9 +75,10 @@ def linear_schedule(initial_value: float,min_value: float) -> Callable[[float], 
     return func
 
 
-def run_training(task_pos):
+def main():
 
     task_name  = sys.argv[1]  # "button-press-topdown-v2" #'basketball-v2' #'assembly-v2' "button-press-topdown-v2"#
+    task_pos   = int(sys.argv[2])
     task_poses = ['Right','Mid','Left']
 
     
@@ -88,7 +89,6 @@ def run_training(task_pos):
 
     run_name   = task_name + '_' + task_poses[task_pos] + '_ID' + str(configs['run_id'])
     save_path  = "./logs/"+run_name
-    load_path  = "./logs/"+task_name + '_' + task_poses[1] + '_ID' + str(configs['run_id'])
     
     policy_kwargs = dict(
     features_extractor_class=getattr(sys.modules[__name__], configs['features_extractor_class']),
@@ -104,34 +104,42 @@ def run_training(task_pos):
     save_replay_buffer=True,
     save_vecnormalize=True,
     )
+
+
+    env      = meta_env(task_name,task_pos,configs['render'],configs['episode_length'],wandb_render = False,multi=configs['multi'],process = 'train')
+    eval_env = meta_env(task_name,task_pos,configs['render'],configs['episode_length'],wandb_render = True ,multi=configs['multi'],process = 'valid')
+
+
+    eval_callback = EvalCallback(eval_env, best_model_save_path="./eval_logs/"+run_name,
+                             log_path="./eval_logs/", eval_freq=100000,
+                             deterministic=True, render=False,
+                             n_eval_episodes=5)
+    
+    callbacks = CallbackList([checkpoint_callback, eval_callback])
+
+    
     run = wandb.init(
-    project="Metaworld single pos",
+    project="Metaworld multi task envs",
     name = run_name,
     config=configs,
     sync_tensorboard=True,  # auto-upload sb3's tensorboard metrics
-    monitor_gym=True,  # auto-upload the videos of agents playing the game
+    monitor_gym=False,  # auto-upload the videos of agents playing the game
     save_code=True,  # optional
     )
 
     
     
-    env = meta_env(task_name,task_pos,configs['render'],configs['episode_length'])
     
     print('training on Task:',task_name, ' - ','with rendering' if configs['render'] else 'without rendering')
-    if task_pos == 1:
-        model = SAC("MlpPolicy", env,policy_kwargs=policy_kwargs, verbose=configs['verbose'],buffer_size=configs['buffer_size'],train_freq=configs['train_freq'],gradient_steps=configs["gradient_steps"],batch_size=configs['batch_size'],learning_rate=linear_schedule(initial_value=configs['lr'],min_value=configs['lr_min']),tensorboard_log=f"runs/{run.id}")
-        total_timesteps = configs['total_timesteps']
-    else:
-        model = SAC.load(os.path.join(load_path,task_name+'_Mid_ID{}_2000000_steps'.format(configs['run_id'])),env, verbose=configs['verbose'],buffer_size=configs['buffer_size'],train_freq=configs['train_freq'],gradient_steps=configs["gradient_steps"],batch_size=configs['batch_size'],learning_rate=linear_schedule(initial_value=configs['lr'],min_value=configs['lr_min']),tensorboard_log=f"runs/{run.id}")
-        total_timesteps = configs['total_timesteps']//2
+    model = SAC("MlpPolicy",env,policy_kwargs=policy_kwargs, verbose=configs['verbose'],buffer_size=configs['buffer_size'],train_freq=configs['train_freq'],gradient_steps=configs["gradient_steps"],batch_size=configs['batch_size'],learning_rate=linear_schedule(initial_value=configs['lr'],min_value=configs['lr_min']),tensorboard_log=f"runs/{run.id}")
+    total_timesteps = configs['total_timesteps']
+
     
-    model.learn(total_timesteps=total_timesteps, log_interval=configs['log_interval'],callback=checkpoint_callback)
+    model.learn(total_timesteps=total_timesteps, log_interval=configs['log_interval'],callback=callbacks)
        
     print()
     print('done training on Task:',task_name, ' - ','with rendering' if configs['render'] else 'without rendering',' with success ',env.success_counter)
 
 
-def main():
-    for pos in [1,0,2]:
-        run_training(pos)
+
 main()

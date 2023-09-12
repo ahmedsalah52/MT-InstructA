@@ -19,7 +19,7 @@
           <geom material="asmbly_metal" pos="0 0 0" rgba="1 0.3 0.3 1" size="0.02 0.05" type="cylinder" conaffinity="1" contype="1" group="1" friction="1 0.005 0.0001" />
           <site name="pegTop" pos="0 0 0.05" size="0.005" rgba="0 0.8 0 1" />
         </body>
-    <body name="bsktball[0.00893521445528632, -0.019689923578312285]0" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[0.00893521445528632, -0.019689923578312285, 0, 0, 0]basketball.mjcf" /></body><body name="faucetBase[0.48685259638903944, -0.2953503778227971]1" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[0.48685259638903944, -0.2953503778227971, 0, 0, 0]faucet.mjcf" /></body></worldbody>
+    <body name="bsktball[-0.45247892265199186, -0.27422253630643995]0" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[-0.45247892265199186, -0.27422253630643995, 0, 0, 0]basketball.mjcf" /></body><body name="faucetBase[0.5403183812092773, -0.3391352741801914]1" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[0.5403183812092773, -0.3391352741801914, 0, 0, 0]faucet.mjcf" /></body></worldbody>
 
     <actuator>
         <position ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="400" user="1" />

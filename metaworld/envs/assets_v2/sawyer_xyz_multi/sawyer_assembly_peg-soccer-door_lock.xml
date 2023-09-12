@@ -19,7 +19,7 @@
           <geom material="asmbly_metal" pos="0 0 0" rgba="1 0.3 0.3 1" size="0.02 0.05" type="cylinder" conaffinity="1" contype="1" group="1" friction="1 0.005 0.0001" />
           <site name="pegTop" pos="0 0 0.05" size="0.005" rgba="0 0.8 0 1" />
         </body>
-    <body name="soccer_ball[0.028709304011065154, 0.034283271783423885]0" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[0.028709304011065154, 0.034283271783423885, 0, 0, 0]soccer.mjcf" /></body><body name="door[0.46194332377354447, -0.28931821934518165]1" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[0.46194332377354447, -0.28931821934518165, 0, 0, 0]door_lock.mjcf" /></body></worldbody>
+    <body name="soccer_ball[-0.47441321297540456, -0.3174011728969589]0" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[-0.47441321297540456, -0.3174011728969589, 0, 0, 0]soccer.mjcf" /></body><body name="door[0.5100709742100433, -0.3027632437242921]1" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[0.5100709742100433, -0.3027632437242921, 0, 0, 0]door_lock.mjcf" /></body></worldbody>
 
     <actuator>
         <position ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="400" user="1" />

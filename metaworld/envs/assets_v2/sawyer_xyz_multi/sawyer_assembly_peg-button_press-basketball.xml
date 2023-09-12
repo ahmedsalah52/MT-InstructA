@@ -19,7 +19,7 @@
           <geom material="asmbly_metal" pos="0 0 0" rgba="1 0.3 0.3 1" size="0.02 0.05" type="cylinder" conaffinity="1" contype="1" group="1" friction="1 0.005 0.0001" />
           <site name="pegTop" pos="0 0 0.05" size="0.005" rgba="0 0.8 0 1" />
         </body>
-    <body name="box[-0.0499522990427757, -0.021252310248582464]0" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[-0.0499522990427757, -0.021252310248582464, 0, 0, 0]button_press.mjcf" /></body><body name="bsktball[0.4618385645900081, -0.34953199143805874]1" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[0.4618385645900081, -0.34953199143805874, 0, 0, 0]basketball.mjcf" /></body></worldbody>
+    <body name="box[-0.48204838438005576, -0.3468961664400184]0" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[-0.48204838438005576, -0.3468961664400184, 0, 0, 0]button_press.mjcf" /></body><body name="bsktball[0.518950153824495, -0.29325576851957413]1" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[0.518950153824495, -0.29325576851957413, 0, 0, 0]basketball.mjcf" /></body></worldbody>
 
     <actuator>
         <position ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="400" user="1" />

@@ -12,15 +12,21 @@ import glob,random,json
 
 class SawyerButtonPressTopdownEnvV2(SawyerXYZEnv):
 
-    def __init__(self):
+    def __init__(self,main_pos_index=None , task_variant = None):
+        Multi_task_env.__init__(self)
+        self.main_pos_index = main_pos_index
+        self.task_variant = task_variant
 
-        hand_low = (-0.5, 0.40, 0.05)
-        hand_high = (0.5, 1, 0.5)
+        hand_low = (-0.6, 0.40, 0.05)
+        hand_high = (0.6, 1, 0.5)
         main_file = 'sawyer_button_press_topdown.xml'
         self.generate_env(main_file)
-        
-        obj_low  = (self.task_offsets_min[0],  self.task_offsets_min[1], 0.115)
-        obj_high = (self.task_offsets_max[0],  self.task_offsets_max[1], 0.115)
+        min_x = self.task_offsets_min[0]
+        max_x = self.task_offsets_max[0]
+        hand_init_pos  = [np.random.uniform(min(-0.1,min_x) ,max(0.1,max_x)),np.random.uniform(0.4,0.6), np.random.uniform(0.2,0.3)]
+
+        obj_low  = (self.task_offsets_min[0],  self.task_offsets_min[1] + 0.85, 0.115)
+        obj_high = (self.task_offsets_max[0],  self.task_offsets_max[1] + 0.85, 0.115)
         SawyerXYZEnv.__init__(
             self,
             self.model_name,
@@ -30,7 +36,7 @@ class SawyerButtonPressTopdownEnvV2(SawyerXYZEnv):
 
         self.init_config = {
             'obj_init_pos': np.array([0, 0.8, 0.115], dtype=np.float32),
-            'hand_init_pos': np.array([0, 0.4, 0.2], dtype=np.float32),
+            'hand_init_pos': np.array(hand_init_pos, dtype=np.float32),
         }
         self.goal = np.array([0, 0.88, 0.1])
         self.obj_init_pos  = self.init_config['obj_init_pos']

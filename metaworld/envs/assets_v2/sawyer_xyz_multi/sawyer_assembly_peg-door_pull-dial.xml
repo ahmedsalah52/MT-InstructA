@@ -19,7 +19,7 @@
           <geom material="asmbly_metal" pos="0 0 0" rgba="1 0.3 0.3 1" size="0.02 0.05" type="cylinder" conaffinity="1" contype="1" group="1" friction="1 0.005 0.0001" />
           <site name="pegTop" pos="0 0 0.05" size="0.005" rgba="0 0.8 0 1" />
         </body>
-    <body name="door[0.008099308524002336, 0.0030332342514859806]0" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[0.008099308524002336, 0.0030332342514859806, 0, 0, 0]door_pull.mjcf" /></body><body name="dial[0.5459785201004761, -0.2883363587136221]1" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[0.5459785201004761, -0.2883363587136221, 0, 0, 0]dial.mjcf" /></body></worldbody>
+    <body name="door[-0.48127594269321367, -0.13223048472498733]0" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[-0.48127594269321367, -0.13223048472498733, 0, 0, 0]door_pull.mjcf" /></body><body name="dial[0.5036345979753107, -0.28823678261660657]1" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[0.5036345979753107, -0.28823678261660657, 0, 0, 0]dial.mjcf" /></body></worldbody>
 
     <actuator>
         <position ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="400" user="1" />

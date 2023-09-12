@@ -12,23 +12,22 @@ import os
 import glob,random
 
 class SawyerCoffeePushEnvV2(SawyerXYZEnv):
-
-    def __init__(self):
+    def __init__(self,main_pos_index=None , task_variant = None):
+        Multi_task_env.__init__(self)
+        self.main_pos_index = main_pos_index
+        self.task_variant = task_variant
 
         hand_low = (-0.7, 0.2, 0.05)
         hand_high = (0.7, 1, 0.5)
         main_file = 'sawyer_coffee.xml'
         
-        if isinstance(self,Multi_task_env):
-            self.generate_env(main_file)
-            obj_low =  (self.task_offsets_min[0], self.task_offsets_min[1] - 0.4, 0.001)
-            obj_high = (self.task_offsets_max[0], self.task_offsets_max[1] - 0.4, 0.001)
+        self.generate_env(main_file)
+        obj_low =  (self.task_offsets_min[0], self.task_offsets_min[1] - 0.4, 0.001)
+        obj_high = (self.task_offsets_max[0], self.task_offsets_max[1] - 0.4, 0.001)
 
-            goal_low  = (self.task_offsets_min[0], self.task_offsets_min[1] - 0.25,  0.001)
-            goal_high = (self.task_offsets_max[0], self.task_offsets_max[1] - 0.25,  0.001)
-        else:
-            raise Exception("this class shouldn't be called directly") 
-        
+        goal_low  = (self.task_offsets_min[0], self.task_offsets_min[1] - 0.25,  0.001)
+        goal_high = (self.task_offsets_max[0], self.task_offsets_max[1] - 0.25,  0.001)
+    
         SawyerXYZEnv.__init__(
             self,
             self.model_name,
@@ -39,7 +38,7 @@ class SawyerCoffeePushEnvV2(SawyerXYZEnv):
         self.init_config = {
             'obj_init_angle': 0.3,
             'obj_init_pos': np.array([0., .6, 0.]),
-            'hand_init_pos': np.array([0., .4, .2]),
+            'hand_init_pos': np.array([0., .3, .2]),
         }
         self.goal = np.array([0., 0.75, 0])
         self.obj_init_pos = self.init_config['obj_init_pos']
@@ -51,6 +50,7 @@ class SawyerCoffeePushEnvV2(SawyerXYZEnv):
             np.hstack((obj_high, goal_high)),
         )
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
+
 
     @property
     def model_name(self):

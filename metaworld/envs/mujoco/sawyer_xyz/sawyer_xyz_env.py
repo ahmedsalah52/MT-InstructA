@@ -13,6 +13,7 @@ import gymnasium
 
 from metaworld.envs.build_random_envs import build_env , multi_object_man
 import os
+from metaworld.envs.build_random_envs import Multi_task_env
 
 class SawyerMocapBase(MujocoEnv, metaclass=abc.ABCMeta):
     """
@@ -81,7 +82,7 @@ class SawyerMocapBase(MujocoEnv, metaclass=abc.ABCMeta):
         sim.forward()
 
 
-class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
+class SawyerXYZEnv(SawyerMocapBase, Multi_task_env,metaclass=abc.ABCMeta):
     _HAND_SPACE = Box(
         np.array([-0.525, .348, -.0525]),
         np.array([+0.525, 1.025, .7]),
@@ -102,6 +103,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             action_scale=1./100,
             action_rot_scale=1.,
     ):
+
         super().__init__(model_name, frame_skip=frame_skip)
         self.random_init = True
         self.action_scale = action_scale

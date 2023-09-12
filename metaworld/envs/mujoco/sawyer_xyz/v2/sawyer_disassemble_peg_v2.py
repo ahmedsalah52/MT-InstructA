@@ -9,20 +9,19 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _asser
 from metaworld.envs.build_random_envs import Multi_task_env
 import os
 import glob,random
-class SawyerNutDisassembleEnvV2(SawyerXYZEnv,Multi_task_env):
+class SawyerNutDisassembleEnvV2(SawyerXYZEnv):
     WRENCH_HANDLE_LENGTH = 0.02
 
     def __init__(self):
-        Multi_task_env.__init__(self)
      
-        hand_low  = (-0.7, 0.3, 0.05)
-        hand_high = (0.7 , 1.3, 0.5)       
+        hand_low  = (-0.8, 0.3, 0.00)
+        hand_high = (0.8 , 1.3, 0.5)       
         main_file = 'sawyer_assembly_peg.xml'
         self.generate_env(main_file)
 
-        obj_low = (self.task_offsets_min[0], self.task_offsets_min[1], 0.025)
+        obj_low = (self.task_offsets_min[0] , self.task_offsets_min[1]+ 0.15, 0.025)
         obj_high = (self.task_offsets_max[0], self.task_offsets_max[1] + 0.15, 0.02501)
-        goal_low = (self.task_offsets_min[0]-0.05,self.task_offsets_min[1] , 0.1699)
+        goal_low = (self.task_offsets_min[0]-0.05,self.task_offsets_min[1] + 0.15, 0.1699)
         goal_high = (self.task_offsets_max[0]+0.05,self.task_offsets_max[1] + 0.15 , 0.1701)
 
         SawyerXYZEnv.__init__(

@@ -20,7 +20,7 @@
           <geom material="asmbly_metal" pos="0 0 0" rgba="1 0.3 0.3 1" size="0.02 0.05" type="cylinder" conaffinity="1" contype="1" group="1" friction="1 0.005 0.0001" />
           <site name="pegTop" pos="0 0 0.05" size="0.005" rgba="0 0.8 0 1" />
         </body>
-    <body name="obj[-0.02233101776125448, 0.039018107117733083]0" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[-0.02233101776125448, 0.039018107117733083, 0, 0, 0]reach_push_pick_and_place_wall.mjcf" /></body><body name="dial[0.4676761148171068, -0.30321038298090575]1" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[0.4676761148171068, -0.30321038298090575, 0, 0, 0]dial.mjcf" /></body></worldbody>
+    <body name="obj[-0.46879815651067713, -0.27500095312822537]0" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[-0.46879815651067713, -0.27500095312822537, 0, 0, 0]reach_push_pick_and_place_wall.mjcf" /></body><body name="dial[0.5300859255855809, -0.30060206609704837]1" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[0.5300859255855809, -0.30060206609704837, 0, 0, 0]dial.mjcf" /></body></worldbody>
 
     <actuator>
         <position ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="400" user="1" />

@@ -20,7 +20,7 @@
           <geom material="asmbly_metal" pos="0 0 0" rgba="1 0.3 0.3 1" size="0.02 0.05" type="cylinder" conaffinity="1" contype="1" group="1" friction="1 0.005 0.0001" />
           <site name="pegTop" pos="0 0 0.05" size="0.005" rgba="0 0.8 0 1" />
         </body>
-    <body name="box[0.04021028061599467, -0.03588618336448013]0" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[0.04021028061599467, -0.03588618336448013, 0, 0, 0]button_press_wall.mjcf" /></body><body name="lever[0.45302517129474845, -0.3253567502289307]1" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[0.45302517129474845, -0.3253567502289307, 0, 0, 0]lever_pull.mjcf" /></body></worldbody>
+    <body name="box[-0.5295984500632942, -0.2800349219245343]0" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[-0.5295984500632942, -0.2800349219245343, 0, 0, 0]button_press_wall.mjcf" /></body><body name="lever[0.47923462515395115, -0.2993079344319369]1" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[0.47923462515395115, -0.2993079344319369, 0, 0, 0]lever_pull.mjcf" /></body></worldbody>
 
     <actuator>
         <position ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="400" user="1" />

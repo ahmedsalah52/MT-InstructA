@@ -19,7 +19,7 @@
           <geom material="asmbly_metal" pos="0 0 0" rgba="1 0.3 0.3 1" size="0.02 0.05" type="cylinder" conaffinity="1" contype="1" group="1" friction="1 0.005 0.0001" />
           <site name="pegTop" pos="0 0 0.05" size="0.005" rgba="0 0.8 0 1" />
         </body>
-    <body name="obj[-0.007535953411395367, 0.02046471296061647]0" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[-0.007535953411395367, 0.02046471296061647, 0, 0, 0]shelf_placing.mjcf" /></body><body name="laptop[0.4523888065154993, -0.3075171176080624]1" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[0.4523888065154993, -0.3075171176080624, 0, 0, 0]laptop.mjcf" /></body></worldbody>
+    <body name="obj[-0.46244141417262385, -0.2918877745490842]0" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[-0.46244141417262385, -0.2918877745490842, 0, 0, 0]shelf_placing.mjcf" /></body><body name="laptop[0.5288147361735355, -0.25980663883046917]1" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[0.5288147361735355, -0.25980663883046917, 0, 0, 0]laptop.mjcf" /></body></worldbody>
 
     <actuator>
         <position ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="400" user="1" />

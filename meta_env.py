@@ -31,7 +31,7 @@ from gymnasium.spaces import Dict, Box,Space
 from stable_baselines3.common.buffers import ReplayBuffer
 from metaworld.envs.mujoco.env_dict import ALL_V2_ENVIRONMENTS_multi
 from metaworld.envs.build_random_envs import Multi_task_env
-
+import wandb
 from typing import Any, Dict, Generator, List, Optional, Union
 
 
@@ -59,26 +59,34 @@ class Custom_replay_buffer(ReplayBuffer):
         self.success[self.pos]     = np.array([bool(info['success']) for info in infos])
         super().add(obs,next_obs,action,reward,done,infos)
 
+
+class task_manager():
+    def __init__(self,taskname,pos=1,variant=None,multi = True):
+        self.env_args = {'main_pos_index':pos , 'task_variant':variant}
+        self.task_name = taskname
+        self.multi = multi
+    def reset(self):
+        if self.multi:
+            ml1 = metaworld.ML_1_multi(self.task_name,self.env_args)
+        else:
+            ml1 = metaworld.ML_1_single(self.task_name)
+
+        self.task_ = random.choice(ml1.train_tasks)
+        self.env = ml1.my_env_s
+        self.env.set_task(self.task_)  # Set task
+        return self.env
+
+
+
 class meta_env(Env):
-    def __init__(self,taskname,task_pos,save_images,episode_length = 200) -> None:
+    def __init__(self,taskname,task_pos,save_images,episode_length = 200,wandb_render = False,multi = True,process='None') -> None:
         super().__init__()
-        class multi_task_V2(ALL_V2_ENVIRONMENTS_multi[taskname],Multi_task_env):
-            def __init__(self,main_pos_index=None , task_variant = None) -> None:
-                Multi_task_env.__init__(self)
-                self.main_pos_index = main_pos_index
-                self.task_variant = task_variant
-
-            def reset_variant(self):
-                ALL_V2_ENVIRONMENTS_multi[taskname].__init__(self)
-                self._freeze_rand_vec = False
-                self._set_task_called = True
-                self._partially_observable = False #taskname not in ['assembly-v2', 'coffee-pull-v2', 'coffee-push-v2']
-
+        
         self.taskname = taskname
         self.task_pos = task_pos
-        self.env = multi_task_V2(main_pos_index=task_pos)
-        self.env.reset_variant()  
-
+        self.task_man = task_manager(taskname=taskname,pos=task_pos,multi=multi)
+        self.env = self.task_man.reset()
+        
 
         self.action_space = spaces.Box(-1, 1, shape=(4,)) #self.env.action_space
         #self.observation_space = Dict({'state' :self.env.observation_space_gymnasium() , 'render': Box(0, 255, shape=(5,224,224,3), dtype=np.uint8)})
@@ -92,33 +100,48 @@ class meta_env(Env):
         self.save_images = save_images
         self.success_counter = 0
         self.total_rewards = 0
-
-    
-
+        self.render_mode = 'rgb_array'
+        self.wandb_render = wandb_render
+        self.multi = multi
+        self.process = process
 
     def reset(self,seed=None, options=None):
         super().reset(seed=seed)
-        self.env.reset_variant()  
+        self.env = self.task_man.reset()
+        self.rendered_seq = []
 
         obs = self.env.reset()
         images = None
         #if self.dump_states:
         if self.save_images:
             images = self.get_visual_obs()
-
+        if self.wandb_render:
+            self.rendered_seq.append(self.get_visual_obs_log())
         #obs = {'state':obs,'render':images}
         
         self.steps = 0
         self.total_rewards = 0
         self.prev_reward = 0
         
-        return obs ,  {'images':images,'file_order':self.env.file_order,'success':0.0} # Reset environment
+        return obs ,  {'images':images,'file_order':self.env.file_order if self.multi else 0,'success':0.0} # Reset environment
         
+    def get_visual_obs_log(self):
+        behindGripper  = self.env.render(offscreen= True,camera_name='behindGripper')
+        topview        = self.env.render(offscreen= True,camera_name='topview')
+        topview        = cv2.rotate(topview, cv2.ROTATE_180)
+        behindGripper  = cv2.rotate(behindGripper, cv2.ROTATE_180)
     
-    def render(self, mode='human'):
+        conc_image  = cv2.hconcat([behindGripper,topview])
+        conc_image  = cv2.resize(conc_image, (2*256,256))
+        return conc_image
 
-        return cv2.rotate(cv2.cvtColor(self.env.render(offscreen= True,camera_name='behindGripper'),cv2.COLOR_RGB2BGR), cv2.ROTATE_180)
-    
+    def render(self, mode='human'):
+        print('render________________________________________',self.env.current_task_variant)
+        #super().render()
+        wandb.log({"frame": wandb.Image( cv2.rotate(cv2.cvtColor(self.env.render(offscreen= True,camera_name='behindGripper'),cv2.COLOR_RGB2BGR), cv2.ROTATE_180))})
+        pass
+    def get_images(self):
+        return self.get_visual_obs()
     def close (self):
         pass
 
@@ -131,22 +154,24 @@ class meta_env(Env):
         self.end_episode = done or (info['success']==1.0)
         if info['success']==1.0:
             self.success_counter+=1
-            print(' success = ', self.success_counter)
         if self.save_images:
             images = self.get_visual_obs()
+        if self.wandb_render:
+            self.rendered_seq.append(self.get_visual_obs_log())
+            if self.end_episode:
+                self.rendered_seq = np.array(self.rendered_seq, dtype=np.uint8)
+                self.rendered_seq = self.rendered_seq.transpose(0,3, 1, 2)
+                wandb.log({"video": wandb.Video(self.rendered_seq, fps=30)})
+        if self.end_episode:
+            wandb.log({self.process+" success counter": self.success_counter})
 
-     
-        info['images'] = images
-        info['file_order'] = self.env.file_order
-
-        #if done and not (info['success']==1.0): reward -= 50
-
-        #reward += self.additional_reward(obs)
         
+        
+        info['images'] = images
+        info['file_order'] = self.env.file_order if self.multi else 0
 
-        #d_reward = reward - self.prev_reward
-        #self.prev_reward = reward
-        #self.total_rewards += d_reward
+        
+            
         return obs, reward, done ,(info['success']==1.0),info
     
     

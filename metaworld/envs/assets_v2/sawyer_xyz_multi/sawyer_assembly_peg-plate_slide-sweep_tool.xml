@@ -19,7 +19,7 @@
           <geom material="asmbly_metal" pos="0 0 0" rgba="1 0.3 0.3 1" size="0.02 0.05" type="cylinder" conaffinity="1" contype="1" group="1" friction="1 0.005 0.0001" />
           <site name="pegTop" pos="0 0 0.05" size="0.005" rgba="0 0.8 0 1" />
         </body>
-    <body name="puck_channel[-0.024167673497971522, -0.044125093806686944]0" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[-0.024167673497971522, -0.044125093806686944, 0, 0, 0]plate_slide.mjcf" /></body><body name="club[0.47680244921039366, -0.32188471683440406]1" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[0.47680244921039366, -0.32188471683440406, 0, 0, 0]sweep_tool.mjcf" /></body></worldbody>
+    <body name="puck_channel[-0.39538727531892226, 0.02848264983769863]0" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[-0.39538727531892226, 0.02848264983769863, 0, 0, 0]plate_slide.mjcf" /></body><body name="club[0.4563918160319789, -0.27849926854290674]1" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_assembly_peg/[0.4563918160319789, -0.27849926854290674, 0, 0, 0]sweep_tool.mjcf" /></body></worldbody>
 
     <actuator>
         <position ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="400" user="1" />
