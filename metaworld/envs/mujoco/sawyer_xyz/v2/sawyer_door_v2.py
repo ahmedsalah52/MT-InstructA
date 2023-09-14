@@ -20,7 +20,7 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
         hand_high = (0.7, 1, 0.5)
         main_file = 'sawyer_door_pull.xml'
 
-        self.generate_env(main_file)
+        self.generate_env(main_file,main_pos_index,task_variant)
 
 
         obj_low   = (self.task_offsets_min[0]   ,self.task_offsets_min[1] + 0.9, 0.15)
@@ -38,7 +38,7 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
         self.init_config = {
             'obj_init_angle': np.array([0.3, ]),
             'obj_init_pos': np.array([0.1, 0.95, 0.15]),
-            'hand_init_pos': np.array([0, 0.3, 0.2]),
+            'hand_init_pos': np.array(self.hand_init_pos_),
         }
 
         self.goal = np.array([-0.2, 0.7, 0.15])

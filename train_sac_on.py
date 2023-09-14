@@ -87,8 +87,10 @@ def main():
     configs['task_name'] = task_name
     configs['task_pos']  = task_pos
 
+    
     run_name   = task_name + '_' + task_poses[task_pos] + '_ID' + str(configs['run_id'])
     save_path  = "./logs/"+run_name
+    load_path = os.path.join(save_path, f"{run_name}_{configs['load_from']}_steps")
     
     policy_kwargs = dict(
     features_extractor_class=getattr(sys.modules[__name__], configs['features_extractor_class']),
@@ -111,7 +113,7 @@ def main():
 
 
     eval_callback = EvalCallback(eval_env, best_model_save_path="./eval_logs/"+run_name,
-                             log_path="./eval_logs/", eval_freq=100000,
+                             log_path="./eval_logs/"+run_name, eval_freq=100000,
                              deterministic=True, render=False,
                              n_eval_episodes=5)
     
@@ -131,7 +133,11 @@ def main():
     
     
     print('training on Task:',task_name, ' - ','with rendering' if configs['render'] else 'without rendering')
-    model = SAC("MlpPolicy",env,policy_kwargs=policy_kwargs, verbose=configs['verbose'],buffer_size=configs['buffer_size'],train_freq=configs['train_freq'],gradient_steps=configs["gradient_steps"],batch_size=configs['batch_size'],learning_rate=linear_schedule(initial_value=configs['lr'],min_value=configs['lr_min']),tensorboard_log=f"runs/{run.id}")
+    if configs['load_from'] == 0:
+        model = SAC("MlpPolicy",env,policy_kwargs=policy_kwargs, verbose=configs['verbose'],buffer_size=configs['buffer_size'],train_freq=configs['train_freq'],gradient_steps=configs["gradient_steps"],batch_size=configs['batch_size'],learning_rate=linear_schedule(initial_value=configs['lr'],min_value=configs['lr_min']),tensorboard_log=f"runs/{run.id}")
+    else:
+        model = SAC.load(load_path,env, verbose=configs['verbose'],buffer_size=configs['buffer_size'],train_freq=configs['train_freq'],gradient_steps=configs["gradient_steps"],batch_size=configs['batch_size'],learning_rate=linear_schedule(initial_value=configs['lr'],min_value=configs['lr_min']),tensorboard_log=f"runs/{run.id}")
+    
     total_timesteps = configs['total_timesteps']
 
     

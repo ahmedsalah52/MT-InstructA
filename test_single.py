@@ -23,10 +23,10 @@ tasks =  ['assembly-v2', 'basketball-v2','box-close-v2', 'button-press-topdown-v
 
 print(len(tasks))
 
-taskname = 'door-lock-v2' #'soccer-v2'#'button-press-topdown-v2' #'door-lock-v2' 
+taskname = 'door-close-v2' #'soccer-v2'#'button-press-topdown-v2' #'door-lock-v2' 
 multi = True
-pos = None
-variant = ['soccer','button_press_topdown','door_lock']
+pos = 0
+variant = None ##['soccer','button_press_topdown','door_lock']
 
 
 class task_manager():
@@ -61,14 +61,7 @@ for i in range(500):
     obs, reward, done, info = env.step(a)  # Step the environoment with the sampled random action
     print(obs)
 
-    read_obs = {
-            'hand_pos': obs[:3],
-            'gripper': obs[3],
-            'mug_pos': obs[4:7],
-            'goal_xy': obs[-3:-1],
-        #    'unused_info_1': obs[7:-3],
-        #    'unused_info_2': obs[-1],
-        }
+    
     #print(i,'-',reward,' - ',obs[:3] )
     print(i,'action ',a,' reward ' ,round(reward,2),' state ',info['success'])
     #print(read_obs)

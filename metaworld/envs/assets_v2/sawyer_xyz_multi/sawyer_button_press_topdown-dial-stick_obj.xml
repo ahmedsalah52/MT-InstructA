@@ -13,7 +13,7 @@
           <site name="buttonStart" pos="0 -0.1935 0" size="0.005" rgba="0 0.8 0 1" />
           <site name="hole" pos="0 -0.1 0" size="0.005" rgba="0 0.8 0 1" />
         </body>
-    <body name="dial[0.012694220858262883, -0.0005755584113845483]0" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_button_press_topdown/[0.012694220858262883, -0.0005755584113845483, 0, 0, 0]dial.mjcf" /></body><body name="stick[0.5202457029248323, -0.316560722517889]1" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_button_press_topdown/[0.5202457029248323, -0.316560722517889, 0, 0, 0]stick_obj.mjcf" /></body></worldbody>
+    <body name="dial[-0.4617600241562296, -0.3283945811428039]0" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_button_press_topdown/[-0.4617600241562296, -0.3283945811428039, 0, 0, 0]dial.mjcf" /></body><body name="stick[-0.04346787951264741, 0.01104197780101842]1" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_button_press_topdown/[-0.04346787951264741, 0.01104197780101842, 0, 0, 0]stick_obj.mjcf" /></body></worldbody>
 
     <actuator>
         <position ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="400" user="1" />

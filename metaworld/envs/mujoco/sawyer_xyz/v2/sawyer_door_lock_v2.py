@@ -17,14 +17,11 @@ class SawyerDoorLockEnvV2(SawyerXYZEnv):
         self.main_pos_index = main_pos_index
         self.task_variant = task_variant
 
-        hand_low = (-0.6, 0.40, -0.15)
+        hand_low = (-0.6, 0.40, 0.05)
         hand_high = (0.6, 1, 0.5)
         main_file = 'sawyer_door_lock.xml'
-        self.generate_env(main_file)
-        min_x = self.task_offsets_min[0]
-        max_x = self.task_offsets_max[0]
-        hand_init_pos  = [np.random.uniform(min(-0.1,min_x) ,max(0.1,max_x)),np.random.uniform(0.4,0.6), np.random.uniform(0.2,0.3)]
-
+        self.generate_env(main_file,main_pos_index,task_variant)
+        
         obj_low   = (self.task_offsets_min[0]   ,self.task_offsets_min[1] + 0.9, 0.15)
         obj_high  = (self.task_offsets_max[0]   ,self.task_offsets_max[1] + 0.9, 0.15)
 
@@ -36,7 +33,7 @@ class SawyerDoorLockEnvV2(SawyerXYZEnv):
 
         self.init_config = {
             'obj_init_pos': np.array([0, 0.85, 0.15]),
-            'hand_init_pos': np.array(hand_init_pos, dtype=np.float32),
+            'hand_init_pos': np.array(self.hand_init_pos_, dtype=np.float32),
         }
         self.goal = np.array([0, 0.85, 0.1])
         self.obj_init_pos = self.init_config['obj_init_pos']

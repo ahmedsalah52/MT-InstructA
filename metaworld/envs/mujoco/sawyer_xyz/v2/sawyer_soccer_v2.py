@@ -28,11 +28,8 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
         hand_low = (-0.6, 0.4, 0.05)
         hand_high = (0.6, 1, 0.5)
         main_file = 'sawyer_soccer.xml'
-        self.generate_env(main_file)
-        min_x = self.task_offsets_min[0]
-        max_x = self.task_offsets_max[0]
-        hand_init_pos  = [np.random.uniform(min(-0.1,min_x) ,max(0.1,max_x)),np.random.uniform(0.4,0.6), np.random.uniform(0.2,0.3)]
-
+        self.generate_env(main_file,main_pos_index,task_variant)
+        
 
         obj_low  =  (self.task_offsets_min[0], self.task_offsets_min[1] + 0.7, 0.001)
         obj_high =  (self.task_offsets_max[0], self.task_offsets_max[1] + 0.7, 0.001)
@@ -53,12 +50,12 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
         self.init_config = {
             'obj_init_pos': np.array([0, 0.6, 0.03]),
             'obj_init_angle': 0.3,
-            'hand_init_pos': np.array(hand_init_pos),
+            'hand_init_pos': np.array(self.hand_init_pos_),
         }
         self.goal = np.array([0., 0.9, 0.03])
-        self.obj_init_pos = self.init_config['obj_init_pos']
+        self.obj_init_pos   = self.init_config['obj_init_pos']
         self.obj_init_angle = self.init_config['obj_init_angle']
-        self.hand_init_pos = self.init_config['hand_init_pos']
+        self.hand_init_pos  = self.init_config['hand_init_pos']
 
         self._random_reset_space = Box(
             np.hstack((obj_low, goal_low)),

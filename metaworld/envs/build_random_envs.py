@@ -239,9 +239,8 @@ class Multi_task_env():
         self.main_poses_dict  = json.load(open(os.path.join('configs/env_configs/main_poses_dict.json')))
         self.json_file_data   = None
 
-    def generate_env(self,main_file):
+    def generate_env(self,main_file,main_pos_index,task_variant):
         main_poses_dict = self.main_poses_dict 
-        task_variant = self.task_variant
         poses_list    = [0,1,2]
 
         main_task_name = main_file.split('.')[0]
@@ -255,9 +254,9 @@ class Multi_task_env():
         main_task_name = main_task_name[7:] # remove sawyer_
         if self.json_file_data == None: 
             self.json_file_data = json.load(open(os.path.join('metaworld/all_envs',main_task_name+'.json')))
-        if self.main_pos_index == None: self.main_pos_index = random.choice(poses_list)
+        if main_pos_index == None: main_pos_index = random.choice(poses_list)
         if task_variant == None:
-            task_variants    = self.json_file_data[str(self.main_pos_index)]
+            task_variants    = self.json_file_data[str(main_pos_index)]
             self.file_order  = random.choice(range(len(task_variants)))
             task_variant     = task_variants[self.file_order][:]
             
@@ -291,3 +290,8 @@ class Multi_task_env():
         self.file_name = build_env(os.path.join(main_envs_dir ,main_file),main_rot,secondary_poses,task_variant)
         self.task_offsets_min = np.array(main_task_offsets) - np.array(main_task_range)
         self.task_offsets_max = np.array(main_task_offsets) + np.array(main_task_range)
+        min_x = self.task_offsets_min[0]
+        max_x = self.task_offsets_max[0]
+        self.hand_init_pos_  = [np.random.uniform(min(-0.1,min_x) ,max(0.1,max_x)),np.random.uniform(0.4,0.7), np.random.uniform(0.15,0.3)]
+        
+        
