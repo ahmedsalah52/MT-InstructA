@@ -42,10 +42,15 @@ class CustomMLP(BaseFeaturesExtractor):
     def __init__(self, observation_space: spaces.Box, features_dim: int = 256):
         super().__init__( observation_space = observation_space,features_dim = features_dim)
         n_input_channels = observation_space.shape[0]
-        self.linear = nn.Sequential(nn.Linear(n_input_channels, features_dim),
+        emp_dim = 12
+        self.linear = nn.Sequential(nn.Linear(n_input_channels+emp_dim-1, features_dim),
                                     nn.LayerNorm(features_dim))
-
+        self.embedding = nn.Embedding(3, emp_dim)
     def forward(self, observations: th.Tensor) -> th.Tensor:
+        poses = observations[:,0]
+        observations = observations[:,1:]
+        embs = self.embedding(poses.int())
+        observations = th.cat([embs,observations],dim=-1)
         return self.linear(observations)
 
 class LeakyReLU(nn.LeakyReLU):
@@ -79,7 +84,7 @@ def main():
 
     task_name  = sys.argv[1]  # "button-press-topdown-v2" #'basketball-v2' #'assembly-v2' "button-press-topdown-v2"#
     task_pos   = int(sys.argv[2])
-    task_poses = ['Right','Mid','Left']
+    task_poses = ['Right','Mid','Left','mix']
 
     
     
@@ -121,7 +126,7 @@ def main():
 
     
     run = wandb.init(
-    project="Metaworld multi task envs",
+    project="Experiment Metaworld multi task SAC training",
     name = run_name,
     config=configs,
     sync_tensorboard=True,  # auto-upload sb3's tensorboard metrics

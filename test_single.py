@@ -30,7 +30,7 @@ variant = None ##['soccer','button_press_topdown','door_lock']
 
 
 class task_manager():
-    def __init__(self,taskname,pos=1,variant=None,multi = True):
+    def __init__(self,taskname,pos=None,variant=None,multi = True):
         self.env_args = {'main_pos_index':pos , 'task_variant':variant}
         self.task_name = taskname
         self.multi = multi
@@ -46,7 +46,7 @@ class task_manager():
         return self.env
 
 
-task_man = task_manager(taskname,pos,variant=variant,multi=multi)
+task_man = task_manager(taskname,pos=None,variant=variant,multi=multi)
 
 
 env = task_man.reset()

@@ -425,8 +425,8 @@ class SawyerXYZEnv(SawyerMocapBase, Multi_task_env,metaclass=abc.ABCMeta):
         gripper_high = +1.
 
         return gymnasium.spaces.Box(
-            np.hstack((self._HAND_SPACE.low, gripper_low, obj_low, self._HAND_SPACE.low, gripper_low, obj_low, goal_low)),
-            np.hstack((self._HAND_SPACE.high, gripper_high, obj_high, self._HAND_SPACE.high, gripper_high, obj_high, goal_high)),
+            np.hstack((0,self._HAND_SPACE.low, gripper_low, obj_low, self._HAND_SPACE.low, gripper_low, obj_low, goal_low)),
+            np.hstack((5,self._HAND_SPACE.high, gripper_high, obj_high, self._HAND_SPACE.high, gripper_high, obj_high, goal_high)),
             dtype=np.float64,
         ) if self.isV2 else gymnasium.spaces.Box(
             np.hstack((self._HAND_SPACE.low, obj_low, goal_low)),

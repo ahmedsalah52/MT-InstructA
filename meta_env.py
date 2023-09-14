@@ -61,7 +61,7 @@ class Custom_replay_buffer(ReplayBuffer):
 
 
 class task_manager():
-    def __init__(self,taskname,pos=1,variant=None,multi = True):
+    def __init__(self,taskname,pos=None,variant=None,multi = True):
         self.env_args = {'main_pos_index':pos , 'task_variant':variant}
         self.task_name = taskname
         self.multi = multi
@@ -112,17 +112,16 @@ class meta_env(Env):
 
         obs = self.env.reset()
         images = None
-        #if self.dump_states:
         if self.save_images:
             images = self.get_visual_obs()
         if self.wandb_render:
             self.rendered_seq.append(self.get_visual_obs_log())
-        #obs = {'state':obs,'render':images}
         
         self.steps = 0
         self.total_rewards = 0
         self.prev_reward = 0
         
+        obs = np.hstack((self.env.main_pos_index,obs))
         return obs ,  {'images':images,'file_order':self.env.file_order if self.multi else 0,'success':0.0} # Reset environment
         
     def get_visual_obs_log(self):
@@ -170,7 +169,8 @@ class meta_env(Env):
         info['images'] = images
         info['file_order'] = self.env.file_order if self.multi else 0
 
-        
+        obs = np.hstack((self.env.main_pos_index,obs))
+
             
         return obs, reward, done ,(info['success']==1.0),info
     

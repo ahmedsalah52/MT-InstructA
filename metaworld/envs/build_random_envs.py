@@ -254,7 +254,7 @@ class Multi_task_env():
         main_task_name = main_task_name[7:] # remove sawyer_
         if self.json_file_data == None: 
             self.json_file_data = json.load(open(os.path.join('metaworld/all_envs',main_task_name+'.json')))
-        if main_pos_index == None: main_pos_index = random.choice(poses_list)
+        if main_pos_index == None or main_pos_index >= 3: main_pos_index = random.choice(poses_list)
         if task_variant == None:
             task_variants    = self.json_file_data[str(main_pos_index)]
             self.file_order  = random.choice(range(len(task_variants)))
@@ -293,5 +293,5 @@ class Multi_task_env():
         min_x = self.task_offsets_min[0]
         max_x = self.task_offsets_max[0]
         self.hand_init_pos_  = [np.random.uniform(min(-0.1,min_x) ,max(0.1,max_x)),np.random.uniform(0.4,0.7), np.random.uniform(0.15,0.3)]
-        
+        self.main_pos_index = main_pos_index
         
