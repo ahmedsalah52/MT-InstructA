@@ -12,7 +12,7 @@
     </body>
 
     <site name="goal" pos="-0.49 0.46 0.15" size="0.02" rgba="0 0.8 0 1" />
-  <body name="faucetBase[-0.545717311594452, -0.3482710998722985]0" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_door_pull/[-0.545717311594452, -0.3482710998722985, 0, 0, 0]faucet.mjcf" /></body><body name="window[0.489240217290051, -0.06311740927083427]1" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_door_pull/[0.489240217290051, -0.06311740927083427, 0, 0, 0]window_horizontal.mjcf" /></body></worldbody>
+  <body name="faucetBase[-0.4590743233759815, -0.2744565162152294]0" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_door_pull/[-0.4590743233759815, -0.2744565162152294, 0, 0, 0]faucet.mjcf" /></body><body name="window[0.49739168596663247, -0.04319773198091155]1" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_door_pull/[0.49739168596663247, -0.04319773198091155, 0, 0, 0]window_horizontal.mjcf" /></body></worldbody>
   <actuator>
       <position ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="400" user="1" />
       <position ctrllimited="true" ctrlrange="-1 1" joint="l_close" kp="400" user="1" />

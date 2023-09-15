@@ -14,7 +14,7 @@
           <site name="buttonStart" pos="0 -0.1935 0" size="0.005" rgba="0 0.8 0 1" />
           <site name="hole" pos="0 -0.1 0" size="0.005" rgba="0 0.8 0 1" />
         </body>
-    <body name="obj[-0.4834569210895032, -0.3208688098009883]0" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_button_press_topdown/[-0.4834569210895032, -0.3208688098009883, 0, 0, 0]push_wall_v2.mjcf" /></body><body name="soccer_ball[-0.020482683289469363, 0.04779224093212402]1" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_button_press_topdown/[-0.020482683289469363, 0.04779224093212402, 0, 0, 0]soccer.mjcf" /></body></worldbody>
+    <body name="obj[0.01748671781129614, 0.04406064025483199]0" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_button_press_topdown/[0.01748671781129614, 0.04406064025483199, 0, 0, 0]push_wall_v2.mjcf" /></body><body name="soccer_ball[0.486552704564508, -0.22961978865496574]1" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_button_press_topdown/[0.486552704564508, -0.22961978865496574, 0, 0, 0]soccer.mjcf" /></body></worldbody>
 
     <actuator>
         <position ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="400" user="1" />

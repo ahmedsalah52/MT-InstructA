@@ -13,7 +13,7 @@
           <site name="buttonStart" pos="0 -0.1935 0" size="0.005" rgba="0 0.8 0 1" />
           <site name="hole" pos="0 -0.1 0" size="0.005" rgba="0 0.8 0 1" />
         </body>
-    <body name="obj[-0.5433682315583647, -0.2553765216884031]0" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_button_press_topdown/[-0.5433682315583647, -0.2553765216884031, 0, 0, 0]reach_push_pick_and_place.mjcf" /></body><body name="obj[-0.048408283959610436, -0.020030128238000412]1" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_button_press_topdown/[-0.048408283959610436, -0.020030128238000412, 0, 0, 0]reach_push_pick_and_place_wall.mjcf" /></body></worldbody>
+    <body name="obj[-0.5484716102718777, -0.32190532631814267]0" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_button_press_topdown/[-0.5484716102718777, -0.32190532631814267, 0, 0, 0]reach_push_pick_and_place.mjcf" /></body><body name="obj[0.5456892104636095, -0.31097072466189696]1" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_button_press_topdown/[0.5456892104636095, -0.31097072466189696, 0, 0, 0]reach_push_pick_and_place_wall.mjcf" /></body></worldbody>
 
     <actuator>
         <position ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="400" user="1" />

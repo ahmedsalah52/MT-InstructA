@@ -13,7 +13,7 @@
           <site name="buttonStart" pos="0 -0.1935 0" size="0.005" rgba="0 0.8 0 1" />
           <site name="hole" pos="0 -0.1 0" size="0.005" rgba="0 0.8 0 1" />
         </body>
-    <body name="obj[-0.49258480832732265, -0.26649865038466536]0" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_button_press_topdown/[-0.49258480832732265, -0.26649865038466536, 0, 0, 0]sweep_v2.mjcf" /></body><body name="obj[0.011538855353384544, -0.029039069068375212]1" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_button_press_topdown/[0.011538855353384544, -0.029039069068375212, 0, 0, 0]bin_picking.mjcf" /></body></worldbody>
+    <body name="obj[0.029603215743301686, 0.034164186842232366]0" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_button_press_topdown/[0.029603215743301686, 0.034164186842232366, 0, 0, 0]sweep_v2.mjcf" /></body><body name="obj[0.5047844992121028, -0.3113116071660223]1" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_button_press_topdown/[0.5047844992121028, -0.3113116071660223, 0, 0, 0]bin_picking.mjcf" /></body></worldbody>
 
     <actuator>
         <position ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="400" user="1" />
