@@ -93,7 +93,7 @@ def main():
     task_pos   = int(sys.argv[2])
     task_poses = ['Right','Mid','Left','Mix']
 
-    
+    logs_dir = '/system/user/publicdata/mansour_datasets/metaworld'
     
     configs = json.load(open(os.path.join('training_configs',task_name+'.json')))
     configs['task_name'] = task_name
@@ -101,7 +101,7 @@ def main():
 
     
     run_name   = task_name + '_' + task_poses[task_pos] + '_ID' + str(configs['run_id'])
-    save_path  = "./logs/"+run_name
+    save_path  = logs_dir+"/logs/"+run_name
     load_path = os.path.join(save_path, f"{run_name}_{configs['load_from']}_steps")
     
     policy_kwargs = dict(
@@ -125,7 +125,7 @@ def main():
 
 
     eval_callback = EvalCallback(eval_env, best_model_save_path="./eval_logs/"+run_name,
-                             log_path="./eval_logs/"+run_name, eval_freq=100000,
+                             log_path=logs_dir+"/eval_logs/"+run_name, eval_freq=100000,
                              deterministic=True, render=False,
                              n_eval_episodes=10)
     

@@ -21,7 +21,7 @@ class SawyerCoffeePushEnvV2(SawyerXYZEnv):
         hand_high = (0.7, 1, 0.5)
         main_file = 'sawyer_coffee.xml'
         
-        self.generate_env(main_file)
+        self.generate_env(main_file,main_pos_index,task_variant)
         obj_low =  (self.task_offsets_min[0], self.task_offsets_min[1] - 0.4, 0.001)
         obj_high = (self.task_offsets_max[0], self.task_offsets_max[1] - 0.4, 0.001)
 
