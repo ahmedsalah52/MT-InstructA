@@ -148,7 +148,7 @@ def main():
     if configs['load_from'] == 0:
         model = SAC("MlpPolicy",env,policy_kwargs=policy_kwargs, verbose=configs['verbose'],buffer_size=configs['buffer_size'],train_freq=configs['train_freq'],gradient_steps=configs["gradient_steps"],batch_size=configs['batch_size'],learning_rate=configs['lr'],tensorboard_log=f"runs/{run.id}")
     else:
-        model = SAC.load(load_path,env, verbose=configs['verbose'],buffer_size=configs['buffer_size'],train_freq=configs['train_freq'],gradient_steps=configs["gradient_steps"],batch_size=configs['batch_size'],learning_rate=configs['lr'],tensorboard_log=f"runs/{run.id}")
+        model = SAC.load(load_path,env, verbose=configs['verbose'],buffer_size=configs['buffer_size'],train_freq=configs['train_freq'],gradient_steps=configs["gradient_steps"],batch_size=configs['batch_size'],learning_rate=configs['lr'],tensorboard_log=f"{logs_dir}/runs/{run.id}")
     
     total_timesteps = configs['total_timesteps']
 
