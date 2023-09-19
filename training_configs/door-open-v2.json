@@ -8,14 +8,17 @@
     "batch_size":                 256,
     "train_freq":                 50,
     "gradient_steps":             50,
-    "multi":                       1,   
+    "multi":                       1,
+    "pos_emb_dim":                0,
     "render":                     0,
     "episode_length":             200,
     "buffer_size":                10000,
     "verbose":                    1,
-    "total_timesteps":            2000000,
-    "log_interval":               5,
+    "total_timesteps":            4000000,
+    "log_interval":               10,
     "run_id":                     0,
-    "notes":                      "random init hand pos biased to the target pos",
+    "notes":                      "",
     "load_from":                  0
     }
+
+

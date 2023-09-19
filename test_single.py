@@ -25,7 +25,7 @@ print(len(tasks))
 
 taskname = 'door-close-v2' #'soccer-v2'#'button-press-topdown-v2' #'door-lock-v2' 
 multi = True
-pos = 0
+pos = 2
 variant = None ##['soccer','button_press_topdown','door_lock']
 
 
@@ -46,7 +46,7 @@ class task_manager():
         return self.env
 
 
-task_man = task_manager(taskname,pos=None,variant=variant,multi=multi)
+task_man = task_manager(taskname,pos=pos,variant=variant,multi=multi)
 
 
 env = task_man.reset()

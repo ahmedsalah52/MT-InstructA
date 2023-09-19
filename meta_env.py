@@ -33,7 +33,7 @@ from metaworld.envs.mujoco.env_dict import ALL_V2_ENVIRONMENTS_multi
 from metaworld.envs.build_random_envs import Multi_task_env
 import wandb
 from typing import Any, Dict, Generator, List, Optional, Union
-
+import gymnasium
 
 class Custom_replay_buffer(ReplayBuffer):
     def __init__(self, buffer_size: int, observation_space: Space, action_space: Space, device: str = "auto", n_envs: int = 1, optimize_memory_usage: bool = False, handle_timeout_termination: bool = True):
@@ -79,18 +79,29 @@ class task_manager():
 
 
 class meta_env(Env):
-    def __init__(self,taskname,task_pos,save_images,episode_length = 200,wandb_render = False,multi = True,process='None') -> None:
+    def __init__(self,taskname,task_pos,save_images,episode_length = 200,pos_emb_flag=False,wandb_render = False,multi = True,process='None') -> None:
         super().__init__()
         
         self.taskname = taskname
         self.task_pos = task_pos
         self.task_man = task_manager(taskname=taskname,pos=task_pos,multi=multi)
         self.env = self.task_man.reset()
-        
+        self.pos_emb_flag = pos_emb_flag
 
         self.action_space = spaces.Box(-1, 1, shape=(4,)) #self.env.action_space
-        #self.observation_space = Dict({'state' :self.env.observation_space_gymnasium() , 'render': Box(0, 255, shape=(5,224,224,3), dtype=np.uint8)})
-        self.observation_space = self.env.observation_space_gymnasium()
+        
+        obs_space = self.env.observation_space
+        if self.pos_emb_flag:
+            self.observation_space = gymnasium.spaces.Box(
+                                                        np.hstack((0,obs_space.low)),
+                                                        np.hstack((3,obs_space.high)),
+                                                        dtype=np.float64)
+        else:
+            self.observation_space = gymnasium.spaces.Box(
+                                                        obs_space.low,
+                                                        obs_space.high,
+                                                        dtype=np.float64)
+            
         self.steps = 0
         self.episode_number = 0
         self.max_steps = episode_length
@@ -121,7 +132,7 @@ class meta_env(Env):
         self.total_rewards = 0
         self.prev_reward = 0
         
-        obs = np.hstack((self.env.main_pos_index,obs))
+        if self.pos_emb_flag: obs = np.hstack((self.env.main_pos_index,obs))
         return obs ,  {'images':images,'file_order':self.env.file_order if self.multi else 0,'success':0.0} # Reset environment
         
     def get_visual_obs_log(self):
@@ -169,8 +180,7 @@ class meta_env(Env):
         info['images'] = images
         info['file_order'] = self.env.file_order if self.multi else 0
 
-        obs = np.hstack((self.env.main_pos_index,obs))
-
+        if self.pos_emb_flag: obs = np.hstack((self.env.main_pos_index,obs))
             
         return obs, reward, done ,(info['success']==1.0),info
     

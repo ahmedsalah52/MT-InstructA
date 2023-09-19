@@ -16,8 +16,8 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
         Multi_task_env.__init__(self)
         self.main_pos_index = main_pos_index
         self.task_variant = task_variant
-        hand_low = (-0.7, 0.40, 0.05)
-        hand_high = (0.7, 1, 0.5)
+        hand_low = (-0.8, 0.40, 0.05)
+        hand_high = (0.8, 1, 0.5)
         main_file = 'sawyer_door_pull.xml'
 
         self.generate_env(main_file,main_pos_index,task_variant)
