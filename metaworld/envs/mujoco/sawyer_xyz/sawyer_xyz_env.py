@@ -489,7 +489,11 @@ class SawyerXYZEnv(SawyerMocapBase, Multi_task_env,metaclass=abc.ABCMeta):
 
     def reset(self):
         self.curr_path_length = 0
-        os.system('rm -rf metaworld/envs/assets_v2/sawyer_xyz_multi/*')
+        if os.path.isdir(self.mjcfs_dir):
+            os.system('rm -r '+self.mjcfs_dir)
+        if os.path.isdir(self.model_name):
+            os.system('rm '+self.model_name)
+
         return super().reset()
 
     def _reset_hand(self, steps=50):

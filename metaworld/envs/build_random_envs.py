@@ -247,6 +247,7 @@ class Multi_task_env():
 
         main_envs_dir = 'metaworld/envs/assets_v2/sawyer_xyz/'
         mjcfs_dir = 'metaworld/envs/assets_v2/sawyer_xyz_multi/mjcfs/'+main_task_name
+        self.mjcfs_dir = mjcfs_dir
         if not os.path.isdir(mjcfs_dir):
             os.system('mkdir -p '+mjcfs_dir)
 
