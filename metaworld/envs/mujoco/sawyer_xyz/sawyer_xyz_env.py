@@ -491,7 +491,7 @@ class SawyerXYZEnv(SawyerMocapBase, Multi_task_env,metaclass=abc.ABCMeta):
         self.curr_path_length = 0
         if os.path.isdir(self.mjcfs_dir):
             os.system('rm -r '+self.mjcfs_dir)
-        if os.path.isdir(self.model_name):
+        if os.path.isfile(self.model_name):
             os.system('rm '+self.model_name)
 
         return super().reset()
