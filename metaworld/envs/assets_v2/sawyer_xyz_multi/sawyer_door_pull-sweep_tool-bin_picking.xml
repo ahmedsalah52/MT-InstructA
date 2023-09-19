@@ -13,7 +13,7 @@
     </body>
 
     <site name="goal" pos="-0.49 0.46 0.15" size="0.02" rgba="0 0.8 0 1" />
-  <body name="club[-0.5098788699340439, -0.3035993483593603]0" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_door_pull/[-0.5098788699340439, -0.3035993483593603, 0, 0, 0]sweep_tool.mjcf" /></body><body name="obj[-0.014224059963027072, 0.005901022698009947]1" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_door_pull/[-0.014224059963027072, 0.005901022698009947, 0, 0, 0]bin_picking.mjcf" /></body></worldbody>
+  <body name="club[0.042813185875030274, 0.005676434537160879]0" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_door_pull/[0.042813185875030274, 0.005676434537160879, 0, 0, 0]sweep_tool.mjcf" /></body><body name="obj[0.5357461179772798, -0.29268461053506306]1" pos="0 0 0"><include file="../sawyer_xyz_multi/mjcfs/sawyer_door_pull/[0.5357461179772798, -0.29268461053506306, 0, 0, 0]bin_picking.mjcf" /></body></worldbody>
   <actuator>
       <position ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="400" user="1" />
       <position ctrllimited="true" ctrlrange="-1 1" joint="l_close" kp="400" user="1" />
