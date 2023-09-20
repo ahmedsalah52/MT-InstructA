@@ -98,7 +98,12 @@ def main():
 
     os.environ["WANDB_DIR"] = logs_dir
 
-    configs = json.load(open(os.path.join('training_configs',task_name+'.json')))
+
+    configs_dir = os.path.join('training_configs',task_name+'.json')
+    if not os.path.isfile(configs_dir):
+        configs_dir = os.path.join('training_configs','default.json')
+
+    configs = json.load(open(configs_dir))
     configs['task_name'] = task_name
     configs['task_pos']  = task_pos
 

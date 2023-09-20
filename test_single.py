@@ -23,10 +23,10 @@ tasks =  ['assembly-v2', 'basketball-v2','box-close-v2', 'button-press-topdown-v
 
 print(len(tasks))
 
-taskname = 'window-open-v2' #'soccer-v2'#'button-press-topdown-v2' #'door-lock-v2' 
+taskname = 'drawer-close-v2' #'soccer-v2'#'button-press-topdown-v2' #'door-lock-v2' 
 multi = True
-pos = 1
-variant = None ##['soccer','button_press_topdown','door_lock']
+pos = 2
+variant =None #  ['soccer','button_press_topdown','door_lock']
 
 
 class task_manager():

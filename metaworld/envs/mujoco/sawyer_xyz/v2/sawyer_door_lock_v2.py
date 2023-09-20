@@ -5,9 +5,7 @@ from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
 
-from metaworld.envs.build_random_envs import build_env , multi_object_man
 import os
-import glob,random
 from metaworld.envs.build_random_envs import Multi_task_env
 
 class SawyerDoorLockEnvV2(SawyerXYZEnv):
