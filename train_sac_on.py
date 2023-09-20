@@ -127,7 +127,7 @@ def main():
     eval_env = meta_env(task_name,task_pos,configs['render'],configs['episode_length'],pos_emb_flag = configs['pos_emb_dim']>0,wandb_render = True ,multi=configs['multi'],process = 'valid')
 
 
-    eval_callback = EvalCallback(eval_env, best_model_save_path="./eval_logs/"+run_name,
+    eval_callback = EvalCallback(eval_env, best_model_save_path=logs_dir+"/eval_logs/"+run_name,
                              log_path=logs_dir+"/eval_logs/"+run_name, eval_freq=100000,
                              deterministic=True, render=False,
                              n_eval_episodes=10)
