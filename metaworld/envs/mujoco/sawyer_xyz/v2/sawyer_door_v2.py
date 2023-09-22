@@ -8,7 +8,6 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _asser
 
 from metaworld.envs.build_random_envs import Multi_task_env
 import os
-import glob,random
 
 
 class SawyerDoorEnvV2(SawyerXYZEnv):

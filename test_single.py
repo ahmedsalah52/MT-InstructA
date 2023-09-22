@@ -23,9 +23,9 @@ tasks =  ['assembly-v2', 'basketball-v2','box-close-v2', 'button-press-topdown-v
 
 print(len(tasks))
 
-taskname = 'door-close-v2' #'soccer-v2'#'button-press-topdown-v2' #'door-lock-v2' 
+taskname = 'button-press-v2' #'box-close-v2' #'soccer-v2'#'button-press-topdown-v2' #'door-lock-v2' 
 multi = True
-pos = 0
+pos = 3
 variant =None #  ['soccer','button_press_topdown','door_lock']
 
 
