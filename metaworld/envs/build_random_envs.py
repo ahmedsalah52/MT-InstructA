@@ -132,7 +132,7 @@ def edit_body_pos(body_list, pos_offset_rot):
     new_euler  = pos_offset_rot[2:]
     bodies = []
     for body in body_list:
-        body.set('name', body.attrib.get('name')+str(pos_offset))
+        body.set('name', body.attrib.get('name'))
         pos = body.get('pos').split()
         new_pos = [ pos_offset[0], float(pos[1])+pos_offset[1], float(pos[2])]
         body.set('pos', ' '.join(map(str, new_pos)))
@@ -209,7 +209,7 @@ def build_env(main_env_path,main_rot,sec_poses,sec_files,main_env_name):
     envs = defaultdict(list)
     for i,(pos_offset , tree) in enumerate(zip(sec_poses,secondary_envs_trees)):
         
-        bodies_names[i] = str(pos_offset)+bodies_names[i]
+        bodies_names[i] = bodies_names[i]
         bodies = get_bodies(tree)
         write_mjcf_file(edit_body_pos(bodies,pos_offset), get_tree_includes(tree)  , os.path.join(mjcfs_save_dir,bodies_names[i]))
         envs['includes'] += get_tree_includes(tree)        
