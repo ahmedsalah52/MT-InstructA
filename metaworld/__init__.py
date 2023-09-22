@@ -68,7 +68,7 @@ class Benchmark(abc.ABC):
 _ML_OVERRIDE = dict(partially_observable=True)
 _MT_OVERRIDE = dict(partially_observable=False)
 
-_N_GOALS = 50
+_N_GOALS = 1
 
 
 def _encode_task(env_name, data):

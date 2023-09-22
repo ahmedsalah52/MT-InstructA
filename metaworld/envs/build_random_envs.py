@@ -165,7 +165,7 @@ def add_includes_to_tree(tree, includes):
 
     return tree
 
-def build_env(main_env_path,main_rot,sec_poses,sec_files):
+def build_env(main_env_path,main_rot,sec_poses,sec_files,main_env_name):
     #load main env xml file
     #load to random envs files
     #pick the body and independents sections in a dict
@@ -173,12 +173,14 @@ def build_env(main_env_path,main_rot,sec_poses,sec_files):
     #add the two games, independents to the main file,
     # save the file to the same dir
     #return the file name
+    
+
     out_file_name = ''
     bodies_names = []
     secondary_envs_names = []
     multi_envs_dir = 'metaworld/envs/assets_v2/sawyer_xyz_multi/'
     xml_dir   = os.path.split(main_env_path)[0]
-    main_env_name = os.path.split(main_env_path)[1].split('.')[0]
+    #main_env_name = os.path.split(main_env_path)[1].split('.')[0]
     main_tree = ET.parse(main_env_path)
     root = main_tree.getroot()
     bodies = root.findall(".//body")
@@ -191,7 +193,10 @@ def build_env(main_env_path,main_rot,sec_poses,sec_files):
         body.set('euler', ' '.join(map(str, main_rot)))
 
     mjcfs_save_dir = os.path.join(multi_envs_dir,'mjcfs',main_env_name)
-    mjcf_dir = os.path.join('../sawyer_xyz_multi/mjcfs',main_env_name)
+    if not os.path.isdir(mjcfs_save_dir):
+        os.system('mkdir -p '+mjcfs_save_dir)
+
+    mjcf_dir       = os.path.join('../sawyer_xyz_multi/mjcfs',main_env_name)
 
   
     secondary_envs_trees = []
@@ -259,10 +264,7 @@ class Multi_task_env():
         main_task_name = main_file.split('.')[0]
 
         main_envs_dir = 'metaworld/envs/assets_v2/sawyer_xyz/'
-        mjcfs_dir = 'metaworld/envs/assets_v2/sawyer_xyz_multi/mjcfs/'+main_task_name
-        self.mjcfs_dir = mjcfs_dir
-        if not os.path.isdir(mjcfs_dir):
-            os.system('mkdir -p '+mjcfs_dir)
+       
 
 
         main_task_name = main_task_name[7:] # remove sawyer_
@@ -301,7 +303,7 @@ class Multi_task_env():
             
         task_variant = ['sawyer_'+task+'.xml' for task in task_variant]
         
-        self.file_name = build_env(os.path.join(main_envs_dir ,main_file),main_rot,secondary_poses,task_variant)
+        self.file_name = build_env(os.path.join(main_envs_dir ,main_file),main_rot,secondary_poses,task_variant,main_task_name+str(main_pos_index))
         self.task_offsets_min = np.array(main_task_offsets) - np.array(main_task_range)
         self.task_offsets_max = np.array(main_task_offsets) + np.array(main_task_range)
         min_x = self.task_offsets_min[0]

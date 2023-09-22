@@ -489,11 +489,15 @@ class SawyerXYZEnv(SawyerMocapBase, Multi_task_env,metaclass=abc.ABCMeta):
 
     def reset(self):
         self.curr_path_length = 0
-        if os.path.isdir(self.mjcfs_dir):
-            os.system('rm -r '+self.mjcfs_dir)
-        if os.path.isfile(self.model_name):
-            os.system('rm '+self.model_name)
 
+
+        file_dir = os.path.join('metaworld/envs/assets_v2/sawyer_xyz_multi/',self.file_name)
+        dep_dir  = os.path.join('metaworld/envs/assets_v2/sawyer_xyz_multi/mjcfs',self.file_name.split('-')[0])
+        if os.path.isdir(dep_dir):
+            os.system('rm  -r '+dep_dir)
+        if os.path.isfile(file_dir):
+            os.remove(file_dir)
+        
         return super().reset()
 
     def _reset_hand(self, steps=50):
