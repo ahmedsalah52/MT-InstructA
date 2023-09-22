@@ -136,7 +136,8 @@ def edit_body_pos(body_list, pos_offset_rot):
     new_euler  = pos_offset_rot[2:]
     bodies = []
     for body in body_list:
-        body.set('name', body.attrib.get('name'))
+        body.set('name', body.attrib.get('name')+str(pos_offset))
+        
         pos = body.get('pos').split()
         new_pos = [ pos_offset[0], float(pos[1])+pos_offset[1], float(pos[2])]
         body.set('pos', ' '.join(map(str, new_pos)))
