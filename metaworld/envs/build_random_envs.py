@@ -215,12 +215,25 @@ def build_env(main_env_path,main_rot,sec_poses,sec_files):
     for i , body_name in enumerate(bodies_names):
         main_tree = add_body_to_tree(main_tree,  os.path.join(mjcfs_save_dir,body_name),os.path.join(mjcf_dir,body_name),str(i))
 
+
+
+    # Create the new element
+    new_element = ET.Element('size')
+    new_element.set('njmax', '8000')
+    new_element.set('nconmax', '4000')
+
+    # Find the appropriate location in the main_tree where you want to add the new element
+    # For example, if you want to add it as a child of the root element, you can do:
+    root = main_tree.getroot()
+    root.append(new_element)
+
+
     out_file_name += main_env_name
     for sec_env in secondary_envs_names:
         out_file_name += '-'
         out_file_name += sec_env
 
-
+    
     """for pos in [main_pos] + poses:
         out_file_name += ','
         out_file_name += str(pos)"""
