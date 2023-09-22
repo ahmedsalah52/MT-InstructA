@@ -5,6 +5,10 @@ from collections import defaultdict
 import mujoco_py
 import os, json
 import numpy as np
+import uuid
+
+
+
 class multi_object_man():
     def __init__(self,main_envs_dir = 'metaworld/envs/assets_v2/sawyer_xyz/' ,init_file_name = ''):
         
@@ -165,7 +169,7 @@ def add_includes_to_tree(tree, includes):
 
     return tree
 
-def build_env(main_env_path,main_rot,sec_poses,sec_files,main_env_name):
+def build_env(main_env_path,main_rot,sec_poses,sec_files):
     #load main env xml file
     #load to random envs files
     #pick the body and independents sections in a dict
@@ -174,6 +178,7 @@ def build_env(main_env_path,main_rot,sec_poses,sec_files,main_env_name):
     # save the file to the same dir
     #return the file name
     
+    main_env_name = str(uuid.uuid4())
 
     out_file_name = ''
     bodies_names = []
@@ -233,17 +238,17 @@ def build_env(main_env_path,main_rot,sec_poses,sec_files,main_env_name):
     root.append(new_element)
 
 
-    out_file_name += main_env_name
+    """  out_file_name += main_env_name
     for sec_env in secondary_envs_names:
         out_file_name += '-'
         out_file_name += sec_env
-
+    """
     
     """for pos in [main_pos] + poses:
         out_file_name += ','
         out_file_name += str(pos)"""
-        
-    out_file_name += '.xml'
+
+    out_file_name = main_env_name + '.xml'
 
     main_tree.write(os.path.join(multi_envs_dir,out_file_name))
     return out_file_name
@@ -303,7 +308,7 @@ class Multi_task_env():
             
         task_variant = ['sawyer_'+task+'.xml' for task in task_variant]
         
-        self.file_name = build_env(os.path.join(main_envs_dir ,main_file),main_rot,secondary_poses,task_variant,main_task_name+str(main_pos_index))
+        self.file_name = build_env(os.path.join(main_envs_dir ,main_file),main_rot,secondary_poses,task_variant)
         self.task_offsets_min = np.array(main_task_offsets) - np.array(main_task_range)
         self.task_offsets_max = np.array(main_task_offsets) + np.array(main_task_range)
         min_x = self.task_offsets_min[0]
