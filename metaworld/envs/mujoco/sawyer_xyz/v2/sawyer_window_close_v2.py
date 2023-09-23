@@ -10,7 +10,7 @@ import os
 import glob,random
 
 
-class SawyerWindowCloseEnvV2(SawyerXYZEnv,Multi_task_env):
+class SawyerWindowCloseEnvV2(SawyerXYZEnv):
     """
     Motivation for V2:
         V1 was rarely solvable due to limited path length. The window usually
@@ -22,16 +22,18 @@ class SawyerWindowCloseEnvV2(SawyerXYZEnv,Multi_task_env):
         - (6/15/20) Increased max_path_length from 150 to 200
     """
     TARGET_RADIUS = 0.05
-    def __init__(self):
+    def __init__(self,main_pos_index=None , task_variant = None):
         Multi_task_env.__init__(self)
-
+        self.main_pos_index = main_pos_index
+        self.task_variant = task_variant
         liftThresh = 0.02
-        hand_low = (-1, 0.30, 0.05)
-        hand_high = (1, 1.3, 0.5)
+
+        hand_low = (-0.6, 0.40, 0.05)
+        hand_high = (0.6, 1, 0.5)
         main_file = 'sawyer_window_horizontal.xml'
-        self.generate_env(main_file)
-        obj_low  = (self.task_offsets_min[0],  self.task_offsets_min[1], 0.16)
-        obj_high = (self.task_offsets_max[0],  self.task_offsets_max[1], 0.16)
+        self.generate_env(main_file,main_pos_index,task_variant)
+        obj_low  = (self.task_offsets_min[0],  self.task_offsets_min[1]+0.85, 0.16)
+        obj_high = (self.task_offsets_max[0],  self.task_offsets_max[1]+0.85, 0.16)
         SawyerXYZEnv.__init__(
             self,
             self.model_name,
@@ -42,7 +44,7 @@ class SawyerWindowCloseEnvV2(SawyerXYZEnv,Multi_task_env):
         self.init_config = {
             'obj_init_angle': 0.3,
             'obj_init_pos': np.array([0.1, 0.785, 0.16], dtype=np.float32),
-            'hand_init_pos': np.array([0, 0.4, 0.2], dtype=np.float32),
+            'hand_init_pos': np.array(self.hand_init_pos_, dtype=np.float32),
         }
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.obj_init_angle = self.init_config['obj_init_angle']
@@ -51,7 +53,7 @@ class SawyerWindowCloseEnvV2(SawyerXYZEnv,Multi_task_env):
         goal_low = self.hand_low
         goal_high = self.hand_high
 
-        
+
         self.liftThresh = liftThresh
 
         self._random_reset_space = Box(
