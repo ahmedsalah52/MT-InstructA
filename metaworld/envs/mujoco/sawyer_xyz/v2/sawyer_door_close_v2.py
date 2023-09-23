@@ -84,12 +84,12 @@ class SawyerDoorCloseEnvV2(SawyerDoorEnvV2):
                                     sigmoid='gaussian',)
 
         hand_margin = np.linalg.norm(self.hand_init_pos - obj) + 0.1
-        hand_in_place = reward_utils.tolerance(tcp_to_target,
+        hand_in_place = reward_utils.tolerance(tcp_to_obj,
                                     bounds=(0, 0.25*_TARGET_RADIUS),
                                     margin=hand_margin,
                                     sigmoid='gaussian',)
 
-        reward = 3 * hand_in_place + 6 * in_place
+        reward = 6 * in_place + 3 * hand_in_place 
 
         if obj_to_target < _TARGET_RADIUS:
             reward = 10
