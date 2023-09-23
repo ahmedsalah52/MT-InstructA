@@ -9,11 +9,13 @@ from metaworld.envs.build_random_envs import Multi_task_env
 import os
 import glob
 
-class SawyerNutAssemblyEnvV2(SawyerXYZEnv,Multi_task_env):
+class SawyerNutAssemblyEnvV2(SawyerXYZEnv):
     WRENCH_HANDLE_LENGTH = 0.02
 
-    def __init__(self,main_pos_index):   
+    def __init__(self,main_pos_index=None , task_variant = None):
         Multi_task_env.__init__(self)
+        self.main_pos_index = main_pos_index
+        self.task_variant = task_variant
      
         hand_low  = (-0.7, 0.3, 0.05)
         hand_high = (0.7 , 1.3, 0.5)       
@@ -21,12 +23,12 @@ class SawyerNutAssemblyEnvV2(SawyerXYZEnv,Multi_task_env):
         
         self.main_pos_index = main_pos_index
 
-        self.generate_env(main_file)
+        self.generate_env(main_file,main_pos_index,task_variant)
 
-        obj_low   = (self.task_offsets_min[0], self.task_offsets_min[1], 0.02)
-        obj_high  = (self.task_offsets_max[0], self.task_offsets_max[1], 0.02)
-        goal_low  = (self.task_offsets_min[0], self.task_offsets_min[1] + 0.24, 0.1)
-        goal_high = (self.task_offsets_max[0], self.task_offsets_max[1] + 0.25, 0.1)
+        obj_low   = (self.task_offsets_min[0], self.task_offsets_min[1] + 0.6, 0.02)
+        obj_high  = (self.task_offsets_max[0], self.task_offsets_max[1] + 0.6, 0.02)
+        goal_low  = (self.task_offsets_min[0], self.task_offsets_min[1] + 0.8, 0.1)
+        goal_high = (self.task_offsets_max[0], self.task_offsets_max[1] + 0.8, 0.1)
 
         SawyerXYZEnv.__init__(
                     self,
@@ -40,7 +42,7 @@ class SawyerNutAssemblyEnvV2(SawyerXYZEnv,Multi_task_env):
         self.init_config = {
             'obj_init_angle': 0.3,
             'obj_init_pos':  np.array([0, self.task_offsets_min[1], 0.02], dtype=np.float32),
-            'hand_init_pos': np.array((0, self.task_offsets_min[1], 0.2), dtype=np.float32),
+            'hand_init_pos': np.array(self.hand_init_pos_),
         }
         self.goal = np.array([0.1, self.task_offsets_min[1], 0.1], dtype=np.float32)
         self.obj_init_pos = self.init_config['obj_init_pos']

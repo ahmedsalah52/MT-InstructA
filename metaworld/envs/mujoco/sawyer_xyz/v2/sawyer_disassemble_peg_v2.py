@@ -18,15 +18,16 @@ class SawyerNutDisassembleEnvV2(SawyerXYZEnv):
         self.main_pos_index = main_pos_index
         self.task_variant = task_variant
 
-        hand_low = (-0.6, 0.40, 0.05)
-        hand_high = (0.6, 1, 0.5)
+       
+        hand_low  = (-0.7, 0.3, 0.05)
+        hand_high = (0.7 , 1.3, 0.5)       
         main_file = 'sawyer_assembly_peg.xml'
         self.generate_env(main_file,main_pos_index,task_variant)
 
-        obj_low   = (self.task_offsets_min[0]    , self.task_offsets_min[1] + 0.15 , 0.025)
-        obj_high  = (self.task_offsets_max[0]    , self.task_offsets_max[1] + 0.15 , 0.02501)
-        goal_low  = (self.task_offsets_min[0]    , self.task_offsets_min[1] + 0.15 , 0.1699)
-        goal_high = (self.task_offsets_max[0]    , self.task_offsets_max[1] + 0.15 , 0.1701)
+        obj_low   = (self.task_offsets_min[0]    , self.task_offsets_min[1] + 0.65 , 0.025)
+        obj_high  = (self.task_offsets_max[0]    , self.task_offsets_max[1] + 0.65 , 0.02501)
+        goal_low  = (self.task_offsets_min[0]    , self.task_offsets_min[1] + 0.65 , 0.1699)
+        goal_high = (self.task_offsets_max[0]    , self.task_offsets_max[1] + 0.65 , 0.1701)
 
         SawyerXYZEnv.__init__(
             self,
