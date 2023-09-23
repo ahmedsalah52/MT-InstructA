@@ -19,6 +19,7 @@ class SawyerDoorCloseEnvV2(SawyerDoorEnvV2):
         goal_low  = (self.task_offsets_min[0]-.3,self.task_offsets_min[1] + 0.5, 0.1499)
         goal_high = (self.task_offsets_max[0]-.3,self.task_offsets_max[1] + 0.5, 0.1501)
         max_x = self.task_offsets_max[0]
+
         self.hand_init_pos_  = [np.random.uniform(min(-0.1,-0.8) ,max(0.1,max_x)),np.random.uniform(0.4,0.7), np.random.uniform(0.15,0.3)]
 
         self.init_config = {
@@ -48,7 +49,7 @@ class SawyerDoorCloseEnvV2(SawyerDoorEnvV2):
         self.sim.model.site_pos[self.model.site_name2id('goal')] = self._target_pos
 
         # keep the door open after resetting initial positions
-        self._set_obj_xyz(-1.5708)
+        self._set_obj_xyz(-1.57)
 
         return self._get_obs()
 

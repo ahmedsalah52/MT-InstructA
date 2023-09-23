@@ -26,7 +26,6 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
         obj_high  = (self.task_offsets_max[0]   ,self.task_offsets_max[1] + 0.9, 0.15)
         goal_low  = (self.task_offsets_min[0]-.3,self.task_offsets_min[1] + 0.5, 0.1499)
         goal_high = (self.task_offsets_max[0]-.3,self.task_offsets_max[1] + 0.5, 0.1501)
-
         SawyerXYZEnv.__init__(
             self,
             self.model_name,
