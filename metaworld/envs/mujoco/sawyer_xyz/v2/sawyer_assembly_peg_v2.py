@@ -21,7 +21,6 @@ class SawyerNutAssemblyEnvV2(SawyerXYZEnv):
         hand_high = (0.7 , 1.3, 0.5)       
         main_file = 'sawyer_assembly_peg.xml'
         
-        self.main_pos_index = main_pos_index
 
         self.generate_env(main_file,main_pos_index,task_variant)
 
