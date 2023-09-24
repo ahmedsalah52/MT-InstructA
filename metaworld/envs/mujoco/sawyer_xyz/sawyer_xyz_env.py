@@ -490,7 +490,7 @@ class SawyerXYZEnv(SawyerMocapBase, Multi_task_env,metaclass=abc.ABCMeta):
     def reset(self):
         self.curr_path_length = 0
 
-
+        
         file_dir = os.path.join('metaworld/envs/assets_v2/sawyer_xyz_multi/',self.file_name)
         dep_dir  = os.path.join('metaworld/envs/assets_v2/sawyer_xyz_multi/mjcfs',self.file_name.split('.')[0])
         if os.path.isdir(dep_dir):
