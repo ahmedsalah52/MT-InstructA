@@ -19,8 +19,8 @@ class SawyerDoorCloseEnvV2(SawyerDoorEnvV2):
         goal_low  = (self.task_offsets_min[0]-.3,self.task_offsets_min[1] + 0.5, 0.1499)
         goal_high = (self.task_offsets_max[0]-.3,self.task_offsets_max[1] + 0.5, 0.1501)
         max_x = self.task_offsets_max[0]
-
-        self.hand_init_pos_  = [np.random.uniform(min(-0.1,-0.8) ,max(0.1,max_x)),np.random.uniform(0.4,0.7), np.random.uniform(0.15,0.3)]
+        if self.main_pos_index == 0:
+            self.hand_init_pos_  = [np.random.uniform(min(-0.1,-0.8) ,max(0.1,max_x)),np.random.uniform(0.4,0.7), np.random.uniform(0.15,0.3)]
 
         self.init_config = {
             'obj_init_angle': 0.3,
