@@ -19,14 +19,14 @@ class SawyerPushBackEnvV2(SawyerXYZEnv):
         self.main_pos_index = main_pos_index
         self.task_variant = task_variant
 
-        hand_low = (-0.6, 0.30, 0.05)
-        hand_high = (0.6, 1, 0.5)
+        hand_low = (-0.7, 0.30, 0.05)
+        hand_high = (0.7, 1, 0.3)
         main_file = 'sawyer_push_v2.xml'
         self.generate_env(main_file,main_pos_index,task_variant)
+        
 
-
-        obj_low   = (self.task_offsets_min[0]   ,self.task_offsets_min[1] + 0.8, 0.02)
-        obj_high  = (self.task_offsets_max[0]   ,self.task_offsets_max[1] + 0.8, 0.02)
+        obj_low   = (self.task_offsets_min[0]   ,self.task_offsets_min[1] + 0.7, 0.02)
+        obj_high  = (self.task_offsets_max[0]   ,self.task_offsets_max[1] + 0.7, 0.02)
         goal_low  = (self.task_offsets_min[0]   ,self.task_offsets_min[1] + 0.6, 0.0199)
         goal_high = (self.task_offsets_max[0]   ,self.task_offsets_max[1] + 0.6, 0.0201)
         super().__init__(
@@ -36,11 +36,11 @@ class SawyerPushBackEnvV2(SawyerXYZEnv):
         )
 
         self.init_config = {
-            'obj_init_pos':np.array([0, 0.8, 0.02]),
+            'obj_init_pos':np.array(obj_high),
             'obj_init_angle': 0.3,
             'hand_init_pos': np.array(self.hand_init_pos_, dtype=np.float32),
         }
-        self.goal = np.array([0., 0.6, 0.02])
+        self.goal = np.array(goal_high)
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.hand_init_pos = self.init_config['hand_init_pos']
@@ -207,10 +207,11 @@ class SawyerPushBackEnvV2(SawyerXYZEnv):
         object_grasped = self._gripper_caging_reward(action, obj, self.OBJ_RADIUS)
 
         reward = reward_utils.hamacher_product(object_grasped, in_place)
-
-        if (tcp_to_obj < 0.01) and (0 < tcp_opened < 0.55) and \
+        #print(tcp_to_obj,(tcp_to_obj < 0.02) , (0 < tcp_opened < 0.55) , (target_to_obj_init - target_to_obj > 0.01))
+        if (tcp_to_obj < 0.03) and (0 < tcp_opened < 0.55) and \
                 (target_to_obj_init - target_to_obj > 0.01):
             reward += 1. + 5. * in_place
+
         if target_to_obj < self.TARGET_RADIUS:
             reward = 10.
         return (
