@@ -21,7 +21,7 @@ class SawyerBoxCloseEnvV2(SawyerXYZEnv):
         self.generate_env(main_file,main_pos_index,task_variant)
         obj_low   = (self.task_offsets_min[0]   ,self.task_offsets_min[1] + 0.5, 0.02)
         obj_high  = (self.task_offsets_max[0]   ,self.task_offsets_max[1] + 0.5, 0.02)
-        goal_low  = (self.task_offsets_min[0]   ,self.task_offsets_min[1] + 0.7, 0.133)
+        goal_low  = (self.task_offsets_min[0]   ,self.task_offsets_min[1] + 0.75, 0.133)
         goal_high = (self.task_offsets_max[0]   ,self.task_offsets_max[1] + 0.75, 0.133)
         
         #obj_low   = (main_env_pos, 0.5, 0.02)
