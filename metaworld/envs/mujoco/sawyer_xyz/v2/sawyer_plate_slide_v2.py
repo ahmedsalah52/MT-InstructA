@@ -40,10 +40,10 @@ class SawyerPlateSlideEnvV2(SawyerXYZEnv,Multi_task_env):
 
         self.init_config = {
             'obj_init_angle': 0.3,
-            'obj_init_pos' : np.array([0., 0.6, 0.], dtype=np.float32),
+            'obj_init_pos' : np.array([0.5, 0.6, 0.], dtype=np.float32),
             'hand_init_pos': np.array(self.hand_init_pos_, dtype=np.float32),
         }
-        self.goal = np.array([0., 0.85, 0.02])
+        self.goal = np.array([0.5, 0.85, 0.02])
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.hand_init_pos = self.init_config['hand_init_pos']

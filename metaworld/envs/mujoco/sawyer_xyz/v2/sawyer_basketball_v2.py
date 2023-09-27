@@ -4,40 +4,41 @@ from gym.spaces import Box
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
-from metaworld.envs.build_random_envs import build_env , multi_object_man
+from metaworld.envs.build_random_envs import Multi_task_env
 import os
-import glob,random
 
 
 class SawyerBasketballEnvV2(SawyerXYZEnv):
     PAD_SUCCESS_MARGIN = 0.06
     TARGET_RADIUS = 0.08
 
-    def __init__(self):
-        hand_low = (-0.5, 0.40, 0.05)
-        hand_high = (0.5, 1, 0.5)
+    def __init__(self,main_pos_index=None , task_variant = None):
+        Multi_task_env.__init__(self)
+        self.main_pos_index = main_pos_index
+        self.task_variant = task_variant
+
+
+       
+        hand_low = (-0.7, 0.4, 0.05)
+        hand_high = (0.7, 1, 0.2)
         main_file = 'sawyer_basketball.xml'
-        env_txt_file = open('metaworld/all_envs/'+main_file.split('.')[0]+'.txt','r')
-        env_txt_lines = env_txt_file.read().split('\n')
-        
-        self.file_order  = random.choice(range(len(env_txt_lines)))    
-        self.file_name = env_txt_lines[self.file_order]
-        main_env_pos = float(self.file_name.split(',')[1])
-        self.x_shift = main_env_pos
+        self.generate_env(main_file,main_pos_index,task_variant)
+
+        obj_low  =  (self.task_offsets_min[0], self.task_offsets_min[1] + 0.7, 0.001)
+        obj_high =  (self.task_offsets_max[0], self.task_offsets_max[1] + 0.7, 0.001)
+
+        goal_low  = (self.task_offsets_min[0], self.task_offsets_min[1] + 0.9 ,  0.001)
+        goal_high = (self.task_offsets_max[0], self.task_offsets_max[1] + 0.9 ,  0.001)
         super().__init__(
                     self.model_name,
                     hand_low=hand_low,
                     hand_high=hand_high,
                 )
-        obj_low   = (main_env_pos ,0.5, 0.0299)
-        obj_high  = (main_env_pos, 0.5, 0.0301)
-        goal_low  = (main_env_pos, 0.9, 0.)
-        goal_high = (main_env_pos, 0.9+1e-7, 0.)
-
+       
         self.init_config = {
             'obj_init_angle': .3,
             'obj_init_pos': np.array([0, 0.6, 0.03], dtype=np.float32),
-            'hand_init_pos': np.array((0, 0, 0.2), dtype=np.float32),
+            'hand_init_pos': np.array(self.hand_init_pos_),
         }
         self.goal = np.array([0, 0.9, 0])
         self.obj_init_pos = self.init_config['obj_init_pos']
@@ -83,7 +84,6 @@ class SawyerBasketballEnvV2(SawyerXYZEnv):
             'in_place_reward': in_place_reward,
             'obj_to_target': obj_to_target,
             'unscaled_reward': reward,
-            'x_shift' : self.x_shift,
         }
 
         return reward, info

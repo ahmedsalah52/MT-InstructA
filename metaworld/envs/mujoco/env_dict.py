@@ -268,7 +268,7 @@ ALL_V2_ENVIRONMENTS_multi = OrderedDict((
     ('reach-wall-v2', SawyerReachWallEnvV2),
     ('shelf-place-v2', SawyerShelfPlaceEnvV2),
     #('sweep-into-v2', SawyerSweepIntoGoalEnvV2),
-    #('sweep-v2', SawyerSweepEnvV2),
+    ('sweep-v2', SawyerSweepEnvV2),
     ('window-open-v2', SawyerWindowOpenEnvV2),
     ('window-close-v2', SawyerWindowCloseEnvV2),
 
