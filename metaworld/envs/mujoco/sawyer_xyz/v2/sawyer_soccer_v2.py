@@ -48,15 +48,15 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
         )
 
         self.init_config = {
-            'obj_init_pos': np.array(obj_low)+np.array(obj_high)/2,
+            'obj_init_pos': (np.array(obj_low)+np.array(obj_high))/2,
             'obj_init_angle': 0.3,
             'hand_init_pos': np.array(self.hand_init_pos_),
         }
-        self.goal = np.array(goal_low)+np.array(goal_high)/2
+        self.goal = (np.array(goal_low)+np.array(goal_high))/2
         self.obj_init_pos   = self.init_config['obj_init_pos']
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.hand_init_pos  = self.init_config['hand_init_pos']
-
+        print(self.goal,self.obj_init_pos)
         self._random_reset_space = Box(
             np.hstack((obj_low, goal_low)),
             np.hstack((obj_high, goal_high)),
