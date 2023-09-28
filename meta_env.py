@@ -79,7 +79,7 @@ class task_manager():
 
 
 class meta_env(Env):
-    def __init__(self,taskname,task_pos,save_images,episode_length = 200,pos_emb_flag=False,wandb_render = False,multi = True,process='None') -> None:
+    def __init__(self,taskname,task_pos,save_images,episode_length = 200,pos_emb_flag=False,wandb_render = False,multi = True,process='None',wandb_log = True) -> None:
         super().__init__()
         
         self.taskname = taskname
@@ -115,7 +115,7 @@ class meta_env(Env):
         self.wandb_render = wandb_render
         self.multi = multi
         self.process = process
-
+        self.wandb_log = wandb_log
     def reset(self,seed=None, options=None):
         super().reset(seed=seed)
         self.env = self.task_man.reset()
@@ -133,7 +133,7 @@ class meta_env(Env):
         self.prev_reward = 0
         
         if self.pos_emb_flag: obs = np.hstack((self.env.main_pos_index,obs))
-        return obs ,  {'images':images,'file_order':self.env.file_order if self.multi else 0,'success':0.0} # Reset environment
+        return obs ,  {'images':images,'file_order':self.env.file_order if self.multi else -1,'success':0.0} # Reset environment
         
     def get_visual_obs_log(self):
         behindGripper  = self.env.render(offscreen= True,camera_name='behindGripper')
@@ -172,27 +172,20 @@ class meta_env(Env):
                 self.rendered_seq = np.array(self.rendered_seq, dtype=np.uint8)
                 self.rendered_seq = self.rendered_seq.transpose(0,3, 1, 2)
                 wandb.log({"video": wandb.Video(self.rendered_seq, fps=30)})
-        if self.end_episode:
-            wandb.log({self.process+" success counter": self.success_counter})
+        if self.end_episode and self.wandb_log:
+                wandb.log({self.process+" success counter": self.success_counter})
 
         
         
         info['images'] = images
-        info['file_order'] = self.env.file_order if self.multi else 0
+        info['file_order'] = self.env.file_order if self.multi else -1
 
         if self.pos_emb_flag: obs = np.hstack((self.env.main_pos_index,obs))
             
         return obs, reward, done ,(info['success']==1.0),info
     
     
-    def additional_reward(self,obs):
-        hand_pos = obs[:3]
-        x = hand_pos[0]
-        x_shift = self.env.x_shift
-
-        delta_x = abs(x_shift - x)
-        reward = (0.7 - delta_x)/0.7
-        return reward
+  
 
     def get_visual_obs(self):
         corner         = self.env.render(offscreen= True,camera_name='corner') # corner,2,3, corner2, topview, gripperPOV, behindGripper'
@@ -201,28 +194,16 @@ class meta_env(Env):
         corner3        = self.env.render(offscreen= True,camera_name='corner3')
         topview        = self.env.render(offscreen= True,camera_name='topview')
         
-        images = [cv2.cvtColor(corner,cv2.COLOR_RGB2BGR),       
-                cv2.cvtColor(corner2,cv2.COLOR_RGB2BGR),      
-                cv2.cvtColor(behindGripper,cv2.COLOR_RGB2BGR),
-                cv2.cvtColor(corner3,cv2.COLOR_RGB2BGR),      
-                cv2.cvtColor(topview,cv2.COLOR_RGB2BGR)      
+        images = [cv2.resize(corner,(224,224)),       
+                cv2.resize(corner2,(224,224)),      
+                cv2.resize(behindGripper,(224,224)),
+                cv2.resize(corner3,(224,224)),      
+                cv2.resize(topview,(224,224))      
         ]
 
-
-        input_imgs = []
-        for image in images:
-            input_imgs.append(cv2.resize(image,(224,224)))
-        return np.array(input_imgs)
+        return np.array(images)
     
 
-    def update_dict(self,a):
-        self.current_episode['a'].append(copy.deepcopy(a))
-        self.current_episode['obs'].append(copy.deepcopy(self.obs))
-        self.current_episode['reward'].append(copy.deepcopy(self.reward))
-        self.current_episode['done'].append(copy.deepcopy(self.done))
-        self.current_episode['info'].append(copy.deepcopy(self.info))
-        if self.save_images:
-            self.current_episode['images'].append(copy.deepcopy(self.images))
 
 
 class meta_Callback(BaseCallback):
