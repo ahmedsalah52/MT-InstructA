@@ -1,136 +1,12 @@
+import lightning as L
+
 import torch.nn as nn
 import torch
 import math
 from transformers import DistilBertModel, DistilBertConfig, DistilBertTokenizer
 import timm
+import numpy as np
 
-class PositionalEncoding(nn.Module):
-    def __init__(self, dim_model, dropout_p, max_len):
-        super().__init__()
-        # Modified version from: https://pytorch.org/tutorials/beginner/transformer_tutorial.html
-        # max_len determines how far the position can have an effect on a token (window)
-        
-        # Info
-        self.dropout = nn.Dropout(dropout_p)
-        
-        # Encoding - From formula
-        pos_encoding = torch.zeros(max_len, dim_model)
-        positions_list = torch.arange(0, max_len, dtype=torch.float).view(-1, 1) # 0, 1, 2, 3, 4, 5
-        division_term = torch.exp(torch.arange(0, dim_model, 2).float() * (-math.log(10000.0)) / dim_model) # 1000^(2i/dim_model)
-        
-        # PE(pos, 2i) = sin(pos/1000^(2i/dim_model))
-        pos_encoding[:, 0::2] = torch.sin(positions_list * division_term)
-        
-        # PE(pos, 2i + 1) = cos(pos/1000^(2i/dim_model))
-        pos_encoding[:, 1::2] = torch.cos(positions_list * division_term)
-        
-        # Saving buffer (same as parameter without gradients needed)
-        pos_encoding = pos_encoding.unsqueeze(0).transpose(0, 1)
-        self.register_buffer("pos_encoding",pos_encoding)
-        
-    def forward(self, token_embedding: torch.tensor) -> torch.tensor:
-        # Residual connection + pos encoding
-        return self.dropout(token_embedding + self.pos_encoding[:token_embedding.size(0), :])
-
-class Transformer(nn.Module):
-    """
-    Model from "A detailed guide to Pytorch's nn.Transformer() module.", by
-    Daniel Melchor: https://medium.com/@danielmelchor/a-detailed-guide-to-pytorchs-nn-transformer-module-c80afbc9ffb1
-    """
-    # Constructor
-    def __init__(
-        self,
-        dim_model,
-        num_heads,
-        num_encoder_layers,
-        dropout_p,
-        seq_length,
-        emp_length,
-        num_actions,
-        variations_per_action,
-        device
-    ):
-        super().__init__()
-        self.device = device
-        # INFO
-        self.model_type = "Transformer"
-        self.dim_model = dim_model
-
-        # LAYERS
-        self.positional_encoder = PositionalEncoding(
-            dim_model=dim_model, dropout_p=dropout_p, max_len=seq_length
-        )
-        #self.embedding = nn.Embedding(8, dim_model)
-       
-        encoder_layer = nn.TransformerEncoderLayer(d_model=dim_model, nhead=num_heads,dropout=0.1)
-        self.transformer = nn.TransformerEncoder(encoder_layer, num_layers=num_encoder_layers)
-        self.flatten = nn.Flatten(1)
-        #self.outs    = [nn.Linear(seq_length*emp_length, variations_per_action).to(self.device) for i in range(num_actions)]
-        self.outs    = nn.Sequential(nn.Linear(seq_length*emp_length, 1024),
-                                     nn.ReLU(),
-                                     nn.Linear(1024,512),
-                                     nn.ReLU(),
-                                     nn.Linear(512,256),
-                                     nn.ReLU(),
-                                     nn.Linear(256,num_actions),
-                                     nn.Sigmoid()
-        ).to(device)
-
-        self.pos_emp = nn.Linear(3,8).to(device)
-
- 
-
-    def forward(self, src,hand_pos):
-        pos_embeddings  = self.pos_emp(hand_pos)
-        src = torch.cat([src,pos_embeddings[:,None,:]],dim=1)
-
-        src = self.positional_encoder(src)
-      
-        src = src.permute(1,0,2)
-        
-        transformer_out = self.transformer(src)
-        transformer_out = transformer_out.permute(1,0,2)
-        transformer_out = self.flatten(transformer_out)
-        
-        
-        out = self.outs(transformer_out)
-
-        #rets = torch.cat(rets,1)
-
-        return out
-
-
-class Policy(nn.Module):
-    def __init__(self,language_img_model,policy_head,seq_length,emp_length,device):
-        super().__init__()
-        self.device = device
-        self.language_img_model = language_img_model
-        self.policy_head = policy_head
-        self.seq_length = seq_length
-        self.emp_length = emp_length
-        self.normalizing = nn.BatchNorm1d(384,8).to(device=device)
-        #self.language_img_model.eval()
-
-       
-    def forward(self,batch):
-      
-        batch_size,cams,ch,h,w  = batch['image'].shape
-        batch["image"] = torch.flatten(batch["image"], start_dim=0, end_dim=1)
-        image_features = self.language_img_model.encode_image(batch["image"])
-        text_features = self.language_img_model.encode_text(batch["caption"])
-        
-        image_features = torch.unflatten(image_features,dim = 0,sizes=(batch_size,cams))
-
-        text_images_embeddings = torch.cat([image_features,text_features[:,None,:]],dim=1)
-        text_images_embeddings = text_images_embeddings.flatten(1)
-        text_images_embeddings = text_images_embeddings.unflatten(-1,(self.seq_length-1,self.emp_length)) # batch ,384 , 8
-    
-        text_images_embeddings = self.normalizing(text_images_embeddings)
-
-        logits = self.policy_head(text_images_embeddings,batch['hand_pos'])
-
-        return logits
-    
 
 class AvgMeter:
     def __init__(self, name="Metric"):
@@ -174,7 +50,7 @@ class ImageEncoder(nn.Module):
         return self.model(x)
     
 class TextEncoder(nn.Module):
-    def __init__(self, model_name="distilbert-base-uncased", pretrained=True, trainable=True):
+    def __init__(self, model_name="distilbert-base-uncased", pretrained=True, trainable=True,command_max_length=20):
         super().__init__()
         if pretrained:
             self.model = DistilBertModel.from_pretrained(model_name)
@@ -186,11 +62,14 @@ class TextEncoder(nn.Module):
 
         # we are using the CLS token hidden representation as the sentence's embedding
         self.target_token_idx = 0
-
+        self.tokenizer = DistilBertTokenizer.from_pretrained(model_name)
+        self.command_max_length = command_max_length
+    
     def forward(self, input_ids, attention_mask):
         output = self.model(input_ids=input_ids, attention_mask=attention_mask)
         last_hidden_state = output.last_hidden_state
         return last_hidden_state[:, self.target_token_idx, :]
+    
 class ProjectionHead(nn.Module):
     def __init__(
         self,
@@ -215,13 +94,11 @@ class ProjectionHead(nn.Module):
         return x  
     
 
-class Simple_policy(nn.Module):
-    def __init__(self):
+class ClIP(nn.Module):
+    def __init__(self,args):
         super().__init__()
-
-
-        self.image_encoder    = ImageEncoder()
-        self.text_encoder     = TextEncoder()
+        self.image_encoder    = ImageEncoder(model_name=args.image_model_name, pretrained=args.image_model_pretrained, trainable=args.image_model_trainable)
+        self.text_encoder     = TextEncoder(model_name=args.text_model_name, pretrained=args.text_model_pretrained, trainable=args.text_model_trainable,command_max_length=args.text_model_max_length)
         self.image_projection = ProjectionHead(embedding_dim=2048)
         self.text_projection  = ProjectionHead(embedding_dim=768)
         self.pos_emp = nn.Linear(3,512)
@@ -230,11 +107,12 @@ class Simple_policy(nn.Module):
                                      nn.ReLU(),
                                      nn.Linear(512,512),
                                      nn.ReLU(),
-                                     nn.Linear(512,4),
-                                     nn.Sigmoid())
+                                     nn.Linear(512,4))
+            
+                             
     def forward(self,batch):
         # Getting Image and Text Features
-       
+        text_batch  = self.text_encoder.tokenizer(batch['command'], padding=True, truncation=True, max_length=self.text_encoder.command_max_length)
 
         batch_size,cams,ch,h,w  = batch['image'].shape
         batch["image"] = torch.flatten(batch["image"], start_dim=0, end_dim=1)
@@ -243,7 +121,7 @@ class Simple_policy(nn.Module):
         
 
         text_features = self.text_encoder(
-            input_ids=batch["input_ids"], attention_mask=batch["attention_mask"]
+            input_ids=text_batch["input_ids"], attention_mask=text_batch["attention_mask"]
         )
 
         image_features = torch.unflatten(image_features,dim = 0,sizes=(batch_size,cams))
@@ -256,4 +134,43 @@ class Simple_policy(nn.Module):
         logits = self.head(text_images_embeddings)
 
         return logits
+
+
+
+class base_model(L.LightningModule):
+    def __init__(self, args):
+        super().__init__()
+        models = {'clip':ClIP}
+        loss_funs = {'cross_entropy':nn.CrossEntropyLoss(),
+                     'mse':nn.MSELoss()}
+        self.model = models[args.model_name](args)
+        self.loss_fun = loss_funs[args.loss_fun]
+        self.opt = torch.optim.Adam(
+                [
+                    {"params": self.model.image_encoder.parameters()   , "lr": args.img_model_lr},
+                    {"params": self.model.image_projection.parameters(), "lr": args.img_model_lr},
+                    {"params": self.model.text_encoder.parameters()    , "lr": args.txt_model_lr},
+                    {"params": self.model.text_projection.parameters() , "lr": args.txt_model_lr},
+                    {"params": self.model.pos_emp.parameters()},
+                    {"params": self.model.head.parameters()},
+                ],
+                lr=args.lr,
+            )
+    def training_step(self, batch, batch_idx):
+        x, y = batch
+        logits = self.model(x)
+
+        
+        loss = self.loss_fun(logits, y)
+        self.log("train_loss", loss)
+        return loss
     
+    def validation_step(self, batch, batch_idx):
+        x, y = batch
+        logits = self.model(x)
+        loss = self.loss_fun(logits, y)
+        self.log("val_loss", loss)
+        return loss
+
+    def configure_optimizers(self):
+        return self.opt
