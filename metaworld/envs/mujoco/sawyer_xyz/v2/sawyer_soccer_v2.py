@@ -31,8 +31,8 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
         self.generate_env(main_file,main_pos_index,task_variant)
         
 
-        obj_low  =  (self.task_offsets_min[0], self.task_offsets_min[1] + 0.7, 0.001)
-        obj_high =  (self.task_offsets_max[0], self.task_offsets_max[1] + 0.7, 0.001)
+        obj_low  =  (self.task_offsets_min[0], self.task_offsets_min[1] + 0.75, 0.001)
+        obj_high =  (self.task_offsets_max[0], self.task_offsets_max[1] + 0.75, 0.001)
 
         goal_low  = (self.task_offsets_min[0], self.task_offsets_min[1] + 0.9 ,  0.001)
         goal_high = (self.task_offsets_max[0], self.task_offsets_max[1] + 0.9 ,  0.001)

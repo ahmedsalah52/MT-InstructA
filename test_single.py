@@ -27,7 +27,7 @@ for taskname in ['soccer-v2']:#tasks:#ALL_V2_ENVIRONMENTS.keys():
     #taskname = 'sweep-v2' #'box-close-v2' #'soccer-v2'#'button-press-topdown-v2' #'door-lock-v2' 
 
     multi = True
-    pos = 1
+    pos = 0
     variant = None # ['push_v2','button_press_topdown','door_lock']
 
     task_man = task_manager(taskname,pos=pos,variant=variant,multi=multi)
