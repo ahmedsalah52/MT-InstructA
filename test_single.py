@@ -23,11 +23,11 @@ class task_manager():
 
 tasks =  ['assembly-v2', 'box-close-v2', 'button-press-topdown-v2',  'button-press-v2', 'coffee-button-v2', 'coffee-pull-v2', 'coffee-push-v2', 'disassemble-v2', 'door-lock-v2', 'door-open-v2', 'door-unlock-v2','drawer-close-v2', 'drawer-open-v2', 'faucet-open-v2', 'faucet-close-v2','handle-press-v2',  'handle-pull-v2',  'soccer-v2',   'shelf-place-v2',    'window-open-v2', 'window-close-v2']
 print(len(tasks))
-for taskname in tasks:#tasks:#ALL_V2_ENVIRONMENTS.keys():
+for taskname in ['soccer-v2']:#tasks:#ALL_V2_ENVIRONMENTS.keys():
     #taskname = 'sweep-v2' #'box-close-v2' #'soccer-v2'#'button-press-topdown-v2' #'door-lock-v2' 
 
     multi = True
-    pos = 0
+    pos = 1
     variant = None # ['push_v2','button_press_topdown','door_lock']
 
     task_man = task_manager(taskname,pos=pos,variant=variant,multi=multi)

@@ -26,7 +26,7 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
 
        
         hand_low = (-0.7, 0.4, 0.05)
-        hand_high = (0.7, 1, 0.2)
+        hand_high = (0.7, 1, 0.5)
         main_file = 'sawyer_soccer.xml'
         self.generate_env(main_file,main_pos_index,task_variant)
         
@@ -46,7 +46,7 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
         )
-        self.hand_init_pos_[-1] = np.random.uniform(0.05,0.2)
+        self.hand_init_pos_[-1] = np.random.uniform(0.15,0.25)
         self.init_config = {
             'obj_init_pos': (np.array(obj_low)+np.array(obj_high))/2,
             'obj_init_angle': 0.3,
