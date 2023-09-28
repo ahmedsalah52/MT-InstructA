@@ -46,7 +46,7 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
         )
-
+        self.hand_init_pos_[-1] = np.random.uniform(0.05,0.2)
         self.init_config = {
             'obj_init_pos': (np.array(obj_low)+np.array(obj_high))/2,
             'obj_init_angle': 0.3,
