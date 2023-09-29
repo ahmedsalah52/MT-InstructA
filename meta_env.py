@@ -173,7 +173,7 @@ class meta_env(Env):
                 self.rendered_seq = self.rendered_seq.transpose(0,3, 1, 2)
                 wandb.log({"video": wandb.Video(self.rendered_seq, fps=30)})
         if self.end_episode and self.wandb_log:
-                wandb.log({self.process+" success counter": self.success_counter})
+            wandb.log({self.process+" success counter": self.success_counter})
 
         
         
