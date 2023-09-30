@@ -10,6 +10,7 @@ parser.add_argument('--run_name', type=str, default='run_1')
 parser.add_argument('--logs_dir', type=str, default='/system/user/publicdata/mansour_datasets/metaworld/all_logs')
 
 #model                
+parser.add_argument('seed', type=int, default=42)
 parser.add_argument('--model_name', type=str, default='clip')
 
 #clip params
