@@ -8,14 +8,18 @@ from meta_env import meta_env
 import os
 from torchvision import transforms
 from pytorch_lightning.callbacks import ModelCheckpoint
-
+import wandb
 def main():
     args = parser.parse_args()
 
     wandb_logger = WandbLogger( 
     project= args.project_name,
     name   = args.run_name)
-
+   
+    wandb.init(
+    project=args.project_name,
+    name = args.run_name
+    ) 
     preprocess = transforms.Compose([
             transforms.ToTensor(), 
             #transforms.Resize((224,224)),
