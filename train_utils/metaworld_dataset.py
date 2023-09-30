@@ -12,7 +12,7 @@ import uuid
 class temp_dataset(Dataset):
     def __init__(self):
         self.data = []
-        for i in range(10):
+        for i in range(100):
             self.data.append(i)
     def __len__(self):
         return len(self.data)
