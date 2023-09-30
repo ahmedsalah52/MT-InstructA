@@ -141,8 +141,8 @@ class generator_manager():
         return train_dataloader
     
 
-    def get_valid_dataloader(self):
-        dataset_dict = self.valid_data_generator.generate_data()
+    def get_valid_dataloader(self,device):
+        dataset_dict = self.valid_data_generator.generate_data(device)
         self.valid_dataset.load_data(dataset_dict)
         val_dataloader = torch.utils.data.DataLoader(self.valid_dataset,batch_size=self.batch_size,shuffle=False,num_workers = self.num_workers)
         return val_dataloader 
