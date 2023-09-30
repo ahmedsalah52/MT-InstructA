@@ -187,8 +187,7 @@ class base_model(pl.LightningModule):
         text_batch = self.model.text_encoder.tokenizer(batch['instruction'], padding=True, truncation=True, max_length=self.model.text_encoder.command_max_length)
         text_batch = {k : torch.tensor(v) for k,v in text_batch.items()}
         
-        del batch['instruction']
-
+        
         batch = {**batch,**text_batch}
         batch = {k : v.to(self.device) for k,v in batch.items()}
         

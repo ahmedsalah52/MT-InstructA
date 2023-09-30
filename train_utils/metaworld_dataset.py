@@ -21,8 +21,7 @@ class temp_dataset(Dataset):
         ret['images']         = torch.zeros((5,3,224,224)).to(torch.float32)
         ret['hand_pos']       = torch.zeros(8).to(torch.float32)
         ret['action']         = torch.zeros(4).to(torch.float32)
-        #ret['input_ids']      = torch.zeros(8).to(torch.float32)
-        #ret['attention_mask'] = torch.ones(8).to(torch.float32)
+        
         ret['instruction']    = "empty instruction"
 
         return ret
