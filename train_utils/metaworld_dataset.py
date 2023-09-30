@@ -111,7 +111,7 @@ class Generate_data():
     def save_images(self,images,taskname,pos,id_num,step_num,device):
         ret = []
         for i in range(len(images)):
-            save_dir = os.path.join(self.data_dir,taskname,str(pos),device)
+            save_dir = os.path.join(self.data_dir,str(device),taskname,str(pos))
             if not os.path.exists(save_dir):
                 os.makedirs(save_dir)
             img_dir = os.path.join(save_dir,f'{id_num}_{step_num}_{i}.jpg')
