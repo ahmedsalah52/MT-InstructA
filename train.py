@@ -11,7 +11,7 @@ from pytorch_lightning.callbacks import ModelCheckpoint
 import wandb
 def main():
     args = parser.parse_args()
-
+    torch.manual_seed(1)  
     wandb_logger = WandbLogger( 
     project= args.project_name,
     name   = args.run_name)
