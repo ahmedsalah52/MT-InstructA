@@ -17,7 +17,14 @@ class temp_dataset(Dataset):
     def __len__(self):
         return len(self.data)
     def __getitem__(self, index):
-        return self.data[index]     
+        ret = {}
+        ret['images']   = torch.zeros((5,3,224,224)).to(torch.float32)
+        ret['hand_pos'] = torch.zeros(8).to(torch.float32)
+        ret['action']      = torch.zeros(4).to(torch.float32)
+        ret['input_ids']      = torch.zeros(8).to(torch.float32)
+        ret['attention_mask'] = torch.ones(8).to(torch.float32)
+
+        return ret
 
 
 class MW_dataset(Dataset):
