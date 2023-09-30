@@ -53,7 +53,7 @@ def main():
     model = base_model(args=args,generator=data_generator,env=meta_env)
 
     trainer = Trainer(callbacks=[succ_rate_checkpoint_callback,valid_checkpoint_callback],logger = wandb_logger,max_epochs=args.num_epochs,check_val_every_n_epoch=args.check_val_every_n_epoch)
-    trainer.fit(model, data_generator.get_train_dataloader(model.device),val_dataloaders=data_generator.get_valid_dataloader(),ckpt_path= args.load_checkpoint_path)
+    trainer.fit(model, data_generator.get_train_dataloader(model.device),val_dataloaders=data_generator.get_valid_dataloader(model.device),ckpt_path= args.load_checkpoint_path)
 
 
 
