@@ -209,7 +209,7 @@ class base_model(pl.LightningModule):
     def on_train_epoch_start(self):
         if (self.current_epoch % self.generate_data_every == 0):
             print(f"epoch {self.current_epoch} training data generation on device {self.device}")
-            self.train_dataloader = self.generator.get_train_dataloader()
+            self.train_dataloader = self.generator.get_train_dataloader(self.device)
 
         if (self.current_epoch % self.evaluate_every == 0):
             print(f"epoch {self.current_epoch}  evaluation on device {self.device}")
