@@ -55,33 +55,33 @@ class Generate_data():
         self.task_poses = ['Right','Mid','Left']
         self.agents_dict = json.load(open(agents_dict_dir))
         self.meta_env = meta_env
-    def generate_data(self):
+    def generate_data(self,device):
         self.agents_level += 100000
         data_dict = {}
         for task in self.tasks:
-            data_dict[task] = self.generate_task_data(task)
+            data_dict[task] = self.generate_task_data(task,device)
 
         return data_dict
 
-    def generate_task_data(self,task):
+    def generate_task_data(self,task,device):
         task_data = []
         for pos in [0,1,2]:
             env   = self.meta_env(task,pos,save_images=True,process = 'train',wandb_log = False)
-            agent = self.get_agent(env,task,pos)
-            task_data += self.generate_pos_data(env,agent,task,pos)
+            agent = self.get_agent(env,task,pos,device)
+            task_data += self.generate_pos_data(env,agent,task,pos,device)
         
         return task_data
     
 
-    def get_agent(self,env,taskname,pos):
+    def get_agent(self,env,taskname,pos,device):
         run_name   = f'{taskname}_{self.task_poses[pos]}_ID{self.agents_dict[taskname][str(pos)]["id"]}'
         load_from = min(self.agents_level,self.agents_dict[taskname][str(pos)]['best_model'])
         load_path = os.path.join(self.agents_dir,run_name, f"{run_name}_{load_from}_steps")
 
-        return SAC.load(load_path,env)
+        return SAC.load(load_path,env,device=device)
 
 
-    def generate_pos_data(self,env,agent,task,pos):
+    def generate_pos_data(self,env,agent,task,pos,device):
         max_steps = self.max_task_steps//3
 
         episodes = []
@@ -103,15 +103,15 @@ class Generate_data():
                 
                 if (success or done): break 
                 prev_obs = obs
-                prev_images_obs = self.save_images(info['images'],task,pos,id_num,step_num)
+                prev_images_obs = self.save_images(info['images'],task,pos,id_num,step_num,device)
 
             total_steps+=step_num
             episodes.append(episode[:])
         return episodes   
-    def save_images(self,images,taskname,pos,id_num,step_num):
+    def save_images(self,images,taskname,pos,id_num,step_num,device):
         ret = []
         for i in range(len(images)):
-            save_dir = os.path.join(self.data_dir,taskname,str(pos))
+            save_dir = os.path.join(self.data_dir,taskname,str(pos),device)
             if not os.path.exists(save_dir):
                 os.makedirs(save_dir)
             img_dir = os.path.join(save_dir,f'{id_num}_{step_num}_{i}.jpg')
@@ -134,8 +134,8 @@ class generator_manager():
         self.num_workers = args.num_workers
         self.preprocess = preprocess    
 
-    def get_train_dataloader(self):
-        dataset_dict = self.train_data_generator.generate_data()
+    def get_train_dataloader(self,device):
+        dataset_dict = self.train_data_generator.generate_data(device)
         self.train_dataset.load_data(dataset_dict)
         train_dataloader = torch.utils.data.DataLoader(self.train_dataset,batch_size=self.batch_size,shuffle=True,num_workers = self.num_workers)
         return train_dataloader
