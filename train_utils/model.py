@@ -200,17 +200,23 @@ class base_model(pl.LightningModule):
         self.log("val_loss", loss)
         return loss
     
-    def on_validation_epoch_start(self):
+
+    def train_dataloader(self):
+        if (self.current_epoch % self.generate_data_every == 0):
+            print(f"epoch {self.current_epoch} training data generation on device {self.device}")
+            return self.generator.get_train_dataloader(self.device)
+        else:
+            return self.train_dataloader
+
+    def val_dataloader(self):
         print(f"epoch {self.current_epoch} validation data generation on device {self.device}")
-        self.val_dataloader = self.generator.get_valid_dataloader(self.device)
+        return  self.generator.get_valid_dataloader(self.device)
+        
+    #def on_validation_epoch_start(self):
         
 
 
     def on_train_epoch_start(self):
-        if (self.current_epoch % self.generate_data_every == 0):
-            print(f"epoch {self.current_epoch} training data generation on device {self.device}")
-            self.train_dataloader = self.generator.get_train_dataloader(self.device)
-
         if (self.current_epoch % self.evaluate_every == 0):
             print(f"epoch {self.current_epoch}  evaluation on device {self.device}")
             total_success = 0
