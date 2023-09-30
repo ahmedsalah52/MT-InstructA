@@ -1,4 +1,4 @@
-import lightning as L
+import pytorch_lightning as pl
 
 import torch.nn as nn
 import torch
@@ -6,8 +6,8 @@ import math
 from transformers import DistilBertModel, DistilBertConfig, DistilBertTokenizer
 import timm
 import numpy as np
-
-
+import wandb
+import random
 class AvgMeter:
     def __init__(self, name="Metric"):
         self.name = name
@@ -101,7 +101,7 @@ class ClIP(nn.Module):
         self.text_encoder     = TextEncoder(model_name=args.text_model_name, pretrained=args.text_model_pretrained, trainable=args.text_model_trainable,command_max_length=args.text_model_max_length)
         self.image_projection = ProjectionHead(embedding_dim=2048)
         self.text_projection  = ProjectionHead(embedding_dim=768)
-        self.pos_emp = nn.Linear(3,512)
+        self.pos_emp = nn.Linear(8,512)
         self.head = nn.Sequential(nn.Flatten(),
                                     nn.Linear(7*512, 512),
                                      nn.ReLU(),
@@ -112,23 +112,23 @@ class ClIP(nn.Module):
                              
     def forward(self,batch):
         # Getting Image and Text Features
-        text_batch  = self.text_encoder.tokenizer(batch['command'], padding=True, truncation=True, max_length=self.text_encoder.command_max_length)
-
-        batch_size,cams,ch,h,w  = batch['image'].shape
-        batch["image"] = torch.flatten(batch["image"], start_dim=0, end_dim=1)
-
-        image_features = self.image_encoder(batch["image"])
         
+        batch_size,cams,ch,h,w  = batch['images'].shape
+        batch["images"] = torch.flatten(batch["images"], start_dim=0, end_dim=1)
+
+        image_features = self.image_encoder(batch["images"])
+        image_features = torch.unflatten(image_features,dim = 0,sizes=(batch_size,cams))
+
 
         text_features = self.text_encoder(
-            input_ids=text_batch["input_ids"], attention_mask=text_batch["attention_mask"]
+            input_ids=batch["input_ids"], attention_mask=batch["attention_mask"]
         )
 
-        image_features = torch.unflatten(image_features,dim = 0,sizes=(batch_size,cams))
         
         image_features = self.image_projection(image_features)
         text_features  = self.text_projection(text_features)
         pos_embeddings = self.pos_emp(batch['hand_pos'])
+       
         text_images_embeddings = torch.cat([image_features,text_features[:,None,:],pos_embeddings[:,None,:]],dim=1)
 
         logits = self.head(text_images_embeddings)
@@ -137,9 +137,16 @@ class ClIP(nn.Module):
 
 
 
-class base_model(L.LightningModule):
-    def __init__(self, args):
+class base_model(pl.LightningModule):
+    def __init__(self,args,generator,env):
         super().__init__()
+        self.generator = generator
+        self.generate_data_every = args.generate_data_every
+        self.evaluate_every = args.evaluate_every
+        self.evaluation_episodes = args.evaluation_episodes
+        self.tasks = args.tasks
+        self.env = env
+        
         models = {'clip':ClIP}
         loss_funs = {'cross_entropy':nn.CrossEntropyLoss(),
                      'mse':nn.MSELoss()}
@@ -156,21 +163,79 @@ class base_model(L.LightningModule):
                 ],
                 lr=args.lr,
             )
+    
     def training_step(self, batch, batch_idx):
-        x, y = batch
-        logits = self.model(x)
-
         
+        text_batch = self.model.text_encoder.tokenizer(batch['instruction'], padding=True, truncation=True, max_length=self.model.text_encoder.command_max_length)
+        text_batch = {k : torch.tensor(v) for k,v in text_batch.items()}
+        
+        del batch['instruction']
+
+        batch = {**batch,**text_batch}
+        batch = {k : v.to(self.device) for k,v in batch.items()}
+        
+        logits = self.model(batch)
+
+        y = batch['action']
         loss = self.loss_fun(logits, y)
         self.log("train_loss", loss)
         return loss
     
+  
+    
     def validation_step(self, batch, batch_idx):
-        x, y = batch
-        logits = self.model(x)
+        text_batch = self.model.text_encoder.tokenizer(batch['instruction'], padding=True, truncation=True, max_length=self.model.text_encoder.command_max_length)
+        text_batch = {k : torch.tensor(v) for k,v in text_batch.items()}
+        
+        del batch['instruction']
+
+        batch = {**batch,**text_batch}
+        batch = {k : v.to(self.device) for k,v in batch.items()}
+        
+        logits = self.model(batch)
+
+        y = batch['action']
+
         loss = self.loss_fun(logits, y)
         self.log("val_loss", loss)
         return loss
+    
+    def on_validation_epoch_start(self):
+        print(f"epoch {self.current_epoch} validation data generation")
+        self.val_dataloader = self.generator.get_valid_dataloader()
+        
+
+
+    def on_train_epoch_start(self):
+        if (self.current_epoch % self.generate_data_every == 0) and self.current_epoch != 0:
+            print(f"epoch {self.current_epoch} training data generation")
+            self.train_dataloader = self.generator.get_train_dataloader()
+
+        if (self.current_epoch % self.evaluate_every == 0):
+            print(f"epoch {self.current_epoch}  evaluation")
+            total_success = 0
+
+            for task in self.tasks:
+                for pos in [0,1,2]:
+                    env = self.env(task,pos,save_images=True,wandb_render = True,wandb_log = False)
+                    for i in range(self.evaluation_episodes):
+                        obs , info = env.reset()
+                        instruction = random.choice(self.generator.tasks_commands[task])
+                        text_batch = self.model.text_encoder.tokenizer(instruction, padding=True, truncation=True, max_length=self.model.text_encoder.command_max_length)
+
+                        while 1:
+                            step_input = {k : torch.tensor(v).unsqueeze(0).to(self.device) for k,v in text_batch.items()}
+                            images = [self.generator.preprocess(img) for img in info['images']]
+                            step_input['images']   = torch.stack(images).unsqueeze(0).to(self.device)
+                            step_input['hand_pos'] = torch.tensor(np.concatenate((obs[0:4],obs[18:22]),axis =0)).to(torch.float32).unsqueeze(0).to(self.device)
+                            a = self.model(step_input)
+                            obs, reward, done,success, info = env.step(a.detach().cpu().numpy()[0]) 
+                            total_success+=success
+                            if (success or done): break 
+                    
+            
+            self.log("success_rate", float(total_success)/(len(self.tasks)*3*self.evaluation_episodes))
+
 
     def configure_optimizers(self):
         return self.opt

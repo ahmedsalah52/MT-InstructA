@@ -35,7 +35,7 @@ for taskname in ['soccer-v2']:#tasks:#ALL_V2_ENVIRONMENTS.keys():
 
     env = task_man.reset()
     print(taskname)
-
+    import torch
     #env.set_task(ml1.train_tasks[0])  # Set task
     obs = env.reset()  # Reset environment
     x = y = z = g = 0
@@ -44,7 +44,9 @@ for taskname in ['soccer-v2']:#tasks:#ALL_V2_ENVIRONMENTS.keys():
         #a = policy.get_action(obs)
         a  = np.array([x,y,z,g])
         obs, reward, done, info = env.step(a)  # Step the environoment with the sampled random action
-        #print(obs)
+        print(obs)
+        print()
+        print(np.concatenate((obs[0:4],obs[18:22]),axis =0))
 
         
         #print(i,'-',reward,' - ',obs[:3] )
