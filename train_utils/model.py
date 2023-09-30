@@ -220,7 +220,7 @@ class base_model(pl.LightningModule):
         if (self.current_epoch % self.evaluate_every == 0):
             print(f"epoch {self.current_epoch}  evaluation on device {self.device}")
             total_success = 0
-
+            total_vids =[]
             for task in self.tasks:
                 videos=[]
                 for pos in [0,1,2]:
@@ -245,7 +245,8 @@ class base_model(pl.LightningModule):
                     rendered_seq = np.array(rendered_seq, dtype=np.uint8)
                     rendered_seq = rendered_seq.transpose(0,3, 1, 2)
                     videos.append(wandb.Video(rendered_seq, fps=30))   
-                self.wandb_logger.log_table(key="videos",  columns=['Right','Mid','Left'],data=videos)
+                total_vids.append(videos[:])    
+            self.wandb_logger.log_table(key="videos",  columns=['Right','Mid','Left'],data=total_vids)
             
             
             #if self.end_episode:
