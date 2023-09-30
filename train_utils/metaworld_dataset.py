@@ -114,7 +114,6 @@ class Generate_data():
             prev_images_obs = self.save_images(info['images'],task,pos,id_num,step_num,device)
             episode = [] 
             while 1:
-                step_num+=1
                 a , _states= agent.predict(prev_obs, deterministic=True)
                 obs, reward, done,success, info = env.step(a) 
                 episode.append({'obs':prev_obs,'action':a,'reward':reward,'success':success,'images_dir':prev_images_obs})
@@ -122,6 +121,7 @@ class Generate_data():
                 if (success or done): break 
                 prev_obs = obs
                 prev_images_obs = self.save_images(info['images'],task,pos,id_num,step_num,device)
+                step_num+=1
 
             total_steps+=step_num
             episodes.append(episode[:])
