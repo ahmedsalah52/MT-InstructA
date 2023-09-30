@@ -147,6 +147,7 @@ class base_model(pl.LightningModule):
         self.evaluate_every = args.evaluate_every
         self.evaluation_episodes = args.evaluation_episodes
         self.tasks = args.tasks
+        self.batch_size = args.batch_size
         self.env = env
         self.wandb_logger = wandb_logger
         models = {'clip':ClIP}
@@ -179,7 +180,7 @@ class base_model(pl.LightningModule):
 
         y = batch['action']
         loss = self.loss_fun(logits, y)
-        self.log("train_loss", loss,sync_dist=True)
+        self.log("train_loss", loss,sync_dist=True,batch_size=self.batch_size)
         return loss
     
   
@@ -197,7 +198,7 @@ class base_model(pl.LightningModule):
         y = batch['action']
 
         loss = self.loss_fun(logits, y)
-        self.log("val_loss", loss,sync_dist=True)
+        self.log("val_loss", loss,sync_dist=True,batch_size=self.batch_size)
         return loss
     
 
