@@ -88,8 +88,7 @@ class Generate_data():
         total_steps = 0
         id_num = 0
         while total_steps < max_steps:
-            id_num = str(uuid.uuid4())
-
+            id_num += 1
             step_num = 0
             success = False
             done = False
@@ -109,16 +108,11 @@ class Generate_data():
             total_steps+=step_num
             episodes.append(episode[:])
         return episodes   
-    
-    
     def save_images(self,images,taskname,pos,id_num,step_num):
         ret = []
         for i in range(len(images)):
             save_dir = os.path.join(self.data_dir,taskname,str(pos))
-            if os.path.exists(save_dir):
-                os.system(f"rm -r {save_dir}")
-                os.makedirs(save_dir)
-            else:
+            if not os.path.exists(save_dir):
                 os.makedirs(save_dir)
             img_dir = os.path.join(save_dir,f'{id_num}_{step_num}_{i}.jpg')
             cv2.imwrite(img_dir,cv2.cvtColor(images[i],cv2.COLOR_RGB2BGR))
