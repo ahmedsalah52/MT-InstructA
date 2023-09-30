@@ -51,8 +51,7 @@ def main():
     #data_generator.get_train_dataloader(model.device)
     #val_dataloaders=data_generator.get_valid_dataloader(model.device)
 
-    empty_dataset = temp_dataset()
-    temp_dataloader = torch.utils.data.DataLoader(empty_dataset,batch_size=1,shuffle=False)
+  
    
     data_generator = generator_manager(args=args,meta_env = meta_env ,preprocess=preprocess)
     model = base_model(args=args,generator=data_generator,env=meta_env,seed=args.seed)
