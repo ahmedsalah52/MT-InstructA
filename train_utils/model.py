@@ -217,7 +217,7 @@ class base_model(pl.LightningModule):
 
 
     def on_train_epoch_start(self):
-        if (self.current_epoch % self.evaluate_every == 0):
+        if (self.current_epoch % self.evaluate_every == 0) and self.current_epoch != 0:
             print(f"epoch {self.current_epoch}  evaluation on device {self.device}")
             total_success = 0
             total_vids =[]
