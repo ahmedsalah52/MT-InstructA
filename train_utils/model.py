@@ -179,7 +179,7 @@ class base_model(pl.LightningModule):
 
         y = batch['action']
         loss = self.loss_fun(logits, y)
-        self.log("train_loss", loss)
+        self.log("train_loss", loss,sync_dist=True)
         return loss
     
   
@@ -197,7 +197,7 @@ class base_model(pl.LightningModule):
         y = batch['action']
 
         loss = self.loss_fun(logits, y)
-        self.log("val_loss", loss)
+        self.log("val_loss", loss,sync_dist=True)
         return loss
     
 
