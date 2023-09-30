@@ -171,7 +171,7 @@ class base_model(pl.LightningModule):
         
 
         batch = {**batch,**text_batch}
-        batch = {k : v.to(self.device) for k,v in batch.items()}
+        batch = {k : v.to(self.device) for k,v in batch.items() if k != 'instruction'}
         
         logits = self.model(batch)
 
@@ -188,7 +188,7 @@ class base_model(pl.LightningModule):
         
         
         batch = {**batch,**text_batch}
-        batch = {k : v.to(self.device) for k,v in batch.items()}
+        batch = {k : v.to(self.device) for k,v in batch.items() if k != 'instruction'}
         
         logits = self.model(batch)
 
