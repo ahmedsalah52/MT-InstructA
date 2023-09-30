@@ -93,7 +93,7 @@ class Generate_data():
             success = False
             done = False
             prev_obs , info = env.reset()
-            prev_images_obs = self.save_images(info['images'],task,pos,id_num,step_num)
+            prev_images_obs = self.save_images(info['images'],task,pos,id_num,step_num,device)
             episode = [] 
             while 1:
                 step_num+=1
