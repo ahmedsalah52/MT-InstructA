@@ -117,7 +117,7 @@ class Generate_data():
             save_dir = os.path.join(self.data_dir,taskname,str(pos))
             if os.path.exists(save_dir):
                print(f"rm  {os.path.join(save_dir,'*')}")
-               os.system(f"rm  {os.path.join(save_dir,'*')}") 
+               os.system(f"rm -r {save_dir}") 
             else:
                 os.makedirs(save_dir)
             img_dir = os.path.join(save_dir,f'{id_num}_{step_num}_{i}.jpg')
