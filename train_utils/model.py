@@ -202,12 +202,12 @@ class base_model(pl.LightningModule):
     
     def on_validation_epoch_start(self):
         print(f"epoch {self.current_epoch} validation data generation on device {self.device}")
-        self.val_dataloader = self.generator.get_valid_dataloader()
+        self.val_dataloader = self.generator.get_valid_dataloader(self.device)
         
 
 
     def on_train_epoch_start(self):
-        if (self.current_epoch % self.generate_data_every == 0) and self.current_epoch != 0:
+        if (self.current_epoch % self.generate_data_every == 0):
             print(f"epoch {self.current_epoch} training data generation on device {self.device}")
             self.train_dataloader = self.generator.get_train_dataloader()
 

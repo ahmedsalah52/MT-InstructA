@@ -8,7 +8,18 @@ import random
 import torch
 import uuid
 
-        
+     
+class temp_dataset(Dataset):
+    def __init__(self):
+        self.data = []
+        for i in range(10):
+            self.data.append(i)
+    def __len__(self):
+        return len(self.data)
+    def __getitem__(self, index):
+        return self.data[index]     
+
+
 class MW_dataset(Dataset):
     def __init__(self,tasks_commands,preprocess):
         self.tasks_commands =  tasks_commands
