@@ -138,7 +138,7 @@ class ClIP(nn.Module):
 
 
 class base_model(pl.LightningModule):
-    def __init__(self,args,generator,env,seed):
+    def __init__(self,args,generator,env,wandb_logger,seed):
         super().__init__()
         torch.manual_seed(seed)  
 
@@ -148,7 +148,7 @@ class base_model(pl.LightningModule):
         self.evaluation_episodes = args.evaluation_episodes
         self.tasks = args.tasks
         self.env = env
-        
+        self.wandb_logger = wandb_logger
         models = {'clip':ClIP}
         loss_funs = {'cross_entropy':nn.CrossEntropyLoss(),
                      'mse':nn.MSELoss()}
@@ -216,32 +216,41 @@ class base_model(pl.LightningModule):
         
 
 
-    def on_train_epoch_end(self):
+    def on_train_epoch_start(self):
         if (self.current_epoch % self.evaluate_every == 0):
             print(f"epoch {self.current_epoch}  evaluation on device {self.device}")
             total_success = 0
 
             for task in self.tasks:
+                videos=[]
                 for pos in [0,1,2]:
-                    env = self.env(task,pos,save_images=True,wandb_render = True,wandb_log = False)
-                    for i in range(self.evaluation_episodes):
-                        obs , info = env.reset()
-                        instruction = random.choice(self.generator.tasks_commands[task])
-                        text_batch = self.model.text_encoder.tokenizer(instruction, padding=True, truncation=True, max_length=self.model.text_encoder.command_max_length)
+                    env = self.env(task,pos,save_images=True,wandb_render = False,wandb_log = False)
+                    #for i in range(self.evaluation_episodes):
+                    obs , info = env.reset()
+                    instruction = random.choice(self.generator.tasks_commands[task])
+                    text_batch = self.model.text_encoder.tokenizer(instruction, padding=True, truncation=True, max_length=self.model.text_encoder.command_max_length)
+                    rendered_seq = []
+                    while 1:
 
-                        while 1:
-                            step_input = {k : torch.tensor(v).unsqueeze(0).to(self.device) for k,v in text_batch.items()}
-                            images = [self.generator.preprocess(img) for img in info['images']]
-                            step_input['images']   = torch.stack(images).unsqueeze(0).to(self.device)
-                            step_input['hand_pos'] = torch.tensor(np.concatenate((obs[0:4],obs[18:22]),axis =0)).to(torch.float32).unsqueeze(0).to(self.device)
-                            a = self.model(step_input)
-                            obs, reward, done,success, info = env.step(a.detach().cpu().numpy()[0]) 
-                            total_success+=success
-                            if (success or done): break 
-                    
+                        step_input = {k : torch.tensor(v).unsqueeze(0).to(self.device) for k,v in text_batch.items()}
+                        images = [self.generator.preprocess(img) for img in info['images']]
+                        step_input['images']   = torch.stack(images).unsqueeze(0).to(self.device)
+                        step_input['hand_pos'] = torch.tensor(np.concatenate((obs[0:4],obs[18:22]),axis =0)).to(torch.float32).unsqueeze(0).to(self.device)
+                        a = self.model(step_input)
+                        obs, reward, done,success, info = env.step(a.detach().cpu().numpy()[0]) 
+                        total_success+=success
+                        rendered_seq.append(env.get_visual_obs_log())
+                        if (success or done): break 
+
+                    rendered_seq = np.array(rendered_seq, dtype=np.uint8)
+                    rendered_seq = rendered_seq.transpose(0,3, 1, 2)
+                    videos.append(wandb.Video(rendered_seq, fps=30))   
+                self.wandb_logger.log_table(key="videos",  columns=['Right','Mid','Left'],data=videos)
             
+            
+            #if self.end_episode:
+                
             self.log("success_rate", float(total_success)/(len(self.tasks)*3*self.evaluation_episodes))
-
 
     def configure_optimizers(self):
         return self.opt
