@@ -28,12 +28,12 @@ class temp_dataset(Dataset):
 
 
 class MW_dataset(Dataset):
-    def __init__(self,tasks_commands,preprocess):
+    def __init__(self,tasks_commands,preprocess,total_data_len):
         self.tasks_commands =  tasks_commands
 
         #self.load_data(dataset_dict)
         self.preprocess = preprocess
-        
+        self.total_data_len = total_data_len
     
     def load_data(self,dataset_dict):
         self.data_dict = dataset_dict
@@ -45,8 +45,9 @@ class MW_dataset(Dataset):
                     step = self.data_dict[task][epi][s]
                     step['instruction'] = random.choice(self.tasks_commands[task])
                     self.data.append(step)
-       
         
+        random.shuffle(self.data)
+        self.data = self.data[0:self.total_data_len]
 
     def __len__(self):
         return len(self.data)
@@ -143,10 +144,10 @@ class generator_manager():
     def __init__(self,args,meta_env,preprocess):
         self.tasks_commands = json.load(open(args.tasks_commands_dir))
         self.train_data_generator = Generate_data(meta_env,os.path.join(args.data_dir,'train'),args.agents_dir,args.tasks,args.init_agents_level,args.train_data_total_steps,args.agents_dict_dir)
-        self.train_dataset = MW_dataset(self.tasks_commands,preprocess)
+        self.train_dataset = MW_dataset(self.tasks_commands,preprocess,total_data_len=args.train_data_total_steps)
         
         self.valid_data_generator = Generate_data(meta_env,os.path.join(args.data_dir,'valid'),args.agents_dir,args.tasks,args.init_agents_level,args.valid_data_total_steps,args.agents_dict_dir)
-        self.valid_dataset = MW_dataset(self.tasks_commands,preprocess)
+        self.valid_dataset = MW_dataset(self.tasks_commands,preprocess,total_data_len=args.valid_data_total_steps)
 
         self.batch_size  = args.batch_size
         self.num_workers = args.num_workers
