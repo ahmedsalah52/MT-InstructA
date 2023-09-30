@@ -138,8 +138,10 @@ class ClIP(nn.Module):
 
 
 class base_model(pl.LightningModule):
-    def __init__(self,args,generator,env):
+    def __init__(self,args,generator,env,seed):
         super().__init__()
+        torch.manual_seed(seed)  
+
         self.generator = generator
         self.generate_data_every = args.generate_data_every
         self.evaluate_every = args.evaluate_every
