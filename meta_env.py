@@ -61,10 +61,11 @@ class Custom_replay_buffer(ReplayBuffer):
 
 
 class task_manager():
-    def __init__(self,taskname,pos=None,variant=None,multi = True):
-        self.env_args = {'main_pos_index':pos , 'task_variant':variant}
+    def __init__(self,taskname,pos=None,variant=None,multi = True,general_model=False):
+        self.env_args = {'main_pos_index':pos , 'task_variant':{'variant':variant,'general_model':general_model}}
         self.task_name = taskname
         self.multi = multi
+
     def reset(self):
         if self.multi:
             ml1 = metaworld.ML_1_multi(self.task_name,self.env_args)
@@ -79,12 +80,12 @@ class task_manager():
 
 
 class meta_env(Env):
-    def __init__(self,taskname,task_pos,save_images,episode_length = 200,pos_emb_flag=False,wandb_render = False,multi = True,process='None',wandb_log = True) -> None:
+    def __init__(self,taskname,task_pos,save_images,episode_length = 200,pos_emb_flag=False,wandb_render = False,multi = True,process='None',wandb_log = True,general_model = False) -> None:
         super().__init__()
         
         self.taskname = taskname
         self.task_pos = task_pos
-        self.task_man = task_manager(taskname=taskname,pos=task_pos,multi=multi)
+        self.task_man = task_manager(taskname=taskname,pos=task_pos,multi=multi,general_model=general_model)
         self.env = self.task_man.reset()
         self.pos_emb_flag = pos_emb_flag
 
