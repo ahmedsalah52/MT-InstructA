@@ -138,7 +138,7 @@ def main():
                              n_eval_episodes=10)
     
     callbacks = CallbackList([checkpoint_callback, eval_callback])
-
+    
     
     run = wandb.init(
     project="Metaworld multi-task environment",
@@ -154,9 +154,9 @@ def main():
     
     print('training on Task:',task_name, ' - ','with rendering' if configs['render'] else 'without rendering')
     if configs['load_from'] == 0:
-        model = SAC("MlpPolicy",env,policy_kwargs=policy_kwargs, verbose=configs['verbose'],buffer_size=configs['buffer_size'],train_freq=configs['train_freq'],gradient_steps=configs["gradient_steps"],batch_size=configs['batch_size'],learning_rate=configs['lr'],tensorboard_log=f"runs/{run.id}")
+        model = SAC("MlpPolicy",env,policy_kwargs=policy_kwargs, verbose=configs['verbose'],buffer_size=configs['buffer_size'],train_freq=configs['train_freq'],gradient_steps=configs["gradient_steps"],batch_size=configs['batch_size'],learning_rate=linear_schedule(configs['lr'],configs['lr_min']),tensorboard_log=f"runs/{run.id}")
     else:
-        model = SAC.load(load_path,env, verbose=configs['verbose'],buffer_size=configs['buffer_size'],train_freq=configs['train_freq'],gradient_steps=configs["gradient_steps"],batch_size=configs['batch_size'],learning_rate=configs['lr'],tensorboard_log=f"{logs_dir}/runs/{run.id}")
+        model = SAC.load(load_path,env, verbose=configs['verbose'],buffer_size=configs['buffer_size'],train_freq=configs['train_freq'],gradient_steps=configs["gradient_steps"],batch_size=configs['batch_size'],learning_rate=linear_schedule(configs['lr'],configs['lr_min']),tensorboard_log=f"{logs_dir}/runs/{run.id}")
     
     total_timesteps = configs['total_timesteps']
 
