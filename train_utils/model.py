@@ -243,9 +243,8 @@ class base_model(pl.LightningModule):
                     rendered_seq = np.array(rendered_seq, dtype=np.uint8)
                     rendered_seq = rendered_seq.transpose(0,3, 1, 2)
                     videos.append(wandb.Video(rendered_seq, fps=30))   
-                total_vids.append(videos[:])    
-            self.wandb_logger.log_table(key=f"videos {self.current_epoch}",  columns=['Right','Mid','Left'],data=total_vids,step=self.current_epoch)
-            
+                total_vids.append(list(reversed(videos)))    
+            self.wandb_logger.log_table(key=f"videos {self.current_epoch}",  columns=['Left','Mid','Right'],data=total_vids,step=self.current_epoch)
             
             #if self.end_episode:
                 
