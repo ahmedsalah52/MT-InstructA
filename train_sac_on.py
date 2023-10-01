@@ -80,7 +80,7 @@ def linear_schedule(initial_value: float,min_value: float) -> Callable[[float], 
         :param progress_remaining:
         :return: current learning rate
         """
-        ret =  initial_value - (progress_remaining * (initial_value-min_value))
+        ret = progress_remaining *  initial_value #- (progress_remaining * (initial_value-min_value))
         
         return max(ret,min_value) 
 
