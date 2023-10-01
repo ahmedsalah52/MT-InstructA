@@ -85,7 +85,7 @@ class Generate_data():
     def generate_task_data(self,task,device):
         task_data = []
         for pos in [0,1,2]:
-            env   = self.meta_env(task,pos,save_images=True,process = 'train',wandb_log = False)
+            env   = self.meta_env(task,pos,save_images=True,process = 'train',wandb_log = False,general_model=True)
             agent = self.get_agent(env,task,pos,device)
             task_data += self.generate_pos_data(env,agent,task,pos,device)
         

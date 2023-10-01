@@ -222,7 +222,7 @@ class base_model(pl.LightningModule):
             for task in self.tasks:
                 videos=[]
                 for pos in [0,1,2]:
-                    env = self.env(task,pos,save_images=True,wandb_render = False,wandb_log = False)
+                    env = self.env(task,pos,save_images=True,wandb_render = False,wandb_log = False,general_model=True)
                     #for i in range(self.evaluation_episodes):
                     obs , info = env.reset()
                     instruction = random.choice(self.generator.tasks_commands[task])
