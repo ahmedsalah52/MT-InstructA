@@ -1,10 +1,10 @@
 {
     "features_extractor_class":   "CustomMLP",
-    "features_dim":               512,
-    "net_arch":                   [512,512,512],
+    "features_dim":               728,
+    "net_arch":                   [728,728,728],
     "activation":                 "LeakyReLU",
-    "lr":                         1e-5,
-    "lr_min":                     1e-5,
+    "lr":                         1e-4,
+    "lr_min":                     5e-6,
     "batch_size":                 256,
     "train_freq":                 50,
     "gradient_steps":             50,
@@ -14,10 +14,10 @@
     "episode_length":             200,
     "buffer_size":                10000,
     "verbose":                    1,
-    "total_timesteps":            6000000,
+    "total_timesteps":            2000000,
     "log_interval":               10,
-    "run_id":                     0,
-    "notes":                      "",
+    "run_id":                     1,
+    "notes":                      "bigger model, lr schedular",
     "load_from":                  0
     }
 
