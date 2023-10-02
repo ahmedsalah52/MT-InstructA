@@ -6,10 +6,11 @@ from metaworld.envs.build_random_envs import Multi_task_env
 
 
 class task_manager():
-    def __init__(self,taskname,pos=None,variant=None,multi = True):
-        self.env_args = {'main_pos_index':pos , 'task_variant':variant}
+    def __init__(self,taskname,pos=None,variant=None,multi = True,general_model=False):
+        self.env_args = {'main_pos_index':pos , 'task_variant':{'variant':variant,'general_model':general_model}}
         self.task_name = taskname
         self.multi = multi
+
     def reset(self):
         if self.multi:
             ml1 = metaworld.ML_1_multi(self.task_name,self.env_args)
@@ -23,7 +24,7 @@ class task_manager():
 
 tasks =  ['assembly-v2', 'box-close-v2', 'button-press-topdown-v2',  'button-press-v2', 'coffee-button-v2', 'coffee-pull-v2', 'coffee-push-v2', 'disassemble-v2', 'door-lock-v2', 'door-open-v2', 'door-unlock-v2','drawer-close-v2', 'drawer-open-v2', 'faucet-open-v2', 'faucet-close-v2','handle-press-v2',  'handle-pull-v2',  'soccer-v2',   'shelf-place-v2',    'window-open-v2', 'window-close-v2']
 print(len(tasks))
-for taskname in ['soccer-v2']:#tasks:#ALL_V2_ENVIRONMENTS.keys():
+for taskname in ['assembly-v2']:#tasks:#ALL_V2_ENVIRONMENTS.keys():
     #taskname = 'sweep-v2' #'box-close-v2' #'soccer-v2'#'button-press-topdown-v2' #'door-lock-v2' 
 
     multi = True
