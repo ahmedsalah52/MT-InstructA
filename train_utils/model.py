@@ -245,9 +245,7 @@ class base_model(pl.LightningModule):
                     videos.append(wandb.Video(rendered_seq, fps=30))   
                 total_vids.append(list(reversed(videos)))    
             self.wandb_logger.log_table(key=f"videos {self.current_epoch}",  columns=['Left','Mid','Right'],data=total_vids,step=self.current_epoch)
-            
-            #if self.end_episode:
-                
+                        
             self.log("success_rate", float(total_success)/(len(self.tasks)*3*self.evaluation_episodes),sync_dist=True,batch_size=self.batch_size)
 
     def configure_optimizers(self):
