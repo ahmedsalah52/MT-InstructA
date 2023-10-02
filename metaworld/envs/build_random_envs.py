@@ -267,7 +267,7 @@ class Multi_task_env():
         main_poses_dict = self.main_poses_dict 
         poses_list    = [0,1,2]
 
-        general_model_flag = task_variant['general_model']
+        self.general_model_flag = task_variant['general_model']
         task_variant       = task_variant['variant']
 
 
@@ -317,7 +317,7 @@ class Multi_task_env():
         self.task_offsets_min = np.array(main_task_offsets) - np.array(main_task_range)
         self.task_offsets_max = np.array(main_task_offsets) + np.array(main_task_range)
        
-        if general_model_flag:
+        if self.general_model_flag:
             self.hand_init_pos_  = [np.random.uniform(-0.1 ,0.1),np.random.uniform(0.4,0.5), np.random.uniform(0.15,0.3)]
         else:
             min_x = self.task_offsets_min[0]
