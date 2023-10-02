@@ -25,34 +25,48 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
 
 
        
-        hand_low = (-0.7, 0.4, 0.05)
-        hand_high = (0.7, 1, 0.5)
+        #hand_low = (-0.7, 0.4, 0.05)
+        #hand_high = (0.7, 1, 0.5)
         main_file = 'sawyer_soccer.xml'
         self.generate_env(main_file,main_pos_index,task_variant)
         
 
-        obj_low  =  (self.task_offsets_min[0], self.task_offsets_min[1] + 0.75, 0.001)
+        """obj_low  =  (self.task_offsets_min[0], self.task_offsets_min[1] + 0.75, 0.001)
         obj_high =  (self.task_offsets_max[0], self.task_offsets_max[1] + 0.75, 0.001)
 
         goal_low  = (self.task_offsets_min[0], self.task_offsets_min[1] + 0.9 ,  0.001)
         goal_high = (self.task_offsets_max[0], self.task_offsets_max[1] + 0.9 ,  0.001)
+        """
 
-        #obj_low = (-0.1, 0.6, 0.03)
-        #obj_high = (0.1, 0.7, 0.03)
-        #goal_low = (-0.1, 0.8, 0.0)
-        #goal_high = (0.1, 0.9, 0.0)
+        #for testing
+        goal_low = (-0.1, 0.8, 0.0)
+        goal_high = (0.1, 0.9, 0.0)
+        hand_low = (-0.5, 0.40, 0.05)
+        hand_high = (0.5, 1, 0.5)
+        obj_low = (-0.1, 0.6, 0.03)
+        obj_high = (0.1, 0.7, 0.03)
         super().__init__(
             self.model_name,
             hand_low=hand_low,
             hand_high=hand_high,
         )
-        self.hand_init_pos_[-1] = np.random.uniform(0.15,0.25)
+        """ self.hand_init_pos_[-1] = np.random.uniform(0.15,0.25)
         self.init_config = {
             'obj_init_pos': (np.array(obj_low)+np.array(obj_high))/2,
             'obj_init_angle': 0.3,
             'hand_init_pos': np.array(self.hand_init_pos_),
         }
-        self.goal = (np.array(goal_low)+np.array(goal_high))/2
+        self.goal = (np.array(goal_low)+np.array(goal_high))/2"""
+
+
+        self.init_config = {
+            'obj_init_pos': np.array([0, 0.6, 0.03]),
+            'obj_init_angle': 0.3,
+            'hand_init_pos': np.array([0., .6, .2]),
+        }
+        self.goal = np.array([0., 0.9, 0.03])
+
+
         self.obj_init_pos   = self.init_config['obj_init_pos']
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.hand_init_pos  = self.init_config['hand_init_pos']
