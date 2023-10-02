@@ -8,7 +8,7 @@
     "batch_size":                 256,
     "train_freq":                 50,
     "gradient_steps":             50,
-    "multi":                       0,
+    "multi":                       1,
     "pos_emb_dim":                0,
     "render":                     0,
     "episode_length":             200,
@@ -16,8 +16,8 @@
     "verbose":                    1,
     "total_timesteps":            2000000,
     "log_interval":               10,
-    "run_id":                     3,
-    "notes":                      "init configs single",
+    "run_id":                     4,
+    "notes":                      "init configs multi like single poses",
     "load_from":                  0
     }
 
