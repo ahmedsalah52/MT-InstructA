@@ -211,7 +211,7 @@ class base_model(pl.LightningModule):
 
     def training_step(self, batch, batch_idx):
         
-     
+        print(batch.keys())
 
         batch = {k : v.to(self.device) for k,v in batch.items() if k not in ['images','instruction']}
         
