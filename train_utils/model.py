@@ -178,7 +178,16 @@ class Open_AI_CLIP(nn.Module):
         logits = self.head(text_images_embeddings)
 
         return logits
-
+    
+    def get_opt(self,args):
+        return torch.optim.Adam(
+                [
+                    {"params": self.model.parameters()   , "lr": args.img_model_lr},
+                    {"params": self.pos_emp.parameters()},
+                    {"params": self.head.parameters()},
+                ],
+                lr=args.lr,
+            )
 
 class base_model(pl.LightningModule):
     def __init__(self,args,tasks_commands,env,wandb_logger,seed):
