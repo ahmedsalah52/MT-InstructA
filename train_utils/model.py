@@ -258,7 +258,7 @@ class base_model(pl.LightningModule):
                     instruction = random.choice(self.tasks_commands[task])
                     rendered_seq = []
                     while 1:
-                        if obs == None:
+                        if not obs:
                             #warning 
                             warnings.warn("None Obs")
                             continue
