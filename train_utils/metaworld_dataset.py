@@ -32,7 +32,7 @@ class MW_dataset(Dataset):
         self.data_dict = json.load(open(dataset_dict_dir))
         self.tasks_commands = json.load(open(tasks_commands_dir))
         self.total_data_len = total_data_len
-    
+        self.load_data()
     def load_data(self):
         self.tasks = list(self.data_dict.keys())
         self.data = []
