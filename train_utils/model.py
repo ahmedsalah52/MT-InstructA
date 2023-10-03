@@ -197,7 +197,7 @@ class base_model(pl.LightningModule):
         models = {'simple_clip':ClIP,'open_ai_clip':Open_AI_CLIP}
         self.loss_fun = loss_funs[args.loss_fun]
         self.model = models[args.model_name](args)
-        self.opt = self.model.get_opt()
+        self.opt = self.model.get_opt(args)
     
 
     def training_step(self, batch, batch_idx):
