@@ -8,6 +8,11 @@ import timm
 import numpy as np
 import wandb
 import random
+import clip
+from torchvision import transforms
+
+
+
 class AvgMeter:
     def __init__(self, name="Metric"):
         self.name = name
@@ -102,16 +107,19 @@ class ClIP(nn.Module):
         self.image_projection = ProjectionHead(embedding_dim=2048)
         self.text_projection  = ProjectionHead(embedding_dim=768)
         self.pos_emp = nn.Linear(8,512)
-        self.head = nn.Sequential(nn.Flatten(),
+        self.head    = nn.Sequential(nn.Flatten(),
                                     nn.Linear(7*512, 512),
                                      nn.ReLU(),
-                                     nn.Linear(512,512),
-                                     nn.ReLU(),
                                      nn.Linear(512,4))
-            
-                             
+        self.preprocess_image =  transforms.Compose([
+            transforms.ToTensor(), 
+            #transforms.Resize((224,224)),
+            transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
+            ])      
     def forward(self,batch):
         # Getting Image and Text Features
+        text_batch = self.text_encoder.tokenizer(batch['instruction'], padding=True, truncation=True, max_length=self.text_encoder.command_max_length)
+        text_batch = {k : torch.tensor(v).to(batch['images'].device) for k,v in text_batch.items()}
         
         batch_size,cams,ch,h,w  = batch['images'].shape
         batch["images"] = torch.flatten(batch["images"], start_dim=0, end_dim=1)
@@ -135,14 +143,47 @@ class ClIP(nn.Module):
 
         return logits
 
+    def get_opt(self,args):
+        return torch.optim.Adam(
+                [
+                    {"params": self.image_encoder.parameters()   , "lr": args.img_model_lr},
+                    {"params": self.image_projection.parameters(), "lr": args.img_model_lr},
+                    {"params": self.text_encoder.parameters()    , "lr": args.txt_model_lr},
+                    {"params": self.text_projection.parameters() , "lr": args.txt_model_lr},
+                    {"params": self.pos_emp.parameters()},
+                    {"params": self.head.parameters()},
+                ],
+                lr=args.lr,
+            )
+    
+class Open_AI_CLIP(nn.Module):
+    def __init__(self,args):
+        super().__init__()
+        self.model, self.preprocess_image = clip.load("ViT-B/32")
+        self.pos_emp = nn.Linear(8,512)
+        self.head = nn.Sequential(nn.Flatten(),
+                                    nn.Linear(7*512, 512),
+                                     nn.ReLU(),
+                                     nn.Linear(512,4))
+    def forward(self,batch):
+
+        image = self.preprocess_image(batch['image']).unsqueeze(0).to(self.decice)
+        text = clip.tokenize(batch['instruction']).to(self.device)
+
+        image_features = self.model.encode_image(image)
+        text_features  = self.model.encode_text(text)
+        pos_embeddings = self.pos_emp(batch['hand_pos'])
+        text_images_embeddings = torch.cat([image_features,text_features[:,None,:],pos_embeddings[:,None,:]],dim=1)
+
+        logits = self.head(text_images_embeddings)
+
+        return logits
 
 
 class base_model(pl.LightningModule):
-    def __init__(self,args,generator,env,wandb_logger,seed):
+    def __init__(self,args,tasks_commands,env,wandb_logger,seed):
         super().__init__()
-        torch.manual_seed(seed)  
-
-        self.generator = generator
+        self.tasks_commands = tasks_commands
         self.generate_data_every = args.generate_data_every
         self.evaluate_every = args.evaluate_every
         self.evaluation_episodes = args.evaluation_episodes
@@ -150,30 +191,19 @@ class base_model(pl.LightningModule):
         self.batch_size = args.batch_size
         self.env = env
         self.wandb_logger = wandb_logger
-        models = {'clip':ClIP}
         loss_funs = {'cross_entropy':nn.CrossEntropyLoss(),
                      'mse':nn.MSELoss()}
-        self.model = models[args.model_name](args)
+        
+        models = {'simple_clip':ClIP,'open_ai_clip':Open_AI_CLIP}
         self.loss_fun = loss_funs[args.loss_fun]
-        self.opt = torch.optim.Adam(
-                [
-                    {"params": self.model.image_encoder.parameters()   , "lr": args.img_model_lr},
-                    {"params": self.model.image_projection.parameters(), "lr": args.img_model_lr},
-                    {"params": self.model.text_encoder.parameters()    , "lr": args.txt_model_lr},
-                    {"params": self.model.text_projection.parameters() , "lr": args.txt_model_lr},
-                    {"params": self.model.pos_emp.parameters()},
-                    {"params": self.model.head.parameters()},
-                ],
-                lr=args.lr,
-            )
+        self.model = models[args.model_name](args)
+        self.opt = self.model.get_opt()
     
+
     def training_step(self, batch, batch_idx):
         
-        text_batch = self.model.text_encoder.tokenizer(batch['instruction'], padding=True, truncation=True, max_length=self.model.text_encoder.command_max_length)
-        text_batch = {k : torch.tensor(v) for k,v in text_batch.items()}
-        
+     
 
-        batch = {**batch,**text_batch}
         batch = {k : v.to(self.device) for k,v in batch.items() if k != 'instruction'}
         
         logits = self.model(batch)
@@ -186,11 +216,8 @@ class base_model(pl.LightningModule):
   
     
     def validation_step(self, batch, batch_idx):
-        text_batch = self.model.text_encoder.tokenizer(batch['instruction'], padding=True, truncation=True, max_length=self.model.text_encoder.command_max_length)
-        text_batch = {k : torch.tensor(v) for k,v in text_batch.items()}
         
         
-        batch = {**batch,**text_batch}
         batch = {k : v.to(self.device) for k,v in batch.items() if k != 'instruction'}
         
         logits = self.model(batch)
@@ -201,18 +228,6 @@ class base_model(pl.LightningModule):
         self.log("val_loss", loss,sync_dist=True,batch_size=self.batch_size)
         return loss
     
-
-    def train_dataloader(self):
-        print(f"epoch {self.current_epoch} training data generation on device {self.device}")
-        return self.generator.get_train_dataloader(self.device)
-    
-    def val_dataloader(self):
-        print(f"epoch {self.current_epoch} validation data generation on device {self.device}")
-        return  self.generator.get_valid_dataloader(self.device)
-        
-    #def on_validation_epoch_start(self):
-        
-
 
     def on_train_epoch_start(self):
         if (self.current_epoch % self.evaluate_every == 0):
@@ -225,13 +240,12 @@ class base_model(pl.LightningModule):
                     env = self.env(task,pos,save_images=True,wandb_render = False,wandb_log = False,general_model=True)
                     #for i in range(self.evaluation_episodes):
                     obs , info = env.reset()
-                    instruction = random.choice(self.generator.tasks_commands[task])
-                    text_batch = self.model.text_encoder.tokenizer(instruction, padding=True, truncation=True, max_length=self.model.text_encoder.command_max_length)
+                    instruction = random.choice(self.tasks_commands[task])
                     rendered_seq = []
                     while 1:
 
-                        step_input = {k : torch.tensor(v).unsqueeze(0).to(self.device) for k,v in text_batch.items()}
-                        images = [self.generator.preprocess(img) for img in info['images']]
+                        step_input = {'instruction':instruction}
+                        images = [self.model.preprocess_image(img) for img in info['images']]
                         step_input['images']   = torch.stack(images).unsqueeze(0).to(self.device)
                         step_input['hand_pos'] = torch.tensor(np.concatenate((obs[0:4],obs[18:22]),axis =0)).to(torch.float32).unsqueeze(0).to(self.device)
                         a = self.model(step_input)
@@ -250,3 +264,4 @@ class base_model(pl.LightningModule):
 
     def configure_optimizers(self):
         return self.opt
+
