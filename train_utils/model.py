@@ -166,7 +166,8 @@ class Open_AI_CLIP(nn.Module):
                                      nn.ReLU(),
                                      nn.Linear(512,4))
     def forward(self,batch):
-
+        print(batch.keys())
+        batch['images']
         image = self.preprocess_image(batch['images']).unsqueeze(0).to(self.decice)
         text = clip.tokenize(batch['instruction']).to(self.device)
 
@@ -211,7 +212,6 @@ class base_model(pl.LightningModule):
 
     def training_step(self, batch, batch_idx):
         
-        print(batch.keys())
 
         batch = {k : v.to(self.device) for k,v in batch.items() if k not in ['images','instruction']}
         
