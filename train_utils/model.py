@@ -258,8 +258,8 @@ class base_model(pl.LightningModule):
                     instruction = random.choice(self.tasks_commands[task])
                     rendered_seq = []
                     while 1:
-                        if not obs:
-                            #warning 
+                        #check if obs is not an array
+                        if type(obs) != np.array:
                             warnings.warn("None Obs")
                             continue
                         step_input = {'instruction':instruction}
