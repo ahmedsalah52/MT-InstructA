@@ -119,7 +119,7 @@ class ClIP(nn.Module):
     def forward(self,batch):
         # Getting Image and Text Features
         text_batch = self.text_encoder.tokenizer(batch['instruction'], padding=True, truncation=True, max_length=self.text_encoder.command_max_length)
-        text_batch = {k : torch.tensor(v).to(batch['images'].device) for k,v in text_batch.items()}
+        text_batch = {k : torch.tensor(v).to(batch['hand_pos'].device) for k,v in text_batch.items()}
         
         batch_size,cams,ch,h,w  = batch['images'].shape
         batch["images"] = torch.flatten(batch["images"], start_dim=0, end_dim=1)
@@ -167,7 +167,7 @@ class Open_AI_CLIP(nn.Module):
                                      nn.Linear(512,4))
     def forward(self,batch):
 
-        image = self.preprocess_image(batch['image']).unsqueeze(0).to(self.decice)
+        image = self.preprocess_image(batch['images']).unsqueeze(0).to(self.decice)
         text = clip.tokenize(batch['instruction']).to(self.device)
 
         image_features = self.model.encode_image(image)
