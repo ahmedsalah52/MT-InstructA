@@ -112,7 +112,7 @@ class Generate_data():
             while 1:
                 a , _states= agent.predict(prev_obs, deterministic=True)
                 obs, reward, done,success, info = env.step(a) 
-                episode.append({'obs':prev_obs,'action':a,'reward':reward,'success':success,'images_dir':prev_images_obs})
+                episode.append({'obs':prev_obs.tolist(),'action':a.tolist(),'reward':reward,'success':success,'images_dir':prev_images_obs})
                 
                 if (success or done): break 
                 prev_obs = obs
