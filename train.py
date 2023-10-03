@@ -3,11 +3,9 @@ from train_utils.model import base_model
 from train_utils.args import  parser 
 from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning import Trainer
-from train_utils.metaworld_dataset import generator_manager,temp_dataset
 from meta_env import meta_env
 import os
 from pytorch_lightning.callbacks import ModelCheckpoint
-import json
 from train_utils.metaworld_dataset import MW_dataset
 
 
@@ -43,7 +41,6 @@ def main():
     train_dataset = MW_dataset(args.dataset_dict_dir,args.tasks_commands_dir,total_data_len=args.train_data_total_steps)
     train_dataloader = torch.utils.data.DataLoader(train_dataset,batch_size=args.batch_size,shuffle=True,num_workers = args.num_workers)
 
-    #data_generator = generator_manager(args=args,meta_env = meta_env ,preprocess=preprocess)
     model = base_model(args=args,tasks_commands=train_dataset.tasks_commands,env=meta_env,wandb_logger=wandb_logger,seed=args.seed)
 
     trainer = Trainer(callbacks=succ_rate_checkpoint_callback,logger = wandb_logger,max_epochs=args.num_epochs,check_val_every_n_epoch=args.check_val_every_n_epoch)#,reload_dataloaders_every_n_epochs=args.generate_data_every,use_distributed_sampler=False)
