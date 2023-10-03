@@ -54,7 +54,7 @@ class MW_dataset(Dataset):
         images_dir = step_data['images_dir']
         images = [(cv2.imread(dir)) for dir in images_dir]
         ret = {}
-        ret['images']   = torch.stack(images)
+        ret['images']   = images
         ret['hand_pos'] = torch.tensor(np.concatenate((step_data['obs'][0:4],step_data['obs'][18:22]),axis =0)).to(torch.float32)
         ret['action']      = torch.tensor(step_data['action'])
         ret['instruction'] = step_data['instruction']
