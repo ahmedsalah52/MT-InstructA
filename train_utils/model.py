@@ -213,7 +213,7 @@ class base_model(pl.LightningModule):
         
      
 
-        batch = {k : v.to(self.device) for k,v in batch.items() if k not in ['image','instruction']}
+        batch = {k : v.to(self.device) for k,v in batch.items() if k not in ['images','instruction']}
         
         logits = self.model(batch)
 
@@ -227,7 +227,7 @@ class base_model(pl.LightningModule):
     def validation_step(self, batch, batch_idx):
         
         
-        batch = {k : v.to(self.device) for k,v in batch.items() if k != 'instruction'}
+        batch = {k : v.to(self.device) for k,v in batch.items() if k not in ['images','instruction']}
         
         logits = self.model(batch)
 
