@@ -243,7 +243,7 @@ class base_model(pl.LightningModule):
         return loss
     
 
-    def on_train_epoch_end(self):
+    def on_train_epoch_start(self):
         if (self.current_epoch % self.evaluate_every == 0):
             print(f"epoch {self.current_epoch}  evaluation on device {self.device}")
             total_success = 0
@@ -257,10 +257,13 @@ class base_model(pl.LightningModule):
                     instruction = random.choice(self.tasks_commands[task])
                     rendered_seq = []
                     while 1:
-
+                        print(obs)
                         step_input = {'instruction':instruction}
                         images = [self.model.preprocess_image(Image.fromarray(np.uint8(img))) for img in info['images']]
                         step_input['images']   = torch.stack(images).unsqueeze(0).to(self.device)
+                        step_input['hand_pos']
+                        obs[0:4]
+                        obs[18:22]
                         step_input['hand_pos'] = torch.tensor(np.concatenate((obs[0:4],obs[18:22]),axis =0)).to(torch.float32).unsqueeze(0).to(self.device)
                         a = self.model(step_input)
                         obs, reward, done,success, info = env.step(a.detach().cpu().numpy()[0]) 
@@ -274,7 +277,7 @@ class base_model(pl.LightningModule):
                 total_vids.append(list(reversed(videos)))    
             self.wandb_logger.log_table(key=f"videos {self.current_epoch}",  columns=['Left','Mid','Right'],data=total_vids,step=self.current_epoch)
                         
-            self.log("success_rate", float(total_success)/(len(self.tasks)*3*self.evaluation_episodes),sync_dist=True,batch_size=self.batch_size)
+            self.log("success_rate", float(total_success)/(len(self.tasks)*3*self.evaluation_episodes),sync_dist=True,batch_size=self.batch_size) # type: ignore
 
     def configure_optimizers(self):
         return self.opt
