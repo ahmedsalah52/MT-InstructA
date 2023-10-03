@@ -261,6 +261,7 @@ class base_model(pl.LightningModule):
                         #check if obs is not an array
                         if type(obs) != np.array:
                             warnings.warn("None Obs")
+                            env = self.env(task,pos,save_images=True,wandb_render = False,wandb_log = False,general_model=True)
                             obs , info = env.reset()
 
                         step_input = {'instruction':instruction}
