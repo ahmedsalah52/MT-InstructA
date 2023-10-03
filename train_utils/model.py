@@ -167,10 +167,14 @@ class Open_AI_CLIP(nn.Module):
                                      nn.Linear(512,4))
 
     def forward(self,batch):
+        batch_size,cams,ch,h,w  = batch['images'].shape
 
         text = clip.tokenize(batch['instruction']).to(batch['images'].device)
 
+        batch["images"] = torch.flatten(batch["images"], start_dim=0, end_dim=1)
         image_features = self.model.encode_image(batch['images'])
+        image_features = torch.unflatten(image_features,dim = 0,sizes=(batch_size,cams))
+
         text_features  = self.model.encode_text(text)
         pos_embeddings = self.pos_emp(batch['hand_pos'])
         text_images_embeddings = torch.cat([image_features,text_features[:,None,:],pos_embeddings[:,None,:]],dim=1)
