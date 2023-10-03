@@ -213,7 +213,7 @@ class base_model(pl.LightningModule):
         
      
 
-        batch = {k : v.to(self.device) for k,v in batch.items() if k != 'instruction'}
+        batch = {k : v.to(self.device) for k,v in batch.items() if k not in ['image','instruction']}
         
         logits = self.model(batch)
 
