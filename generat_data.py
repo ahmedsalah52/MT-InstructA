@@ -8,7 +8,6 @@ args = parser.parse_args()
 
 
 
-wandb.init(project=args.project_name, name=args.data_run_name)
 
 
 generator = Generate_data(meta_env,os.path.join(args.project_dir,args.data_dir),args.agents_dir,args.tasks,args.train_data_total_steps,args.agents_dict_dir)
