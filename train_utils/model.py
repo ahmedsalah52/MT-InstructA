@@ -257,7 +257,6 @@ class base_model(pl.LightningModule):
                     instruction = random.choice(self.tasks_commands[task])
                     rendered_seq = []
                     while 1:
-                        print(obs)
                         step_input = {'instruction':instruction}
                         images = [self.model.preprocess_image(Image.fromarray(np.uint8(img))) for img in info['images']]
                         step_input['images']   = torch.stack(images).unsqueeze(0).to(self.device)
