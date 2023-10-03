@@ -1,7 +1,7 @@
 from train_utils.metaworld_dataset import Generate_data
 from train_utils.args import  parser 
 import json
-import meta_env
+from meta_env import meta_env
 import os
 import wandb
 args = parser.parse_args()
