@@ -165,11 +165,13 @@ class Open_AI_CLIP(nn.Module):
                                     nn.Linear(7*512, 512),
                                      nn.ReLU(),
                                      nn.Linear(512,4))
+        self.dummy_param = nn.Parameter(torch.empty(0))
+
     def forward(self,batch):
 
-        text = clip.tokenize(batch['instruction']).to(self.device)
+        text = clip.tokenize(batch['instruction']).to(self.dummy_param.device)
 
-        image_features = self.model.encode_image(image)
+        image_features = self.model.encode_image(batch['images'])
         text_features  = self.model.encode_text(text)
         pos_embeddings = self.pos_emp(batch['hand_pos'])
         text_images_embeddings = torch.cat([image_features,text_features[:,None,:],pos_embeddings[:,None,:]],dim=1)
