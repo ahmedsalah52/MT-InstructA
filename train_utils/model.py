@@ -207,7 +207,7 @@ class base_model(pl.LightningModule):
         self.loss_fun = loss_funs[args.loss_fun]
         self.model = models[args.model_name](args)
         self.opt = self.model.get_opt(args)
-    
+        self.preprocess = self.model.preprocess_image
 
     def training_step(self, batch, batch_idx):
         

@@ -8,7 +8,7 @@ import random
 import torch
 import uuid
 import meta_env
-     
+from PIL import Image 
 class temp_dataset(Dataset):
     def __init__(self):
         self.data = []
@@ -28,10 +28,11 @@ class temp_dataset(Dataset):
 
 
 class MW_dataset(Dataset):
-    def __init__(self,dataset_dict_dir,tasks_commands_dir,total_data_len):
+    def __init__(self,preprocess,dataset_dict_dir,tasks_commands,total_data_len):
         self.data_dict = json.load(open(dataset_dict_dir))
-        self.tasks_commands = json.load(open(tasks_commands_dir))
+        self.tasks_commands = tasks_commands
         self.total_data_len = total_data_len
+        self.preprocess = preprocess
         self.load_data()
     def load_data(self):
         self.tasks = list(self.data_dict.keys())
@@ -52,7 +53,9 @@ class MW_dataset(Dataset):
     def __getitem__(self,idx):
         step_data = self.data[idx]
         images_dir = step_data['images_dir']
-        images = [(cv2.imread(dir)) for dir in images_dir]
+        images = [(self.preprocess(Image.open(dir))) for dir in images_dir]
+
+        #Image.fromarray(np.uint8(np.zeros((224, 224, 3))))
         ret = {}
         ret['images']   = images
         ret['hand_pos'] = torch.tensor(np.concatenate((step_data['obs'][0:4],step_data['obs'][18:22]),axis =0)).to(torch.float32)

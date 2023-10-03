@@ -7,7 +7,7 @@ from meta_env import meta_env
 import os
 from pytorch_lightning.callbacks import ModelCheckpoint
 from train_utils.metaworld_dataset import MW_dataset
-
+import json
 
 def main():
     args = parser.parse_args()
@@ -36,12 +36,12 @@ def main():
     
     #data_generator.get_train_dataloader(model.device)
     #val_dataloaders=data_generator.get_valid_dataloader(model.device)
+    tasks_commands = json.load(open(args.tasks_commands_dir))
+    model = base_model(args=args,tasks_commands=tasks_commands,env=meta_env,wandb_logger=wandb_logger,seed=args.seed)
 
-
-    train_dataset = MW_dataset(os.path.join(args.project_dir,args.dataset_dict_dir),args.tasks_commands_dir,total_data_len=args.train_data_total_steps)
+    train_dataset = MW_dataset(model.preprocess,os.path.join(args.project_dir,args.dataset_dict_dir),tasks_commands,total_data_len=args.train_data_total_steps)
     train_dataloader = torch.utils.data.DataLoader(train_dataset,batch_size=args.batch_size,shuffle=True,num_workers = args.num_workers)
 
-    model = base_model(args=args,tasks_commands=train_dataset.tasks_commands,env=meta_env,wandb_logger=wandb_logger,seed=args.seed)
 
     trainer = Trainer(callbacks=succ_rate_checkpoint_callback,logger = wandb_logger,max_epochs=args.num_epochs,check_val_every_n_epoch=args.check_val_every_n_epoch)#,reload_dataloaders_every_n_epochs=args.generate_data_every,use_distributed_sampler=False)
     trainer.fit(model,train_dataloader,ckpt_path= args.load_checkpoint_path)
