@@ -167,7 +167,6 @@ class Open_AI_CLIP(nn.Module):
                                      nn.Linear(512,4))
     def forward(self,batch):
 
-        image = self.preprocess_image(batch['images']).unsqueeze(0).to(self.decice)
         text = clip.tokenize(batch['instruction']).to(self.device)
 
         image_features = self.model.encode_image(image)
@@ -213,7 +212,7 @@ class base_model(pl.LightningModule):
         
         
 
-        batch = {k : v.to(self.device) if k not in ['images','instruction'] else v  for k,v in batch.items()}
+        batch = {k : v.to(self.device) if k != 'instruction' else v  for k,v in batch.items()}
         
         logits = self.model(batch)
 
@@ -227,7 +226,7 @@ class base_model(pl.LightningModule):
     def validation_step(self, batch, batch_idx):
         
         
-        batch = {k : v.to(self.device) if k not in ['images','instruction'] else v  for k,v in batch.items() }
+        batch = {k : v.to(self.device) if k != 'instruction' else v  for k,v in batch.items()}
         
         logits = self.model(batch)
 
