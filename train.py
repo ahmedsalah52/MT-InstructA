@@ -43,7 +43,7 @@ def main():
     train_dataloader = torch.utils.data.DataLoader(train_dataset,batch_size=args.batch_size,shuffle=True,num_workers = args.num_workers)
 
 
-    trainer = Trainer(logger = wandb_logger,max_epochs=args.num_epochs,check_val_every_n_epoch=args.check_val_every_n_epoch)#,reload_dataloaders_every_n_epochs=args.generate_data_every,use_distributed_sampler=False)
+    trainer = Trainer(callbacks=succ_rate_checkpoint_callback,logger = wandb_logger,max_epochs=args.num_epochs,check_val_every_n_epoch=args.check_val_every_n_epoch)#,reload_dataloaders_every_n_epochs=args.generate_data_every,use_distributed_sampler=False)
     trainer.fit(model,train_dataloader,ckpt_path= args.load_checkpoint_path)
 
 
