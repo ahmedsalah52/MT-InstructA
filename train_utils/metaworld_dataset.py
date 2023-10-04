@@ -46,7 +46,19 @@ class MW_dataset(Dataset):
         
         #random.shuffle(self.data)
         #self.data = self.data[0:self.total_data_len]
-
+    def get_stats(self):
+        table=[]
+        total_success_rate = 0
+        for task_name , episodes in self.data_dict.items():
+            task_success = 0
+            for episode in episodes:
+                task_success += episode[-1]['success']
+            
+            task_success_rate = float(task_success) / len(episodes)
+            total_success_rate += task_success_rate
+            table.append([task_name,task_success_rate])
+        table.append(['total_success_rate',total_success_rate/len(self.data_dict.items())])
+        return table
     def __len__(self):
         return len(self.data)
     
