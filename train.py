@@ -25,7 +25,7 @@ def main():
 
     
     succ_rate_checkpoint_callback = ModelCheckpoint(
-        dirpath = os.path.join(args.logs_dir,args.project_name,args.run_name),
+        dirpath = os.path.join(args.project_dir,args.project_name,args.run_name),
         filename= '{epoch}-{success_rate:.2f}',
         monitor="success_rate",  # Monitor validation loss
         mode="min",  # "min" if you want to save the lowest validation loss
