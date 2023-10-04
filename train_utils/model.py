@@ -11,7 +11,6 @@ import random
 import clip
 from torchvision import transforms
 from PIL import Image 
-import warnings
 
 
 
@@ -120,8 +119,7 @@ class ClIP(nn.Module):
             ])      
     def forward(self,batch):
         # Getting Image and Text Features
-        text_batch = self.text_encoder.tokenizer(batch['instruction'], padding=True, truncation=True, max_length=self.text_encoder.command_max_length)
-        text_batch = {k : torch.tensor(v).to(batch['hand_pos'].device) for k,v in text_batch.items()}
+       
         
         batch_size,cams,ch,h,w  = batch['images'].shape
         batch["images"] = torch.flatten(batch["images"], start_dim=0, end_dim=1)
@@ -129,11 +127,13 @@ class ClIP(nn.Module):
         image_features = self.image_encoder(batch["images"])
         image_features = torch.unflatten(image_features,dim = 0,sizes=(batch_size,cams))
 
-
+        text_batch = self.text_encoder.tokenizer(batch['instruction'], padding=True, truncation=True, max_length=self.text_encoder.command_max_length)
+        text_batch = {k : torch.tensor(v).to(batch['hand_pos'].device) for k,v in text_batch.items()}
+        
         text_features = self.text_encoder(
-            input_ids=batch["input_ids"], attention_mask=batch["attention_mask"]
+            input_ids=text_batch["input_ids"], attention_mask=text_batch["attention_mask"]
         )
-
+        
         
         image_features = self.image_projection(image_features)
         text_features  = self.text_projection(text_features)
@@ -161,34 +161,36 @@ class ClIP(nn.Module):
 class Open_AI_CLIP(nn.Module):
     def __init__(self,args):
         super().__init__()
-        self.model, self.preprocess_image = clip.load("ViT-B/32")
+        self.model, self.preprocess_image = clip.load(args.op_image_model_name,jit=False)
+        self.model = self.model.float()
         self.pos_emp = nn.Linear(8,512)
         self.head = nn.Sequential(nn.Flatten(),
-                                    nn.Linear(7*512, 512),
+                                     nn.Linear(7*512, 512),
+                                     nn.LayerNorm(512),
                                      nn.ReLU(),
                                      nn.Linear(512,4))
-
+        #self.grad_clip = nn.utils.clip_grad_norm_(self.parameters(), 0.5)
     def forward(self,batch):
         batch_size,cams,ch,h,w  = batch['images'].shape
 
-        text = clip.tokenize(batch['instruction']).to(batch['images'].device)
 
         batch["images"] = torch.flatten(batch["images"], start_dim=0, end_dim=1)
         image_features = self.model.encode_image(batch['images'])
         image_features = torch.unflatten(image_features,dim = 0,sizes=(batch_size,cams))
 
+
+        text = clip.tokenize(batch['instruction']).to(batch['images'].device)
         text_features  = self.model.encode_text(text)
         pos_embeddings = self.pos_emp(batch['hand_pos'])
         text_images_embeddings = torch.cat([image_features,text_features[:,None,:],pos_embeddings[:,None,:]],dim=1)
 
         logits = self.head(text_images_embeddings)
-
         return logits
     
     def get_opt(self,args):
         return torch.optim.Adam(
                 [
-                    {"params": self.model.parameters()   , "lr": args.img_model_lr},
+                    {"params": self.model.parameters()   },
                     {"params": self.pos_emp.parameters()},
                     {"params": self.head.parameters()},
                 ],
@@ -225,7 +227,7 @@ class base_model(pl.LightningModule):
 
         y = batch['action']
         loss = self.loss_fun(logits, y)
-        self.log("train_loss", loss,sync_dist=True,batch_size=self.batch_size)
+        self.log("train_loss", loss,sync_dist=True,batch_size=self.batch_size,prog_bar=True)
         return loss
     
   
@@ -245,6 +247,7 @@ class base_model(pl.LightningModule):
     
 
     def on_train_epoch_start(self):
+        return
         if (self.current_epoch % self.evaluate_every == 0):
             print(f"epoch {self.current_epoch}  evaluation on device {self.device}")
             total_success = 0
@@ -258,15 +261,10 @@ class base_model(pl.LightningModule):
                     instruction = random.choice(self.tasks_commands[task])
                     rendered_seq = []
                     while 1:
-                        #check if obs is not an array
-                        if type(obs) != np.array:
-                            warnings.warn("None Obs")
-                            env = self.env(task,pos,save_images=True,wandb_render = False,wandb_log = False,general_model=True)
-                            obs , info = env.reset()
-
-                        step_input = {'instruction':instruction}
+                        
+                        step_input = {'instruction':[instruction]}
                         images = [self.model.preprocess_image(Image.fromarray(np.uint8(img))) for img in info['images']]
-                        step_input['images']   = torch.stack(images).unsqueeze(0).to(self.device)   
+                        step_input['images']   = torch.stack(images).unsqueeze(0).to(self.device)
                         step_input['hand_pos'] = torch.tensor(np.concatenate((obs[0:4],obs[18:22]),axis =0)).to(torch.float32).unsqueeze(0).to(self.device)
                         a = self.model(step_input)
                         obs, reward, done,success, info = env.step(a.detach().cpu().numpy()[0]) 

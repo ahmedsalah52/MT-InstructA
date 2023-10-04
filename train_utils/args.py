@@ -18,7 +18,7 @@ parser.add_argument('--agents_dir', type=str, default='/system/user/publicdata/m
 
 #shared args
 parser.add_argument('--data_dir', type=str, default='generated_data/data')
-parser.add_argument('--tasks', type=list, default=['button-press-topdown-v2'])#, 'button-press-v2', 'door-lock-v2', 'door-unlock-v2', 'door-open-v2', 'door-close-v2', 'drawer-open-v2', 'drawer-close-v2', 'window-open-v2', 'window-close-v2', 'faucet-open-v2', 'faucet-close-v2', 'handle-press-v2', 'coffee-button-v2'])
+parser.add_argument('--tasks', type=list, default=['button-press-topdown-v2', 'button-press-v2', 'door-lock-v2', 'door-unlock-v2', 'door-open-v2', 'door-close-v2', 'drawer-open-v2', 'drawer-close-v2', 'window-open-v2', 'window-close-v2', 'faucet-open-v2', 'faucet-close-v2', 'handle-press-v2', 'coffee-button-v2'])
 parser.add_argument('--agents_dict_dir', type=str, default='training_configs/agents_dict.json')
 parser.add_argument('--dataset_dict_dir', type=str, default='generated_data/dataset_dict.json')
 
@@ -28,13 +28,25 @@ parser.add_argument('--dataset_dict_dir', type=str, default='generated_data/data
 parser.add_argument('--seed', type=int, default=42)
 parser.add_argument('--model_name', type=str, default='simple_clip',choices=['open_ai_clip','simple_clip'])
 
-#clip params
+#open ai params
+parser.add_argument('--op_image_model_name', type=str, default='ViT-B/32',choices=
+['RN50',
+ 'RN101',
+ 'RN50x4',
+ 'RN50x16',
+ 'RN50x64',
+ 'ViT-B/32',
+ 'ViT-B/16',
+ 'ViT-L/14',
+ 'ViT-L/14@336px'])
+
+#simple clip params
 parser.add_argument('--image_model_name', type=str, default='resnet50')
 parser.add_argument('--text_model_name', type=str, default='distilbert-base-uncased')
 parser.add_argument('--loss_fun', type=str, default='mse')
 parser.add_argument('--img_model_lr', type=float, default=1e-5)
 parser.add_argument('--txt_model_lr', type=float, default=1e-5)
-parser.add_argument('--lr', type=float, default=1e-5)
+parser.add_argument('--lr', type=float, default=1e-6)
 parser.add_argument('--text_model_pretrained', type=bool, default=True)
 parser.add_argument('--text_model_trainable', type=bool, default=True)
 parser.add_argument('--image_model_pretrained', type=bool, default=True)
