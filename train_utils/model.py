@@ -281,9 +281,11 @@ class base_model(pl.LightningModule):
                 total_vids.append(list(reversed(videos)))
                 success_rate_table.append([task]+list(reversed(success_rate_row))) 
 
-            self.wandb_logger.log_table(key="videos"      ,  columns=['Left','Mid','Right'],data=total_vids,step=self.current_epoch,on_epoch=True,sync_dist=True)
-            self.wandb_logger.log_table(key="success_rate",  columns=['task_name','Left','Mid','Right'],data=success_rate_table,step=self.current_epoch,on_epoch=True,sync_dist=True)
-                  
+            #self.wandb_logger.log_table(key="videos"      ,  columns=['Left','Mid','Right'],data=total_vids,step=self.current_epoch,on_epoch=True,sync_dist=True)
+            #self.wandb_logger.log_table(key="success_rate",  columns=['task_name','Left','Mid','Right'],data=success_rate_table,step=self.current_epoch,on_epoch=True,sync_dist=True)
+            self.wandb_logger.log({"samples":total_vids}    , step=self.current_epoch,on_epoch=True,sync_dist=True)
+            self.wandb_logger.log({"evaluations":total_vids}, step=self.current_epoch,on_epoch=True,sync_dist=True)
+
             self.log("success_rate", float(total_success)/(len(self.tasks)*3*self.evaluation_episodes),on_epoch=True,sync_dist=True,batch_size=self.batch_size,prog_bar=True) # type: ignore
 
     def configure_optimizers(self):
