@@ -26,7 +26,7 @@ def main():
         dirpath = os.path.join(args.project_dir,args.project_name,args.run_name,'checkpoints'),
         filename= '{epoch}-{success_rate:.2f}',
         monitor="success_rate",  # Monitor validation loss
-        mode="min",  # "min" if you want to save the lowest validation loss
+        mode="max",  # "min" if you want to save the lowest validation loss
         save_top_k=1,  # Save only the best model
         save_last=True,  # Save the last model as well
         every_n_epochs=args.evaluate_every
