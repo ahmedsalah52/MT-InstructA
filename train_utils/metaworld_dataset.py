@@ -138,12 +138,16 @@ class Generate_data():
     def save_images(self,images,taskname,pos,id_num,step_num):
         ret = []
         for i in range(len(images)):
-            save_dir = os.path.join(self.data_dir,taskname,str(pos))
+            ret_dir = os.path.join(taskname,str(pos))
+            img_name = f'{id_num}_{step_num}_{i}.jpg'
+            
+            save_dir = os.path.join(self.data_dir,ret_dir)
             if not os.path.exists(save_dir):
                 os.makedirs(save_dir)
-            img_dir = os.path.join(save_dir,f'{id_num}_{step_num}_{i}.jpg')
+            img_dir = os.path.join(save_dir,img_name)
             cv2.imwrite(img_dir,cv2.cvtColor(images[i],cv2.COLOR_RGB2BGR))
-            ret.append(img_dir)
+            
+            ret.append(os.path.join(ret_dir,img_name))
             
         return ret
     
