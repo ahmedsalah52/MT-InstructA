@@ -251,14 +251,17 @@ class base_model(pl.LightningModule):
             print(f"epoch {self.current_epoch}  evaluation on device {self.device}")
             total_success = 0
             total_vids =[]
+            success_rate_table = []
             for task in self.tasks:
-                videos=[]
+                videos = []
+                success_rate_row = []
                 for pos in [0,1,2]:
                     env = self.env(task,pos,save_images=True,wandb_render = False,wandb_log = False,general_model=True)
                     #for i in range(self.evaluation_episodes):
                     obs , info = env.reset()
                     instruction = random.choice(self.tasks_commands[task])
                     rendered_seq = []
+                    success = 0
                     while 1:
                         
                         step_input = {'instruction':[instruction]}
@@ -273,10 +276,14 @@ class base_model(pl.LightningModule):
 
                     rendered_seq = np.array(rendered_seq, dtype=np.uint8)
                     rendered_seq = rendered_seq.transpose(0,3, 1, 2)
-                    videos.append(wandb.Video(rendered_seq, fps=30))   
-                total_vids.append(list(reversed(videos)))    
-            self.wandb_logger.log_table(key=f"videos {self.current_epoch}",  columns=['Left','Mid','Right'],data=total_vids,step=self.current_epoch)
-                        
+                    videos.append(wandb.Video(rendered_seq, fps=30))
+                    success_rate_row.append(success)
+                total_vids.append(list(reversed(videos)))
+                success_rate_table.append([task]+list(reversed(success_rate_row))) 
+
+            self.wandb_logger.log_table(key="videos"      ,  columns=['Left','Mid','Right'],data=total_vids,step=self.current_epoch,on_epoch=True,sync_dist=True)
+            self.wandb_logger.log_table(key="success_rate",  columns=['task_name','Left','Mid','Right'],data=success_rate_table,step=self.current_epoch,on_epoch=True,sync_dist=True)
+                  
             self.log("success_rate", float(total_success)/(len(self.tasks)*3*self.evaluation_episodes),on_epoch=True,sync_dist=True,batch_size=self.batch_size,prog_bar=True) # type: ignore
 
     def configure_optimizers(self):

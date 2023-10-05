@@ -5,7 +5,7 @@ parser = argparse.ArgumentParser(
                     description='What the program does',
                     epilog='Text at the bottom of help')
 #project
-parser.add_argument('--project_name', type=str, default='metaworld_general_model')
+parser.add_argument('--project_name', type=str, default='metaworld_general_model2')
 parser.add_argument('--run_name', type=str, default='run_1')
 parser.add_argument('--logs_dir', type=str, default='logs')
 parser.add_argument('--project_dir', type=str, default='/system/user/publicdata/mansour_datasets/metaworld/')
