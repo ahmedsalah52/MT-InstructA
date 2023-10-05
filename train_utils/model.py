@@ -242,7 +242,7 @@ class base_model(pl.LightningModule):
         y = batch['action']
 
         loss = self.loss_fun(logits, y)
-        self.log("val_loss", loss,sync_dist=True,batch_size=self.batch_size)
+        self.log("val_loss", loss,sync_dist=True,batch_size=self.batch_size,prog_bar=True)
         return loss
     
 
@@ -277,7 +277,7 @@ class base_model(pl.LightningModule):
                 total_vids.append(list(reversed(videos)))    
             self.wandb_logger.log_table(key=f"videos {self.current_epoch}",  columns=['Left','Mid','Right'],data=total_vids,step=self.current_epoch)
                         
-            self.log("success_rate", float(total_success)/(len(self.tasks)*3*self.evaluation_episodes),sync_dist=True,batch_size=self.batch_size) # type: ignore
+            self.log("success_rate", float(total_success)/(len(self.tasks)*3*self.evaluation_episodes),step=0,sync_dist=True,batch_size=self.batch_size,prog_bar=True) # type: ignore
 
     def configure_optimizers(self):
         return self.opt

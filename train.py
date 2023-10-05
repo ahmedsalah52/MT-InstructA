@@ -11,21 +11,19 @@ import json
 
 def main():
     args = parser.parse_args()
+
+    if not os.path.exists(os.path.join(args.project_dir,args.project_name,args.run_name)):
+        os.makedirs(os.path.join(args.project_dir,args.project_name,args.run_name,'checkpoints'))
+        os.makedirs(os.path.join(args.project_dir,args.project_name,args.run_name,args.logs_dir))
+
+    os.environ["WANDB_DIR"] = os.path.join(args.project_dir,args.project_name,args.run_name,args.logs_dir)
+
     wandb_logger = WandbLogger( 
     project= args.project_name,
     name   = args.run_name)
-   
-    """ wandb.init(
-    project=args.project_name,
-    name = args.run_name
-    ) """
-    
-    
-    os.environ["WANDB_DIR"] = os.path.join(args.project_dir,args.project_name,args.run_name)
-
     
     succ_rate_checkpoint_callback = ModelCheckpoint(
-        dirpath = os.path.join(args.project_dir,args.project_name,args.run_name),
+        dirpath = os.path.join(args.project_dir,args.project_name,args.run_name,'checkpoints'),
         filename= '{epoch}-{success_rate:.2f}',
         monitor="success_rate",  # Monitor validation loss
         mode="min",  # "min" if you want to save the lowest validation loss
@@ -34,12 +32,10 @@ def main():
         every_n_epochs=args.evaluate_every
         )
     
-    #data_generator.get_train_dataloader(model.device)
-    #val_dataloaders=data_generator.get_valid_dataloader(model.device)
     tasks_commands = json.load(open(args.tasks_commands_dir))
     model = base_model(args=args,tasks_commands=tasks_commands,env=meta_env,wandb_logger=wandb_logger,seed=args.seed)
 
-    train_dataset = MW_dataset(model.preprocess,os.path.join(args.project_dir,args.dataset_dict_dir),tasks_commands,total_data_len=args.train_data_total_steps)
+    train_dataset = MW_dataset(model.preprocess,os.path.join(args.project_dir,args.project_name,args.dataset_dict_dir),tasks_commands,total_data_len=args.train_data_total_steps)
     stats_table = train_dataset.get_stats()
     wandb_logger.log_table(key=f"Dataset Success Rate",  columns=['Task name','Success Rate'],data=stats_table)
 
