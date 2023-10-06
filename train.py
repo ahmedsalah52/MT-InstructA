@@ -32,14 +32,7 @@ def main():
         every_n_epochs=args.evaluate_every,
         save_on_train_epoch_end=True
         )
-    training_checkpoint_callback = ModelCheckpoint(
-        dirpath   = 'checkpoints/',
-        save_last=True,
-        monitor="train_loss", 
-        mode="min",
-        every_n_epochs=1,
-        save_on_train_epoch_end=True
-    )
+    
     
     tasks_commands = json.load(open(args.tasks_commands_dir))
     model = base_model(args=args,tasks_commands=tasks_commands,env=meta_env,wandb_logger=wandb_logger,seed=args.seed)

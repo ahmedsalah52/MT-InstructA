@@ -260,8 +260,7 @@ class base_model(pl.LightningModule):
                     #for i in range(self.evaluation_episodes):
                     obs , info = env.reset()
                     instruction = random.choice(self.tasks_commands[task])
-                    rendered_seq = []
-                    success = 0
+                    #rendered_seq = []
                     while 1:
                         
                         step_input = {'instruction':[instruction]}
@@ -271,18 +270,20 @@ class base_model(pl.LightningModule):
                         a = self.model(step_input)
                         obs, reward, done,success, info = env.step(a.detach().cpu().numpy()[0]) 
                         total_success+=success
-                        rendered_seq.append(env.get_visual_obs_log())
+                        #rendered_seq.append(env.get_visual_obs_log())
                         if (success or done): break 
 
-                    rendered_seq = np.array(rendered_seq, dtype=np.uint8)
-                    rendered_seq = rendered_seq.transpose(0,3, 1, 2)
-                    videos.append(wandb.Video(rendered_seq, fps=30))
                     success_rate_row.append(success)
-                total_vids.append(list(reversed(videos)))
-                success_rate_table.append([task]+list(reversed(success_rate_row))) 
+                    #rendered_seq = np.array(rendered_seq, dtype=np.uint8)
+                    #rendered_seq = rendered_seq.transpose(0,3, 1, 2)
+                    #videos.append(wandb.Video(rendered_seq, fps=30))
+                self.log(task, mean(success_rate_row),on_epoch=True,sync_dist=True,batch_size=self.batch_size,prog_bar=True) # type: ignore
 
-            self.wandb_logger.log_table(key="videos"            ,  columns=['Left','Mid','Right']            ,data=total_vids,step=self.current_epoch)
-            self.wandb_logger.log_table(key="success_rate_table",  columns=['task_name','Left','Mid','Right'],data=success_rate_table,step=self.current_epoch)
+                #total_vids.append(list(reversed(videos)))
+                #success_rate_table.append([task]+list(reversed(success_rate_row))) 
+
+            #self.wandb_logger.log_table(key="videos"            ,  columns=['Left','Mid','Right']            ,data=total_vids,step=self.current_epoch)
+            #self.wandb_logger.log_table(key="success_rate_table",  columns=['task_name','Left','Mid','Right'],data=success_rate_table,step=self.current_epoch)
             #self.log("samples",total_vids    ,on_epoch=True,sync_dist=True)
             #self.log("evaluations",total_vids,on_epoch=True,sync_dist=True)
         
