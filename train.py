@@ -38,6 +38,7 @@ def main():
         save_last=True,
         save_top_k = 2,
         monitor="train_loss",  # Monitor validation loss
+        mode="min",
         auto_insert_metric_name=False
         )
     
