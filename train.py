@@ -34,7 +34,11 @@ def main():
         )
     training_checkpoint_callback = ModelCheckpoint(
         dirpath   = 'checkpoints/',
-        save_last=True
+        save_last=True,
+        monitor="val_loss", 
+        mode="min",
+        every_n_epochs=1
+
     )
     
     tasks_commands = json.load(open(args.tasks_commands_dir))
@@ -48,7 +52,7 @@ def main():
 
 
     trainer = Trainer(callbacks=[training_checkpoint_callback],logger = wandb_logger,max_epochs=args.num_epochs,check_val_every_n_epoch=args.check_val_every_n_epoch,strategy='ddp_find_unused_parameters_true')#,reload_dataloaders_every_n_epochs=args.generate_data_every,use_distributed_sampler=False)
-    trainer.fit(model,train_dataloader,ckpt_path= args.load_checkpoint_path)
+    trainer.fit(model,train_dataloader,val_dataloaders=train_dataloader,ckpt_path= args.load_checkpoint_path)
 
 
 
