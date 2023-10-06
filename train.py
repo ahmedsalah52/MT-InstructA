@@ -37,9 +37,9 @@ def main():
         filename= '{epoch}-{train_loss:.3f}',
         monitor="train_loss",  # Monitor validation loss
         mode="min",  # "min" if you want to save the lowest validation loss
-        save_top_k=5,  # Save only the best model
+        save_top_k=1,  # Save only the best model
         save_last=True,  # Save the last model as well
-        every_n_epochs=args.evaluate_every
+        every_n_epochs=1
         )
     
     tasks_commands = json.load(open(args.tasks_commands_dir))
