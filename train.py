@@ -33,7 +33,7 @@ def main():
         every_n_epochs=args.evaluate_every
         )
     training_checkpoint_callback = ModelCheckpoint(
-        dirpath = os.path.join(args.project_dir,args.project_name,args.run_name,'checkpoints'),
+        dirpath ='checkpoints/',
         filename= '{epoch}-{train_loss:.3f}',
         save_last=True
         )
