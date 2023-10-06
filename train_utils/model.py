@@ -277,7 +277,7 @@ class base_model(pl.LightningModule):
                     #rendered_seq = np.array(rendered_seq, dtype=np.uint8)
                     #rendered_seq = rendered_seq.transpose(0,3, 1, 2)
                     #videos.append(wandb.Video(rendered_seq, fps=30))
-                self.log(task, mean(success_rate_row),on_epoch=True,sync_dist=True,batch_size=self.batch_size) # type: ignore
+                self.log(task, np.mean(success_rate_row),on_epoch=True,sync_dist=True,batch_size=self.batch_size) # type: ignore
 
                 #total_vids.append(list(reversed(videos)))
                 #success_rate_table.append([task]+list(reversed(success_rate_row))) 
