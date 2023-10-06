@@ -65,8 +65,8 @@ class MW_dataset(Dataset):
     
     def __getitem__(self,idx):
         step_data = self.data[idx]
-        images_dir = os.path.join(self.dataset_dir,step_data['images_dir'])
-        images = [self.preprocess(Image.open(dir)) for dir in images_dir]
+        images_dir = step_data['images_dir']
+        images = [self.preprocess(Image.open(os.path.join(self.dataset_dir,dir))) for dir in images_dir]
         ret = {}
         ret['images']   = torch.stack(images)
         ret['hand_pos'] = torch.tensor(np.concatenate((step_data['obs'][0:4],step_data['obs'][18:22]),axis =0)).to(torch.float32)
