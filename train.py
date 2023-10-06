@@ -36,7 +36,8 @@ def main():
         dirpath ='checkpoints/',
         filename= '{epoch}-{train_loss:.3f}',
         save_last=True,
-        save_top_k = 2
+        save_top_k = 2,
+        monitor="train_loss",  # Monitor validation loss
         )
     
     tasks_commands = json.load(open(args.tasks_commands_dir))
