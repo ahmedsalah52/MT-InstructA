@@ -34,13 +34,7 @@ def main():
         )
     training_checkpoint_callback = ModelCheckpoint(
         dirpath   = 'checkpoints/',
-        filename  = '{epoch}-{train_loss:.3f}',
-        save_last = True,
-        save_top_k = 2,
-        monitor = "train_loss",  # Monitor validation loss
-        mode = "min",
-        auto_insert_metric_name=False
-        )
+    )
     
     tasks_commands = json.load(open(args.tasks_commands_dir))
     model = base_model(args=args,tasks_commands=tasks_commands,env=meta_env,wandb_logger=wandb_logger,seed=args.seed)
