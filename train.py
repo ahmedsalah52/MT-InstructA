@@ -22,7 +22,7 @@ def main():
     wandb_logger = WandbLogger( 
     project= args.project_name,
     name   = args.run_name)
-    
+    print("checkpoints dir:",os.path.join(args.project_dir,args.project_name,args.run_name,'checkpoints'))
     succ_rate_checkpoint_callback = ModelCheckpoint(
         dirpath = os.path.join(args.project_dir,args.project_name,args.run_name,'checkpoints'),
         filename= '{epoch}-{success_rate:.2f}',
