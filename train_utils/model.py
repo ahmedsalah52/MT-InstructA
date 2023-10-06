@@ -230,7 +230,7 @@ class base_model(pl.LightningModule):
         self.log("train_loss", loss,sync_dist=True,batch_size=self.batch_size,prog_bar=True)
         return loss
     
-  
+    """
     
     def validation_step(self, batch, batch_idx):
         
@@ -243,7 +243,7 @@ class base_model(pl.LightningModule):
 
         loss = self.loss_fun(logits, y)
         self.log("val_loss", loss,sync_dist=True,batch_size=self.batch_size,prog_bar=True)
-        return loss
+        return loss"""
     
 
     def on_train_epoch_end(self):
