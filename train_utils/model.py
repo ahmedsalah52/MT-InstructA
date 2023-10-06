@@ -246,7 +246,7 @@ class base_model(pl.LightningModule):
         return loss
     
 
-    def on_train_epoch_start(self):
+    def on_train_epoch_end(self):
         if (self.current_epoch % self.evaluate_every == 0):
             print(f"epoch {self.current_epoch}  evaluation on device {self.device}")
             total_success = 0
@@ -281,8 +281,8 @@ class base_model(pl.LightningModule):
                 total_vids.append(list(reversed(videos)))
                 success_rate_table.append([task]+list(reversed(success_rate_row))) 
 
-            self.wandb_logger.log_table(key="videos"      ,  columns=['Left','Mid','Right']            ,data=total_vids,step=self.current_epoch)
-            self.wandb_logger.log_table(key="success_rate",  columns=['task_name','Left','Mid','Right'],data=success_rate_table,step=self.current_epoch)
+            self.wandb_logger.log_table(key="videos"+str(self.current_epoch)       ,  columns=['Left','Mid','Right']            ,data=total_vids,step=self.current_epoch)
+            self.wandb_logger.log_table(key="success_rate "+str(self.current_epoch),  columns=['task_name','Left','Mid','Right'],data=success_rate_table,step=self.current_epoch)
             #self.log("samples",total_vids    ,on_epoch=True,sync_dist=True)
             #self.log("evaluations",total_vids,on_epoch=True,sync_dist=True)
 

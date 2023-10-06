@@ -28,8 +28,9 @@ class temp_dataset(Dataset):
 
 
 class MW_dataset(Dataset):
-    def __init__(self,preprocess,dataset_dict_dir,tasks_commands,total_data_len):
+    def __init__(self,preprocess,dataset_dict_dir,dataset_dir,tasks_commands,total_data_len):
         self.data_dict = json.load(open(dataset_dict_dir))
+        self.dataset_dir = dataset_dir
         self.tasks_commands = tasks_commands
         self.total_data_len = total_data_len
         self.preprocess = preprocess
@@ -64,7 +65,7 @@ class MW_dataset(Dataset):
     
     def __getitem__(self,idx):
         step_data = self.data[idx]
-        images_dir = step_data['images_dir']
+        images_dir = os.path.join(self.dataset_dir,step_data['images_dir'])
         images = [self.preprocess(Image.open(dir)) for dir in images_dir]
         ret = {}
         ret['images']   = torch.stack(images)
@@ -140,10 +141,11 @@ class Generate_data():
         for i in range(len(images)):
             ret_dir = os.path.join(taskname,str(pos))
             img_name = f'{id_num}_{step_num}_{i}.jpg'
-            
+
             save_dir = os.path.join(self.data_dir,ret_dir)
             if not os.path.exists(save_dir):
                 os.makedirs(save_dir)
+            
             img_dir = os.path.join(save_dir,img_name)
             cv2.imwrite(img_dir,cv2.cvtColor(images[i],cv2.COLOR_RGB2BGR))
             

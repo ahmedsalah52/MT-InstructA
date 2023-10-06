@@ -17,6 +17,7 @@ def main():
         os.makedirs(os.path.join(args.project_dir,args.project_name,args.run_name,args.logs_dir))
 
     os.environ["WANDB_DIR"] = os.path.join(args.project_dir,args.project_name,args.run_name,args.logs_dir)
+    os.environ["WANDB_CACHE_DIR"] = os.path.join(args.project_dir,args.project_name,args.run_name,args.logs_dir)
 
     wandb_logger = WandbLogger( 
     project= args.project_name,
@@ -27,7 +28,7 @@ def main():
         filename= '{epoch}-{success_rate:.2f}',
         monitor="success_rate",  # Monitor validation loss
         mode="max",  # "min" if you want to save the lowest validation loss
-        save_top_k=1,  # Save only the best model
+        save_top_k=5,  # Save only the best model
         save_last=True,  # Save the last model as well
         every_n_epochs=args.evaluate_every
         )
@@ -35,7 +36,7 @@ def main():
     tasks_commands = json.load(open(args.tasks_commands_dir))
     model = base_model(args=args,tasks_commands=tasks_commands,env=meta_env,wandb_logger=wandb_logger,seed=args.seed)
 
-    train_dataset = MW_dataset(model.preprocess,os.path.join(args.project_dir,args.dataset_dict_dir),tasks_commands,total_data_len=args.train_data_total_steps)
+    train_dataset = MW_dataset(model.preprocess,os.path.join(args.project_dir,args.dataset_dict_dir),os.path.join(args.project_dir,args.data_dir),tasks_commands,total_data_len=args.train_data_total_steps)
     stats_table = train_dataset.get_stats()
     wandb_logger.log_table(key=f"Dataset Success Rate",  columns=['Task name','Success Rate'],data=stats_table)
 
