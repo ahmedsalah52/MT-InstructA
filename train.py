@@ -38,6 +38,7 @@ def main():
         save_last=True,
         save_top_k = 2,
         monitor="train_loss",  # Monitor validation loss
+        auto_insert_metric_name=False
         )
     
     tasks_commands = json.load(open(args.tasks_commands_dir))
