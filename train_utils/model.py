@@ -247,7 +247,7 @@ class base_model(pl.LightningModule):
     
 
     def on_train_epoch_end(self):
-        if (self.current_epoch % self.evaluate_every == 0):
+        if False and  (self.current_epoch % self.evaluate_every == 0):
             print(f"epoch {self.current_epoch}  evaluation on device {self.device}")
             total_success = 0
             total_vids =[]
@@ -287,7 +287,10 @@ class base_model(pl.LightningModule):
             #self.log("evaluations",total_vids,on_epoch=True,sync_dist=True)
         
             self.log("success_rate", float(total_success)/(len(self.tasks)*3*self.evaluation_episodes),on_epoch=True,sync_dist=True,batch_size=self.batch_size,prog_bar=True) # type: ignore
-        torch.cuda.empty_cache()
+
+
+
+
     def configure_optimizers(self):
         return self.opt
 
