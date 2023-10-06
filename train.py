@@ -13,16 +13,15 @@ def main():
     args = parser.parse_args()
 
     if not os.path.exists(os.path.join(args.project_dir,args.project_name,args.run_name)):
-        os.makedirs(os.path.join(args.project_dir,args.project_name,args.run_name,'checkpoints'))
         os.makedirs(os.path.join(args.project_dir,args.project_name,args.run_name,args.logs_dir))
 
-    os.environ["WANDB_DIR"] = os.path.join(args.project_dir,args.project_name,args.run_name,args.logs_dir)
+    os.environ["WANDB_DIR"]       = os.path.join(args.project_dir,args.project_name,args.run_name,args.logs_dir)
     os.environ["WANDB_CACHE_DIR"] = os.path.join(args.project_dir,args.project_name,args.run_name,args.logs_dir)
 
     wandb_logger = WandbLogger( 
     project= args.project_name,
     name   = args.run_name)
-    print("checkpoints dir:",os.path.join(args.project_dir,args.project_name,args.run_name,'checkpoints'))
+    #print("checkpoints dir:",os.path.join(args.project_dir,args.project_name,args.run_name,'checkpoints'))
     succ_rate_checkpoint_callback = ModelCheckpoint(
         dirpath = os.path.join(args.project_dir,args.project_name,args.run_name,'checkpoints'),
         filename= '{epoch}-{success_rate:.2f}',
