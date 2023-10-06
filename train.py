@@ -33,12 +33,12 @@ def main():
         every_n_epochs=args.evaluate_every
         )
     training_checkpoint_callback = ModelCheckpoint(
-        dirpath ='checkpoints/',
-        filename= '{epoch}-{train_loss:.3f}',
-        save_last=True,
+        dirpath   = 'checkpoints/',
+        filename  = '{epoch}-{train_loss:.3f}',
+        save_last = True,
         save_top_k = 2,
-        monitor="train_loss",  # Monitor validation loss
-        mode="min",
+        monitor = "train_loss",  # Monitor validation loss
+        mode = "min",
         auto_insert_metric_name=False
         )
     
@@ -52,7 +52,7 @@ def main():
     train_dataloader = torch.utils.data.DataLoader(train_dataset,batch_size=args.batch_size,shuffle=True,num_workers = args.num_workers)
 
 
-    trainer = Trainer(callbacks=training_checkpoint_callback,logger = wandb_logger,max_epochs=args.num_epochs,check_val_every_n_epoch=args.check_val_every_n_epoch,strategy='ddp_find_unused_parameters_true')#,reload_dataloaders_every_n_epochs=args.generate_data_every,use_distributed_sampler=False)
+    trainer = Trainer(callbacks=[training_checkpoint_callback],logger = wandb_logger,max_epochs=args.num_epochs,check_val_every_n_epoch=args.check_val_every_n_epoch,strategy='ddp_find_unused_parameters_true')#,reload_dataloaders_every_n_epochs=args.generate_data_every,use_distributed_sampler=False)
     trainer.fit(model,train_dataloader,ckpt_path= args.load_checkpoint_path)
 
 
