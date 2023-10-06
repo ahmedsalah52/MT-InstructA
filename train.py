@@ -35,7 +35,8 @@ def main():
     training_checkpoint_callback = ModelCheckpoint(
         dirpath ='checkpoints/',
         filename= '{epoch}-{train_loss:.3f}',
-        save_last=True
+        save_last=True,
+        save_top_k = 2
         )
     
     tasks_commands = json.load(open(args.tasks_commands_dir))
