@@ -107,8 +107,10 @@ class Generate_data():
     def get_agent(self,env,taskname,pos,agent_level):
         run_name   = f'{taskname}_{self.task_poses[pos]}_ID{self.agents_dict[taskname][str(pos)]["id"]}'
         best_model = self.agents_dict[taskname][str(pos)]['best_model']
-        load_from  = int( (best_model//(10000 *self.agent_levels)) * (agent_level+1) * 10000)
-        print(f"loading agent for task {taskname} pos {pos} step {load_from} with best model step {best_model}")
+        #load_from  = int( (best_model//(10000 *self.agent_levels)) * (agent_level+1) * 10000)
+        load_from  = best_model - int( (best_model//(10000 *self.agent_levels)) * (agent_level) * 10000)
+
+        print(f"loading agent lvl{agent_level} for task {taskname} pos {pos} step {load_from} with best model step {best_model}")
         load_path = os.path.join(self.agents_dir,run_name, f"{run_name}_{load_from}_steps")
 
         return SAC.load(load_path,env)
