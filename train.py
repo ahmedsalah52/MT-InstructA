@@ -37,7 +37,7 @@ def main():
     tasks_commands = json.load(open(args.tasks_commands_dir))
     model = base_model(args=args,tasks_commands=tasks_commands,env=meta_env,wandb_logger=wandb_logger,seed=args.seed)
 
-    train_dataset = MW_dataset(model.preprocess,os.path.join(args.project_dir,args.dataset_dict_dir),os.path.join(args.project_dir,args.data_dir),tasks_commands,total_data_len=args.train_data_total_steps)
+    train_dataset = MW_dataset(model.preprocess,os.path.join(args.project_dir,args.data_dir,'dataset_dict.json'),os.path.join(args.project_dir,args.data_dir,'data'),tasks_commands,total_data_len=args.train_data_total_steps)
     stats_table = train_dataset.get_stats()
     wandb_logger.log_table(key=f"Dataset Success Rate",  columns=['Task name','Success Rate'],data=stats_table)
 
