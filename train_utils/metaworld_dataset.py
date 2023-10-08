@@ -75,7 +75,8 @@ class MW_dataset(Dataset):
         return ret
     
 class Generate_data():
-    def __init__(self,meta_env,data_dir,agents_dir,tasks,total_num_steps,agents_dict_dir):
+    def __init__(self,meta_env,data_dir,agents_dir,tasks,total_num_steps,agents_dict_dir,agent_levels):
+        self.agent_levels = agent_levels
         self.data_dir = data_dir
         self.agents_dir = agents_dir
         self.tasks = tasks
@@ -84,6 +85,7 @@ class Generate_data():
         self.task_poses = ['Right','Mid','Left']
         self.agents_dict = json.load(open(agents_dict_dir))
         self.meta_env = meta_env
+        self.agents_levels_step = 10000
     def generate_data(self):
         data_dict = {}
         for task in self.tasks:
@@ -93,24 +95,26 @@ class Generate_data():
 
     def generate_task_data(self,task):
         task_data = []
-        for pos in [0,1,2]:
-            env   = self.meta_env(task,pos,save_images=True,process = 'train',wandb_log = False,general_model=True)
-            agent = self.get_agent(env,task,pos)
-            task_data += self.generate_pos_data(env,agent,task,pos)
-        
+        for agent_level in range(self.agent_levels):
+            for pos in [0,1,2]:
+                env   = self.meta_env(task,pos,save_images=True,process = 'train',wandb_log = False,general_model=True)
+                agent = self.get_agent(env,task,pos,agent_level)
+                task_data += self.generate_pos_data(env,agent,task,pos)
+            
         return task_data
     
 
-    def get_agent(self,env,taskname,pos):
+    def get_agent(self,env,taskname,pos,agent_level):
         run_name   = f'{taskname}_{self.task_poses[pos]}_ID{self.agents_dict[taskname][str(pos)]["id"]}'
-        load_from = self.agents_dict[taskname][str(pos)]['best_model']
+        best_model = self.agents_dict[taskname][str(pos)]['best_model']
+        load_from  = int(((best_model/10000)/self.agent_levels) * (agent_level+1) * 10000)
         load_path = os.path.join(self.agents_dir,run_name, f"{run_name}_{load_from}_steps")
 
         return SAC.load(load_path,env)
 
 
     def generate_pos_data(self,env,agent,task,pos):
-        max_steps = self.max_task_steps//3
+        max_steps = self.max_task_steps//(3*self.agent_levels)
 
         episodes = []
         total_steps = 0
@@ -124,7 +128,7 @@ class Generate_data():
             prev_images_obs = self.save_images(info['images'],task,pos,id_num,step_num)
             episode = [] 
             while 1:
-                a , _states= agent.predict(prev_obs, deterministic=True)
+                a , _states = agent.predict(prev_obs, deterministic=True)
                 obs, reward, done,success, info = env.step(a) 
                 episode.append({'obs':prev_obs.tolist(),'action':a.tolist(),'reward':reward,'success':success,'images_dir':prev_images_obs})
                 

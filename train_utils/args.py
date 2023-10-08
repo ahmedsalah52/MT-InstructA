@@ -15,6 +15,7 @@ parser.add_argument('--project_dir', type=str, default='/system/user/publicdata/
 #data generation args
 parser.add_argument('--train_data_total_steps', type=int, default=100000)
 parser.add_argument('--agents_dir', type=str, default='/system/user/publicdata/mansour_datasets/metaworld/logs/')
+parser.add_argument('--agent_levels', type=int, default=1,help='how many levels of agents to generate data for, if 1 then only the best agent will be used')
 
 #shared args
 parser.add_argument('--data_dir', type=str, default='generated_data/data')
