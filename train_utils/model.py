@@ -247,51 +247,49 @@ class base_model(pl.LightningModule):
     
 
     def on_train_epoch_end(self):
-        if torch.cuda.is_available() and torch.cuda.current_device() == 0:
-            if (self.current_epoch % self.evaluate_every == 0):
-                
-                print(f"epoch {self.current_epoch}  evaluation on device {self.device}")
-                total_success = 0
-                total_vids =[]
-                success_rate_table = []
-                for task in self.tasks:
-                    videos = []
-                    success_rate_row = []
-                    for pos in [0,1,2]:
-                        env = self.env(task,pos,save_images=True,wandb_render = False,wandb_log = False,general_model=True)
-                        for i in range(self.evaluation_episodes):
-                            obs , info = env.reset()
-                            instruction = random.choice(self.tasks_commands[task])
-                            #rendered_seq = []
-                            while 1:
-                                
-                                step_input = {'instruction':[instruction]}
-                                images = [self.model.preprocess_image(Image.fromarray(np.uint8(img))) for img in info['images']]
-                                step_input['images']   = torch.stack(images).unsqueeze(0).to(self.device)
-                                step_input['hand_pos'] = torch.tensor(np.concatenate((obs[0:4],obs[18:22]),axis =0)).to(torch.float32).unsqueeze(0).to(self.device)
-                                a = self.model(step_input)
-                                obs, reward, done,success, info = env.step(a.detach().cpu().numpy()[0]) 
-                                total_success+=success
-                                #rendered_seq.append(env.get_visual_obs_log())
-                                if (success or done): break 
-                            
-                            env.close()
-                            success_rate_row.append(success)
-                            #rendered_seq = np.array(rendered_seq, dtype=np.uint8)
-                            #rendered_seq = rendered_seq.transpose(0,3, 1, 2)
-                            #videos.append(wandb.Video(rendered_seq, fps=30))
-                    self.log(task, np.mean(success_rate_row),on_epoch=True,sync_dist=True,batch_size=self.batch_size) # type: ignore
-
-                    #total_vids.append(list(reversed(videos)))
-                    #success_rate_table.append([task]+list(reversed(success_rate_row))) 
-
-                #self.wandb_logger.log_table(key="videos"            ,  columns=['Left','Mid','Right']            ,data=total_vids,step=self.current_epoch)
-                #self.wandb_logger.log_table(key="success_rate_table",  columns=['task_name','Left','Mid','Right'],data=success_rate_table,step=self.current_epoch)
-                #self.log("samples",total_vids    ,on_epoch=True,sync_dist=True)
-                #self.log("evaluations",total_vids,on_epoch=True,sync_dist=True)
+        if (self.current_epoch % self.evaluate_every == 0):
             
-                self.log("success_rate", float(total_success)/(len(self.tasks)*3*self.evaluation_episodes),on_epoch=True,sync_dist=True,batch_size=self.batch_size,prog_bar=True) # type: ignore
-        torch.cuda.empty_cache()
+            print(f"epoch {self.current_epoch}  evaluation on device {self.device}")
+            total_success = 0
+            total_vids =[]
+            success_rate_table = []
+            for task in self.tasks:
+                videos = []
+                success_rate_row = []
+                for pos in [0,1,2]:
+                    env = self.env(task,pos,save_images=True,wandb_render = False,wandb_log = False,general_model=True)
+                    for i in range(self.evaluation_episodes):
+                        obs , info = env.reset()
+                        instruction = random.choice(self.tasks_commands[task])
+                        #rendered_seq = []
+                        while 1:
+                            
+                            step_input = {'instruction':[instruction]}
+                            images = [self.model.preprocess_image(Image.fromarray(np.uint8(img))) for img in info['images']]
+                            step_input['images']   = torch.stack(images).unsqueeze(0).to(self.device)
+                            step_input['hand_pos'] = torch.tensor(np.concatenate((obs[0:4],obs[18:22]),axis =0)).to(torch.float32).unsqueeze(0).to(self.device)
+                            a = self.model(step_input)
+                            obs, reward, done,success, info = env.step(a.detach().cpu().numpy()[0]) 
+                            total_success+=success
+                            #rendered_seq.append(env.get_visual_obs_log())
+                            if (success or done): break 
+                        
+                        env.close()
+                        success_rate_row.append(success)
+                        #rendered_seq = np.array(rendered_seq, dtype=np.uint8)
+                        #rendered_seq = rendered_seq.transpose(0,3, 1, 2)
+                        #videos.append(wandb.Video(rendered_seq, fps=30))
+                self.log(task, np.mean(success_rate_row),on_epoch=True,sync_dist=True,batch_size=self.batch_size) # type: ignore
+
+                #total_vids.append(list(reversed(videos)))
+                #success_rate_table.append([task]+list(reversed(success_rate_row))) 
+
+            #self.wandb_logger.log_table(key="videos"            ,  columns=['Left','Mid','Right']            ,data=total_vids,step=self.current_epoch)
+            #self.wandb_logger.log_table(key="success_rate_table",  columns=['task_name','Left','Mid','Right'],data=success_rate_table,step=self.current_epoch)
+            #self.log("samples",total_vids    ,on_epoch=True,sync_dist=True)
+            #self.log("evaluations",total_vids,on_epoch=True,sync_dist=True)
+        
+            self.log("success_rate", float(total_success)/(len(self.tasks)*3*self.evaluation_episodes),on_epoch=True,sync_dist=True,batch_size=self.batch_size,prog_bar=True) # type: ignore
 
 
 
