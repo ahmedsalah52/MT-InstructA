@@ -154,7 +154,7 @@ class meta_env(Env):
     def get_images(self):
         return self.get_visual_obs()
     def close (self):
-        pass
+        self.env.close()
 
     def step(self,a):
         images = None
