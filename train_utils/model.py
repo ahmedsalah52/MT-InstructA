@@ -274,7 +274,8 @@ class base_model(pl.LightningModule):
                                 total_success+=success
                                 #rendered_seq.append(env.get_visual_obs_log())
                                 if (success or done): break 
-
+                            
+                            env.close()
                             success_rate_row.append(success)
                             #rendered_seq = np.array(rendered_seq, dtype=np.uint8)
                             #rendered_seq = rendered_seq.transpose(0,3, 1, 2)
@@ -290,7 +291,6 @@ class base_model(pl.LightningModule):
                 #self.log("evaluations",total_vids,on_epoch=True,sync_dist=True)
             
                 self.log("success_rate", float(total_success)/(len(self.tasks)*3*self.evaluation_episodes),on_epoch=True,sync_dist=True,batch_size=self.batch_size,prog_bar=True) # type: ignore
-            self.env.close()
         torch.cuda.empty_cache()
 
 
