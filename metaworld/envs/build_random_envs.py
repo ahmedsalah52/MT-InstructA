@@ -270,7 +270,6 @@ class Multi_task_env():
         self.general_model_flag = task_variant['general_model']
         task_variant       = task_variant['variant']
 
-
         main_task_name = main_file.split('.')[0]
 
         main_envs_dir = 'metaworld/envs/assets_v2/sawyer_xyz/'
@@ -285,8 +284,8 @@ class Multi_task_env():
             task_variants    = self.json_file_data[str(main_pos_index)]
             self.file_order  = random.choice(range(len(task_variants)))
             task_variant     = task_variants[self.file_order][:]
-            
-        self.current_task_variant = task_variant
+
+        self.current_task_variant = task_variant[:]
         
         main_task_index = task_variant.index(main_task_name)
         task_variant.pop(main_task_index)

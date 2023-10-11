@@ -290,6 +290,7 @@ class base_model(pl.LightningModule):
             #self.log("evaluations",total_vids,on_epoch=True,sync_dist=True)
         
             self.log("success_rate", float(total_success)/(len(self.tasks)*3*self.evaluation_episodes),on_epoch=True,sync_dist=True,batch_size=self.batch_size,prog_bar=True) # type: ignore
+        #torch.cuda.empty_cache()
 
 
 

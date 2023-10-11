@@ -27,7 +27,7 @@ parser.add_argument('--agents_dict_dir', type=str, default='training_configs/age
 
 #model                
 parser.add_argument('--seed', type=int, default=42)
-parser.add_argument('--model_name', type=str, default='simple_clip',choices=['open_ai_clip','simple_clip'])
+parser.add_argument('--model_name', type=str, default='open_ai_clip',choices=['open_ai_clip','simple_clip'])
 
 #open ai params
 parser.add_argument('--op_image_model_name', type=str, default='ViT-B/32',choices=
