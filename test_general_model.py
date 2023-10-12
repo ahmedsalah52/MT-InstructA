@@ -10,7 +10,7 @@ def main():
     args = parser.parse_args()
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = base_model(args=args,tasks_commands=None,env=None,wandb_logger=None,seed=args.seed).to(device)
+    model = base_model(args=args,tasks_commands=None,env=None,wandb_logger=None,seed=None).to(device)
     model = base_model.load_from_checkpoint(args.load_checkpoint_path,args=args,tasks_commands=None,env=None,wandb_logger=None,seed=args.seed)
     model.eval()
     task = 'button-press-topdown-v2'

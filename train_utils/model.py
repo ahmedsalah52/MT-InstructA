@@ -190,11 +190,10 @@ class Open_AI_CLIP(nn.Module):
     def get_opt(self,args):
         return torch.optim.Adam(
                 [
-                    {"params": self.model.parameters()   },
-                    {"params": self.pos_emp.parameters()},
-                    {"params": self.head.parameters()},
+                    {"params": self.model.parameters()  ,"lr": args.lr  },
+                    {"params": self.pos_emp.parameters(),"lr": args.head_lr},
+                    {"params": self.head.parameters()   ,"lr": args.head_lr},
                 ],
-                lr=args.lr,
             )
 
 class base_model(pl.LightningModule):
