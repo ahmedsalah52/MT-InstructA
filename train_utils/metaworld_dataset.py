@@ -73,7 +73,47 @@ class MW_dataset(Dataset):
         ret['action']      = torch.tensor(step_data['action'])
         ret['instruction'] = step_data['instruction']
         return ret
+
+
+def split_dict(dict_of_lists, split_ratio=0.8,seed=42):
+    """
+    Split a dictionary of lists into training and validation dictionaries with the same keys.
     
+    :param dict_of_lists: Input dictionary with keys and lists.
+    :param split_ratio: The ratio of data to be allocated for training (default is 0.8).
+    :return: A tuple of two dictionaries - training_dict and validation_dict.
+    """
+    if not isinstance(dict_of_lists, dict):
+        raise ValueError("Input must be a dictionary of lists")
+    
+    if not (0 <= split_ratio <= 1):
+        raise ValueError("Split ratio must be between 0 and 1")
+    random.seed(seed)
+
+    training_dict = {}
+    validation_dict = {}
+
+    for key, value in dict_of_lists.items():
+        if not isinstance(value, list):
+            raise ValueError(f"Value for key '{key}' must be a list")
+        
+        # Determine the split index
+        split_index = int(len(value) * split_ratio)
+        
+        # Shuffle the list before splitting to ensure randomness
+        random.shuffle(value)
+        
+        # Split the list into training and validation
+        training_data   = value[:split_index]
+        validation_data = value[split_index:]
+        
+        # Update the training and validation dictionaries
+        training_dict[key] = training_data
+        validation_dict[key] = validation_data
+    
+    return training_dict, validation_dict
+
+
 class Generate_data():
     def __init__(self,meta_env,data_dir,agents_dir,tasks,total_num_steps,agents_dict_dir,agent_levels):
         self.agent_levels = agent_levels

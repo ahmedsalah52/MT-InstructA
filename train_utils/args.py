@@ -58,6 +58,7 @@ parser.add_argument('--text_model_max_length', type=int, default=20)
 
 #training
 parser.add_argument('--tasks_commands_dir', type=str, default='training_configs/commands.json')
+parser.add_argument('--commands_split_ratio', type=float,default=0.8,help='how much of the commands to use for training')
 parser.add_argument('--batch_size', type=int, default=16)
 parser.add_argument('--num_workers', type=int, default=12)
 parser.add_argument('--num_epochs', type=int, default=60)

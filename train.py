@@ -6,7 +6,7 @@ from pytorch_lightning import Trainer
 from meta_env import meta_env
 import os
 from pytorch_lightning.callbacks import ModelCheckpoint
-from train_utils.metaworld_dataset import MW_dataset
+from train_utils.metaworld_dataset import MW_dataset,split_dict
 import json
 
 def main():
@@ -35,9 +35,11 @@ def main():
     
     
     tasks_commands = json.load(open(args.tasks_commands_dir))
-    model = base_model(args=args,tasks_commands=tasks_commands,env=meta_env,wandb_logger=wandb_logger,seed=args.seed)
+    train_tasks_commands,val_tasks_commands = split_dict(tasks_commands,args.commands_split_ratio,seed=args.seed)
+    
+    model = base_model(args=args,tasks_commands=val_tasks_commands,env=meta_env,wandb_logger=wandb_logger,seed=args.seed)
 
-    train_dataset = MW_dataset(model.preprocess,os.path.join(args.project_dir,args.data_dir,'dataset_dict.json'),os.path.join(args.project_dir,args.data_dir,'data'),tasks_commands,total_data_len=args.train_data_total_steps)
+    train_dataset = MW_dataset(model.preprocess,os.path.join(args.project_dir,args.data_dir,'dataset_dict.json'),os.path.join(args.project_dir,args.data_dir,'data'),train_tasks_commands,total_data_len=args.train_data_total_steps)
     stats_table = train_dataset.get_stats()
     wandb_logger.log_table(key=f"Dataset Success Rate",  columns=['Task name','Success Rate'],data=stats_table)
 
