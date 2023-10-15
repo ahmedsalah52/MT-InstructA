@@ -13,8 +13,8 @@ def main():
     model = base_model(args=args,tasks_commands=None,env=None,wandb_logger=None,seed=None).to(device)
     model = base_model.load_from_checkpoint(args.load_checkpoint_path,args=args,tasks_commands=None,env=None,wandb_logger=None,seed=args.seed)
     model.eval()
-    task = 'button-press-topdown-v2'
-    pos = 0
+    task = 'faucet-open-v2'
+    pos = 2
     env = meta_env(task,pos,save_images=True,wandb_render = False,wandb_log = False,general_model=True)
     #print('task variant ', env.env.current_task_variant)
     obs , info = env.reset()

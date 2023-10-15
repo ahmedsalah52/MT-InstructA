@@ -32,8 +32,8 @@ class SawyerWindowCloseEnvV2(SawyerXYZEnv):
         hand_high = (0.6, 1, 0.5)
         main_file = 'sawyer_window_horizontal.xml'
         self.generate_env(main_file,main_pos_index,task_variant)
-        obj_low  = (self.task_offsets_min[0],  self.task_offsets_min[1]+0.85, 0.16)
-        obj_high = (self.task_offsets_max[0],  self.task_offsets_max[1]+0.85, 0.16)
+        obj_low  = (self.task_offsets_min[0],  self.task_offsets_min[1]+0.85, 0.2)
+        obj_high = (self.task_offsets_max[0],  self.task_offsets_max[1]+0.85, 0.2)
         SawyerXYZEnv.__init__(
             self,
             self.model_name,

@@ -80,12 +80,12 @@ class task_manager():
 
 
 class meta_env(Env):
-    def __init__(self,taskname,task_pos,save_images,episode_length = 200,pos_emb_flag=False,wandb_render = False,multi = True,process='None',wandb_log = True,general_model = False) -> None:
+    def __init__(self,taskname,task_pos,save_images,variant=None,episode_length = 200,pos_emb_flag=False,wandb_render = False,multi = True,process='None',wandb_log = True,general_model = False) -> None:
         super().__init__()
         
         self.taskname = taskname
         self.task_pos = task_pos
-        self.task_man = task_manager(taskname=taskname,pos=task_pos,multi=multi,general_model=general_model)
+        self.task_man = task_manager(taskname=taskname,pos=task_pos,variant=variant,multi=multi,general_model=general_model)
         self.env = self.task_man.reset()
         self.pos_emb_flag = pos_emb_flag
 
