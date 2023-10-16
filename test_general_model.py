@@ -47,7 +47,7 @@ def main():
     taskname =  'door-lock-v2' #random.choice(args.tasks)
     pos = 2
     multi = True
-    variant = ['door_lock','window_horizontal','drawer']
+    variant = ['door_lock','window_horizontal','coffee']
 
     task_man = task_manager(taskname,pos=pos,variant=variant,multi=multi,general_model=True)
 
