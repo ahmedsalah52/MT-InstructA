@@ -2,10 +2,41 @@ import torch
 from train_utils.model import base_model
 from train_utils.args import  parser 
 
-from meta_env import meta_env
+from meta_env import meta_env,task_manager
+
 import cv2
 from PIL import Image
 import numpy as np
+import random
+def imshow_obs(env,instruction=None,res = (1920,1080)):
+    behindGripper  = env.render(offscreen= True,camera_name='behindGripper')
+    topview        = env.render(offscreen= True,camera_name='topview')
+    topview        = cv2.rotate(topview, cv2.ROTATE_180)
+    behindGripper  = cv2.rotate(behindGripper, cv2.ROTATE_180)
+
+    conc_image  = cv2.hconcat([behindGripper,topview])
+    white_border = np.zeros((40,conc_image.shape[1],3),dtype=np.uint8)
+    white_border.fill(255)
+    conc_image = cv2.vconcat([conc_image,white_border])
+    if instruction is not None:
+        cv2.putText(conc_image, instruction, (5,conc_image.shape[0] - 8), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+    cv2.imshow('image',cv2.resize(cv2.cvtColor( conc_image, cv2.COLOR_RGB2BGR),res))
+    return cv2.waitKey(0)
+def get_visual_obs(env):
+    corner         = env.render(offscreen= True,camera_name='corner') # corner,2,3, corner2, topview, gripperPOV, behindGripper'
+    corner2        = env.render(offscreen= True,camera_name='corner2')
+    behindGripper  = env.render(offscreen= True,camera_name='behindGripper')
+    corner3        = env.render(offscreen= True,camera_name='corner3')
+    topview        = env.render(offscreen= True,camera_name='topview')
+    
+    images = [cv2.resize(corner,(224,224)),       
+            cv2.resize(corner2,(224,224)),      
+            cv2.resize(behindGripper,(224,224)),
+            cv2.resize(corner3,(224,224)),      
+            cv2.resize(topview,(224,224))      
+    ]
+
+    return np.array(images)
 def main():
     args = parser.parse_args()
 
@@ -13,26 +44,30 @@ def main():
     model = base_model(args=args,tasks_commands=None,env=None,wandb_logger=None,seed=None).to(device)
     model = base_model.load_from_checkpoint(args.load_checkpoint_path,args=args,tasks_commands=None,env=None,wandb_logger=None,seed=args.seed)
     model.eval()
-    task = 'faucet-open-v2'
+    taskname =  'door-unlock-v2' #random.choice(args.tasks)
     pos = 2
-    env = meta_env(task,pos,save_images=True,wandb_render = False,wandb_log = False,general_model=True)
-    #print('task variant ', env.env.current_task_variant)
-    obs , info = env.reset()
-    cv2.imshow('image',cv2.resize(cv2.cvtColor( env.get_visual_obs_log(), cv2.COLOR_RGB2BGR),(1920,1080)))
-    key = cv2.waitKey(0)
+    multi = True
+    variant = ['door_lock','window_horizontal','drawer']
 
+    task_man = task_manager(taskname,pos=pos,variant=variant,multi=multi,general_model=True)
+
+
+    env = task_man.reset()
+   
+    obs = env.reset()  # Reset environment
+    key = imshow_obs(env)
     instruction = input('enter the instruction:')
-
     while 1:
         step_input = {'instruction':[instruction]}
-        images = [model.model.preprocess_image(Image.fromarray(np.uint8(img))) for img in info['images']]
+        images =  [model.model.preprocess_image(Image.fromarray(np.uint8(img))) for img in get_visual_obs(env)]
         step_input['images']   = torch.stack(images).unsqueeze(0).to(model.device)
         step_input['hand_pos'] = torch.tensor(np.concatenate((obs[0:4],obs[18:22]),axis =0)).to(torch.float32).unsqueeze(0).to(model.device)
         a = model.model(step_input)
-        obs, reward, done,success, info = env.step(a.detach().cpu().numpy()[0]) 
+        obs, reward, done, info = env.step(a.detach().cpu().numpy()[0]) 
         print(instruction , reward)
-        cv2.imshow('image',cv2.resize(cv2.cvtColor( env.get_visual_obs_log(), cv2.COLOR_RGB2BGR),(1920,1080)))
-        key = cv2.waitKey(0)
+        #print(np.concatenate((obs[0:4],obs[18:22]),axis =0))
+        key = imshow_obs(env,instruction)
+        
         if key & 0xFF == ord('m'):
             instruction = input('enter the instruction:')
         if key & 0xFF == ord('q'):
