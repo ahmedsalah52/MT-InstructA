@@ -44,7 +44,7 @@ def main():
     model = base_model(args=args,tasks_commands=None,env=None,wandb_logger=None,seed=None).to(device)
     model = base_model.load_from_checkpoint(args.load_checkpoint_path,args=args,tasks_commands=None,env=None,wandb_logger=None,seed=args.seed)
     model.eval()
-    taskname =  'door-unlock-v2' #random.choice(args.tasks)
+    taskname =  'door-lock-v2' #random.choice(args.tasks)
     pos = 2
     multi = True
     variant = ['door_lock','window_horizontal','drawer']
