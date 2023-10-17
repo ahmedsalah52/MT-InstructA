@@ -115,7 +115,7 @@ def split_dict(dict_of_lists, split_ratio=0.8,seed=42):
 
 
 class Generate_data():
-    def __init__(self,meta_env,data_dir,agents_dir,tasks,total_num_steps,agents_dict_dir,agent_levels):
+    def __init__(self,meta_env,data_dir,agents_dir,tasks,total_num_steps,agents_dict_dir,agent_levels,with_imgs):
         self.agent_levels = agent_levels
         self.data_dir = data_dir
         self.agents_dir = agents_dir
@@ -126,6 +126,8 @@ class Generate_data():
         self.agents_dict = json.load(open(agents_dict_dir))
         self.meta_env = meta_env
         self.agents_levels_step = 10000
+        self.with_imgs = with_imgs
+
     def generate_data(self):
         data_dict = {}
         for task in self.tasks:
@@ -137,7 +139,7 @@ class Generate_data():
         task_data = []
         for agent_level in range(self.agent_levels):
             for pos in [0,1,2]:
-                env   = self.meta_env(task,pos,save_images=True,process = 'train',wandb_log = False,general_model=True)
+                env   = self.meta_env(task,pos,save_images=self.with_imgs,process = 'train',wandb_log = False,general_model=True)
                 agent = self.get_agent(env,task,pos,agent_level)
                 task_data += self.generate_pos_data(env,agent,task,pos)
             
@@ -158,6 +160,7 @@ class Generate_data():
 
     def generate_pos_data(self,env,agent,task,pos):
         max_steps = self.max_task_steps//(3*self.agent_levels)
+        prev_images_obs = None
 
         episodes = []
         total_steps = 0
@@ -168,16 +171,16 @@ class Generate_data():
             success = False
             done = False
             prev_obs , info = env.reset()
-            prev_images_obs = self.save_images(info['images'],task,pos,id_num,step_num)
+            
             episode = [] 
             while 1:
+                if self.with_imgs: prev_images_obs = self.save_images(info['images'],task,pos,id_num,step_num)
                 a , _states = agent.predict(prev_obs, deterministic=True)
                 obs, reward, done,success, info = env.step(a) 
                 episode.append({'obs':prev_obs.tolist(),'action':a.tolist(),'reward':reward,'success':success,'images_dir':prev_images_obs})
                 
                 if (success or done): break 
                 prev_obs = obs
-                prev_images_obs = self.save_images(info['images'],task,pos,id_num,step_num)
                 step_num+=1
 
             total_steps+=step_num

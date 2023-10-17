@@ -292,6 +292,7 @@ class Multi_task_env():
         poses_list.pop(main_task_index)
         
         task_key = main_task_name if main_task_name in main_poses_dict.keys() else 'default' 
+        print(main_task_name)
         main_task_offsets = main_poses_dict[task_key]['main'][str(main_task_index)]['offset']
         main_task_range   = main_poses_dict[task_key]['main'][str(main_task_index)]['range']
         main_rot          = main_poses_dict[task_key]['main'][str(main_task_index)]['rot']

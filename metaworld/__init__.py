@@ -223,7 +223,7 @@ class ML_1_multi(Benchmark):
                                                     class_args,
                                         {env_name: args_kwargs},
                                         _ML_OVERRIDE,
-                                        seed=seed)
+                                        seed=None)
         self.my_env_s = env
 
 
