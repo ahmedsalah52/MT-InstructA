@@ -280,11 +280,11 @@ class Multi_task_env():
         if self.json_file_data == None: 
             self.json_file_data = json.load(open(os.path.join('metaworld/all_envs',main_task_name+'.json')))
         if main_pos_index == None or main_pos_index >= 3: main_pos_index = random.choice(poses_list)
+
         if task_variant == None:
             task_variants    = self.json_file_data[str(main_pos_index)]
             self.file_order  = random.choice(range(len(task_variants)))
             task_variant     = task_variants[self.file_order][:]
-
         self.current_task_variant = task_variant[:]
         
         main_task_index = task_variant.index(main_task_name)

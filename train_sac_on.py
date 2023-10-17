@@ -93,8 +93,8 @@ def main():
     task_pos   = int(sys.argv[2])
     task_poses = ['Right','Mid','Left','Mix']
 
-    #logs_dir = 'all_logs'
-    logs_dir = '/system/user/publicdata/mansour_datasets/metaworld'
+    logs_dir = 'all_logs'
+    #logs_dir = '/system/user/publicdata/mansour_datasets/metaworld'
 
     os.environ["WANDB_DIR"] = logs_dir
 
@@ -123,13 +123,13 @@ def main():
     save_freq=configs['buffer_size'],
     save_path=save_path,
     name_prefix=run_name,
-    save_replay_buffer=False,
+    save_replay_buffer=True,
     save_vecnormalize=True,
     )
 
 
-    env      = meta_env(task_name,task_pos,configs['render'],configs['episode_length'],pos_emb_flag = configs['pos_emb_dim']>0,wandb_render = False,multi=configs['multi'],process = 'train')
-    eval_env = meta_env(task_name,task_pos,configs['render'],configs['episode_length'],pos_emb_flag = configs['pos_emb_dim']>0,wandb_render = True ,multi=configs['multi'],process = 'valid')
+    env      = meta_env(task_name,task_pos,save_images=configs['render'],episode_length=configs['episode_length'],pos_emb_flag = configs['pos_emb_dim']>0,wandb_render = False,multi=configs['multi'],process = 'train')
+    eval_env = meta_env(task_name,task_pos,save_images=configs['render'],episode_length=configs['episode_length'],pos_emb_flag = configs['pos_emb_dim']>0,wandb_render = True ,multi=configs['multi'],process = 'valid')
 
 
     eval_callback = EvalCallback(eval_env, best_model_save_path=logs_dir+"/eval_logs/"+run_name,
