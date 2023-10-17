@@ -21,4 +21,5 @@ def main():
 
     with open(to_dir,'w') as f:
         json.dump(to_dict,f)
-    
+
+main()
