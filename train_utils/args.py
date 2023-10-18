@@ -20,8 +20,7 @@ parser.add_argument('--with_imgs', action='store_true',help='to render and save 
 
 #shared args
 parser.add_argument('--data_dir', type=str, default='generated_data')
-#parser.add_argument('--dataset_dict_dir', type=str, default='generated_data/')
-parser.add_argument('--tasks', type=list, default= ['soccer-v2'])#['button-press-topdown-v2', 'button-press-v2', 'door-lock-v2', 'door-open-v2',  'drawer-open-v2', 'window-open-v2', 'faucet-open-v2', 'faucet-close-v2', 'handle-press-v2', 'coffee-button-v2'])
+parser.add_argument('--tasks', type=list, default= ['button-press-topdown-v2', 'button-press-v2', 'door-lock-v2', 'door-open-v2',  'drawer-open-v2', 'window-open-v2', 'faucet-open-v2', 'faucet-close-v2', 'handle-press-v2', 'coffee-button-v2'])
 parser.add_argument('--poses', type=list, default= [1])
 parser.add_argument('--agents_dict_dir', type=str, default='configs/general_model_configs/agents_dict.json')
 
