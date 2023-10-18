@@ -26,6 +26,19 @@ class temp_dataset(Dataset):
 
         return ret
 
+def get_stats(data_dict):
+    table=[]
+    total_success_rate = 0
+    for task_name , episodes in data_dict.items():
+        task_success = 0
+        for episode in episodes:
+            task_success += episode[-1]['success']
+        
+        task_success_rate = float(task_success) / len(episodes)
+        total_success_rate += task_success_rate
+        table.append([task_name,task_success_rate])
+    table.append(['total_success_rate',total_success_rate/len(data_dict.items())])
+    return table
 
 class MW_dataset(Dataset):
     def __init__(self,preprocess,dataset_dict_dir,dataset_dir,tasks_commands,total_data_len):
@@ -48,18 +61,7 @@ class MW_dataset(Dataset):
         #random.shuffle(self.data)
         #self.data = self.data[0:self.total_data_len]
     def get_stats(self):
-        table=[]
-        total_success_rate = 0
-        for task_name , episodes in self.data_dict.items():
-            task_success = 0
-            for episode in episodes:
-                task_success += episode[-1]['success']
-            
-            task_success_rate = float(task_success) / len(episodes)
-            total_success_rate += task_success_rate
-            table.append([task_name,task_success_rate])
-        table.append(['total_success_rate',total_success_rate/len(self.data_dict.items())])
-        return table
+        return get_stats(self.data_dict)
     def __len__(self):
         return len(self.data)
     
@@ -115,7 +117,7 @@ def split_dict(dict_of_lists, split_ratio=0.8,seed=42):
 
 
 class Generate_data():
-    def __init__(self,meta_env,data_dir,agents_dir,tasks,total_num_steps,agents_dict_dir,agent_levels,with_imgs):
+    def __init__(self,meta_env,data_dir,agents_dir,tasks,total_num_steps,agents_dict_dir,agent_levels,poses,with_imgs):
         self.agent_levels = agent_levels
         self.data_dir = data_dir
         self.agents_dir = agents_dir
@@ -123,6 +125,7 @@ class Generate_data():
         self.total_num_steps = total_num_steps
         self.max_task_steps = total_num_steps//len(tasks)
         self.task_poses = ['Right','Mid','Left']
+        self.poses = poses
         self.agents_dict = json.load(open(agents_dict_dir))
         self.meta_env = meta_env
         self.agents_levels_step = 10000
@@ -138,7 +141,7 @@ class Generate_data():
     def generate_task_data(self,task):
         task_data = []
         for agent_level in range(self.agent_levels):
-            for pos in [0,1,2]:
+            for pos in self.poses:
                 env   = self.meta_env(task,pos,save_images=self.with_imgs,process = 'train',wandb_log = False,general_model=True)
                 agent = self.get_agent(env,task,pos,agent_level)
                 task_data += self.generate_pos_data(env,agent,task,pos)
@@ -159,7 +162,7 @@ class Generate_data():
 
 
     def generate_pos_data(self,env,agent,task,pos):
-        max_steps = self.max_task_steps//(3*self.agent_levels)
+        max_steps = self.max_task_steps//(len(self.poses)*self.agent_levels)
         prev_images_obs = None
 
         episodes = []
