@@ -11,6 +11,7 @@ import random
 import clip
 from torchvision import transforms
 from PIL import Image 
+from timm.scheduler import TanhLRScheduler
 
 
 
@@ -213,8 +214,11 @@ class base_model(pl.LightningModule):
         models = {'simple_clip':ClIP,'open_ai_clip':Open_AI_CLIP}
         self.loss_fun = loss_funs[args.loss_fun]
         self.model = models[args.model_name](args)
-        self.opt = self.model.get_opt(args)
         self.preprocess = self.model.preprocess_image
+
+        self.opt = self.model.get_opt(args)
+
+        #scheduler = TanhLRScheduler(self.opt, ...)
 
     def training_step(self, batch, batch_idx):
         
@@ -296,4 +300,10 @@ class base_model(pl.LightningModule):
 
     def configure_optimizers(self):
         return self.opt
+        #return [self.opt], [{"scheduler": self.scheduler, "interval": "epoch"}]
 
+   
+
+
+    def lr_scheduler_step(self, scheduler, metric):
+        scheduler.step(epoch=self.current_epoch)  # timm's scheduler need the epoch value

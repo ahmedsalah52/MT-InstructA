@@ -69,3 +69,9 @@ parser.add_argument('--evaluate_every', type=int, default=1)
 parser.add_argument('--evaluation_episodes',help='number of episodes per task per position', type=int, default=1)
 parser.add_argument('--load_checkpoint_path', type=str, default=None)
 parser.add_argument('--n_gpus', type=int, default=1)
+
+
+#testing
+parser.add_argument('--save_video', action='store_true')
+parser.add_argument('--video_dir', type=str, default='video_resutls')
+parser.add_argument('--video_res', type=tuple, default=(1920,1080))
