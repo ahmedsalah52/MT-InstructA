@@ -11,7 +11,9 @@ import random
 import clip
 from torchvision import transforms
 from PIL import Image 
-from timm.scheduler import TanhLRScheduler
+#from timm.scheduler import TanhLRScheduler
+#import torch.optim.lr_scheduler as lr_scheduler
+from torch.optim.lr_scheduler import StepLR
 
 
 
@@ -218,6 +220,7 @@ class base_model(pl.LightningModule):
 
         self.opt = self.model.get_opt(args)
 
+        self.my_scheduler = StepLR(self.opt, step_size=10, gamma=0.5) #lr_scheduler.LinearLR(self.opt, start_factor=1.0, end_factor=0.3, total_iters=10)
         #scheduler = TanhLRScheduler(self.opt, ...)
 
     def training_step(self, batch, batch_idx):
@@ -299,8 +302,8 @@ class base_model(pl.LightningModule):
 
 
     def configure_optimizers(self):
-        return self.opt
-        #return [self.opt], [{"scheduler": self.scheduler, "interval": "epoch"}]
+        #return self.opt
+        return [self.opt], [{"scheduler": self.my_scheduler,  'name': 'lr_scheduler'}]
 
    
 

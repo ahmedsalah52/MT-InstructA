@@ -5,7 +5,8 @@ from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning import Trainer
 from meta_env import meta_env
 import os
-from pytorch_lightning.callbacks import ModelCheckpoint
+from pytorch_lightning.callbacks import ModelCheckpoint ,LearningRateLogger
+
 from train_utils.metaworld_dataset import MW_dataset,split_dict
 import json
 
@@ -33,7 +34,8 @@ def main():
         save_on_train_epoch_end=True
         )
     
-    
+    lr_logger = LearningRateLogger(logging_interval='step')
+
     tasks_commands = json.load(open(args.tasks_commands_dir))
     train_tasks_commands,val_tasks_commands = split_dict(tasks_commands,args.commands_split_ratio,seed=args.seed)
     
@@ -46,7 +48,7 @@ def main():
     train_dataloader = torch.utils.data.DataLoader(train_dataset,batch_size=args.batch_size,shuffle=True,num_workers = args.num_workers,pin_memory=True)
 
 
-    trainer = Trainer(callbacks=[succ_rate_checkpoint_callback],logger = wandb_logger,max_epochs=args.num_epochs,strategy='ddp_find_unused_parameters_true',devices=args.n_gpus)#,reload_dataloaders_every_n_epochs=args.generate_data_every,use_distributed_sampler=False)
+    trainer = Trainer(callbacks=[succ_rate_checkpoint_callback,lr_logger],logger = wandb_logger,max_epochs=args.num_epochs,strategy='ddp_find_unused_parameters_true',devices=args.n_gpus)#,reload_dataloaders_every_n_epochs=args.generate_data_every,use_distributed_sampler=False)
     trainer.fit(model,train_dataloader,ckpt_path= args.load_checkpoint_path)
 
 
