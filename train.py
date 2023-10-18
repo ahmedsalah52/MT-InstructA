@@ -5,7 +5,7 @@ from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning import Trainer
 from meta_env import meta_env
 import os
-from pytorch_lightning.callbacks import ModelCheckpoint ,lr_logger
+from pytorch_lightning.callbacks import ModelCheckpoint ,LearningRateMonitor
 from train_utils.metaworld_dataset import MW_dataset,split_dict
 import json
 
@@ -33,7 +33,7 @@ def main():
         save_on_train_epoch_end=True
         )
     
-    lr_logger_callback  = lr_logger.LearningRateLogger(logging_interval='step')
+    lr_logger_callback  = LearningRateMonitor(logging_interval='step')
 
     tasks_commands = json.load(open(args.tasks_commands_dir))
     train_tasks_commands,val_tasks_commands = split_dict(tasks_commands,args.commands_split_ratio,seed=args.seed)
