@@ -21,8 +21,8 @@ parser.add_argument('--with_imgs', type=bool, default=True,help='to render and s
 #shared args
 parser.add_argument('--data_dir', type=str, default='generated_data')
 #parser.add_argument('--dataset_dict_dir', type=str, default='generated_data/')
-parser.add_argument('--tasks', type=list, default= ['button-press-topdown-v2', 'button-press-v2', 'door-lock-v2', 'door-open-v2',  'drawer-open-v2', 'window-open-v2', 'faucet-open-v2', 'faucet-close-v2', 'handle-press-v2', 'coffee-button-v2'])
-parser.add_argument('--agents_dict_dir', type=str, default='training_configs/agents_dict.json')
+parser.add_argument('--tasks', type=list, default= ['soccer-v2'])#['button-press-topdown-v2', 'button-press-v2', 'door-lock-v2', 'door-open-v2',  'drawer-open-v2', 'window-open-v2', 'faucet-open-v2', 'faucet-close-v2', 'handle-press-v2', 'coffee-button-v2'])
+parser.add_argument('--agents_dict_dir', type=str, default='configs/general_model_configs/agents_dict.json')
 
 
 
@@ -58,7 +58,7 @@ parser.add_argument('--text_model_max_length', type=int, default=20)
 
 
 #training
-parser.add_argument('--tasks_commands_dir', type=str, default='training_configs/commands.json')
+parser.add_argument('--tasks_commands_dir', type=str, default='configs/general_model_configs/commands.json')
 parser.add_argument('--commands_split_ratio', type=float,default=0.8,help='how much of the commands to use for training')
 parser.add_argument('--batch_size', type=int, default=16)
 parser.add_argument('--num_workers', type=int, default=12)

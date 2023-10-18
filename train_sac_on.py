@@ -93,15 +93,15 @@ def main():
     task_pos   = int(sys.argv[2])
     task_poses = ['Right','Mid','Left','Mix']
 
-    #logs_dir = 'all_logs'
-    logs_dir = '/system/user/publicdata/mansour_datasets/metaworld'
+    logs_dir = 'all_logs'
+    #logs_dir = '/system/user/publicdata/mansour_datasets/metaworld'
 
     os.environ["WANDB_DIR"] = logs_dir
 
 
-    configs_dir = os.path.join('training_configs',task_name+'.json')
+    configs_dir = os.path.join('configs','sac_configs',task_name+'.json')
     if not os.path.isfile(configs_dir):
-        configs_dir = os.path.join('training_configs','default.json')
+        configs_dir = os.path.join('configs','sac_configs','default.json')
 
     configs = json.load(open(configs_dir))
     configs['task_name'] = task_name

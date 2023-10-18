@@ -305,8 +305,3 @@ class base_model(pl.LightningModule):
         #return self.opt
         return [self.opt], [{"scheduler": self.my_scheduler,  'name': 'lr_scheduler'}]
 
-   
-
-
-    def lr_scheduler_step(self, scheduler, metric):
-        scheduler.step(epoch=self.current_epoch)  # timm's scheduler need the epoch value
