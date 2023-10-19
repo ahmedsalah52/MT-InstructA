@@ -317,6 +317,7 @@ class Multi_task_env():
         self.task_offsets_max = np.array(main_task_offsets) + np.array(main_task_range)
        
         if self.general_model_flag:
+            #self.hand_init_pos_  = [np.random.uniform(0 ,0),np.random.uniform(0.4,0.4), np.random.uniform(0.15,0.15)]
             self.hand_init_pos_  = [np.random.uniform(-0.1 ,0.1),np.random.uniform(0.4,0.5), np.random.uniform(0.15,0.3)]
         else:
             min_x = self.task_offsets_min[0]

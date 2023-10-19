@@ -48,9 +48,6 @@ class video():
         
 
 
-
-
-
 def get_visual_obs(env):
     corner         = env.render(offscreen= True,camera_name='corner') # corner,2,3, corner2, topview, gripperPOV, behindGripper'
     corner2        = env.render(offscreen= True,camera_name='corner2')
@@ -68,6 +65,7 @@ def get_visual_obs(env):
     return np.array(images)
 def main():
     args = parser.parse_args()
+    print('save video ',args.save_video)
     video_man = video(save_dir=args.video_dir,save_video=args.save_video,res=args.video_res)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = base_model(args=args,tasks_commands=None,env=None,wandb_logger=None,seed=None).to(device)
@@ -103,7 +101,7 @@ def main():
             break
     cv2.destroyAllWindows()
     env.close()
-    video_man.write_video(taskname)
+    video_man.write_video(args.video_exp_name)
 
 if __name__ == "__main__":
     main()

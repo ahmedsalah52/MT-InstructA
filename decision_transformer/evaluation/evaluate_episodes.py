@@ -134,8 +134,8 @@ def evaluate_episode_rtg(
         episode_return += reward
         episode_length += 1
 
-        if done or info['success']:
+        """ if done or info['success']:
             print('eval success', info['success'])
-            break
+            break"""
 
-    return episode_return, episode_length
+    return episode_return, episode_length , info['success']

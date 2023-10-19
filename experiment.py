@@ -49,26 +49,26 @@ def experiment(
 ):
     device = variant.get('device', 'cuda')
     log_to_wandb = variant.get('log_to_wandb', False)
-
+    print('wandb: ',log_to_wandb)
     env_name, dataset = variant['env'], variant['dataset']
     model_type = variant['model_type']
     group_name = f'{exp_prefix}-{env_name}-{dataset}'
     exp_prefix = f'{group_name}-{random.randint(int(1e5), int(1e6) - 1)}'
 
-    if env_name == 'coffee-button-v2':
-        max_ep_len = 200
-        env_targets = [7.0,10.0]  # evaluation conditioning targets
-        scale = 1.  # normalization for rewards/returns
-        state_dim = 39
-        act_dim   = 4
-        path = 'data/dataset_dict.json'
-       
-        task_man = task_manager('coffee-button-v2',pos= 1,multi=True)
-        env = task_man.reset()
+    max_ep_len = 200
+    env_targets = [7.0,10.0]  # evaluation conditioning targets
+    scale = 1.  # normalization for rewards/returns
+    state_dim = 39
+    act_dim   = 4
+    path = f'data/dataset_dict_{env_name}.json'
+    
+    
+    
+    env_name += '-v2'
+    task_man = task_manager(env_name,pos= 1,multi=True)
+    env = task_man.reset()
 
-    else:
-        raise NotImplementedError
-
+    
     if model_type == 'bc':
         env_targets = env_targets[:1]  # since BC ignores target, no need for different evaluations
 
@@ -78,7 +78,7 @@ def experiment(
     with open(path, 'r') as f:
         data = json.load(f)
 
-    data = data['coffee-button-v2']
+    data = data[env_name]
     trajectories = []
     for episode in data:
         obs = []
@@ -186,11 +186,11 @@ def experiment(
 
     def eval_episodes(target_rew):
         def fn(model):
-            returns, lengths = [], []
+            returns, lengths ,successes = [], [] , []
             for _ in range(num_eval_episodes):
                 with torch.no_grad():
                     if model_type == 'dt':
-                        ret, length = evaluate_episode_rtg(
+                        ret, length ,success = evaluate_episode_rtg(
                             env,
                             state_dim,
                             act_dim,
@@ -218,6 +218,11 @@ def experiment(
                         )
                 returns.append(ret)
                 lengths.append(length)
+                successes.append(success)
+            if log_to_wandb:
+                wandb.log({'val success rate':np.mean(successes)})
+                    
+            print('success rate',np.mean(successes))
             return {
                 f'target_{target_rew}_return_mean': np.mean(returns),
                 f'target_{target_rew}_return_std': np.std(returns),
@@ -303,7 +308,7 @@ def experiment(
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--env', type=str, default='coffee-button-v2')
+    parser.add_argument('--env', type=str, default='coffee-button')
     parser.add_argument('--dataset', type=str, default='medium-expert')  # medium, medium-replay, medium-expert, expert
     parser.add_argument('--mode', type=str, default='normal')  # normal for standard setting, delayed for sparse
     parser.add_argument('--K', type=int, default=20)
@@ -319,10 +324,10 @@ if __name__ == '__main__':
     parser.add_argument('--weight_decay', '-wd', type=float, default=1e-4)
     parser.add_argument('--warmup_steps', type=int, default=10000)
     parser.add_argument('--num_eval_episodes', type=int, default=100)
-    parser.add_argument('--max_iters', type=int, default=10)
+    parser.add_argument('--max_iters', type=int, default=100)
     parser.add_argument('--num_steps_per_iter', type=int, default=10000)
     parser.add_argument('--device', type=str, default='cuda')
-    parser.add_argument('--log_to_wandb', '-w', type=bool, default=False)
+    parser.add_argument('--log_to_wandb', '-w', type=bool, default=True)
     
     args = parser.parse_args()
 

@@ -21,7 +21,7 @@ def main():
     wandb_logger = WandbLogger( 
     project= args.project_name,
     name   = args.run_name)
-    #print("checkpoints dir:",os.path.join(args.project_dir,args.project_name,args.run_name,'checkpoints'))
+
     succ_rate_checkpoint_callback = ModelCheckpoint(
         dirpath = os.path.join(args.project_dir,args.project_name,args.run_name,'checkpoints'),
         filename= '{epoch}-{success_rate:.2f}',
@@ -36,6 +36,7 @@ def main():
     lr_logger_callback  = LearningRateMonitor(logging_interval='step')
 
     tasks_commands = json.load(open(args.tasks_commands_dir))
+    tasks_commands = {k:list(set(v)) for k,v in tasks_commands.items() if k in args.tasks}
     train_tasks_commands,val_tasks_commands = split_dict(tasks_commands,args.commands_split_ratio,seed=args.seed)
     
     model = base_model(args=args,tasks_commands=val_tasks_commands,env=meta_env,wandb_logger=wandb_logger,seed=args.seed)

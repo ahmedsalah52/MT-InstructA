@@ -73,5 +73,6 @@ parser.add_argument('--n_gpus', type=int, default=1)
 
 #testing
 parser.add_argument('--save_video', action='store_true')
+parser.add_argument('--video_exp_name', type=str, default='video')
 parser.add_argument('--video_dir', type=str, default='video_resutls')
 parser.add_argument('--video_res', type=tuple, default=(1920,1080))
