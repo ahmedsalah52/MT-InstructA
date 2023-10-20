@@ -8,7 +8,7 @@ from PIL import Image
 #from timm.scheduler import TanhLRScheduler
 #import torch.optim.lr_scheduler as lr_scheduler
 from torch.optim.lr_scheduler import StepLR
-from networks import *
+from train_utils.networks import *
 
 class base_model(pl.LightningModule):
     def __init__(self,args,tasks_commands,env,wandb_logger,seed):
