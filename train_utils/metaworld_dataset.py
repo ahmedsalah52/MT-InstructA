@@ -144,7 +144,7 @@ class Generate_data():
             for pos in self.poses:
                 env   = self.meta_env(task,pos,save_images=self.with_imgs,process = 'train',wandb_log = False,general_model=True)
                 agent = self.get_agent(env,task,pos,agent_level)
-                task_data += self.generate_pos_data(env,agent,task,pos)
+                task_data += self.generate_pos_data(env,agent,task,pos,agent_level)
             
         return task_data
     
@@ -161,7 +161,7 @@ class Generate_data():
         return SAC.load(load_path,env)
 
 
-    def generate_pos_data(self,env,agent,task,pos):
+    def generate_pos_data(self,env,agent,task,pos,agent_level):
         max_steps = self.max_task_steps//(len(self.poses)*self.agent_levels)
         prev_images_obs = None
 
@@ -177,7 +177,7 @@ class Generate_data():
             
             episode = [] 
             while 1:
-                if self.with_imgs: prev_images_obs = self.save_images(info['images'],task,pos,id_num,step_num)
+                if self.with_imgs: prev_images_obs = self.save_images(info['images'],task,pos,id_num,step_num,agent_level)
                 a , _states = agent.predict(prev_obs, deterministic=True)
                 obs, reward, done,success, info = env.step(a) 
                 episode.append({'obs':prev_obs.tolist(),'action':a.tolist(),'reward':reward,'success':success,'images_dir':prev_images_obs})
@@ -189,11 +189,11 @@ class Generate_data():
             total_steps+=step_num
             episodes.append(episode[:])
         return episodes   
-    def save_images(self,images,taskname,pos,id_num,step_num):
+    def save_images(self,images,taskname,pos,id_num,step_num,agent_level):
         ret = []
         for i in range(len(images)):
             ret_dir = os.path.join(taskname,str(pos))
-            img_name = f'{id_num}_{step_num}_{i}.jpg'
+            img_name = f'lvl{agent_level}_id{id_num}_step{step_num}_{i}.jpg'
 
             save_dir = os.path.join(self.data_dir,ret_dir)
             if not os.path.exists(save_dir):
