@@ -1,5 +1,5 @@
 import torch
-from train_utils.model import base_model
+from train_utils.model import TL_model
 from train_utils.args import  parser 
 
 from meta_env import meta_env,task_manager
@@ -68,8 +68,8 @@ def main():
     print('save video ',args.save_video)
     video_man = video(save_dir=args.video_dir,save_video=args.save_video,res=args.video_res)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = base_model(args=args,tasks_commands=None,env=None,wandb_logger=None,seed=None).to(device)
-    model = base_model.load_from_checkpoint(args.load_checkpoint_path,args=args,tasks_commands=None,env=None,wandb_logger=None,seed=args.seed)
+    model = TL_model(args=args,tasks_commands=None,env=None,wandb_logger=None,seed=None).to(device)
+    model = TL_model.load_from_checkpoint(args.load_checkpoint_path,args=args,tasks_commands=None,env=None,wandb_logger=None,seed=args.seed)
     model.eval()
     taskname =  random.choice(args.tasks)
     pos = 2

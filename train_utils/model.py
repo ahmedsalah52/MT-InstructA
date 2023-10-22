@@ -55,10 +55,6 @@ class TL_model(pl.LightningModule):
         self.model = base_model(args) 
         self.preprocess = self.model.preprocess_image
 
-
-        #lr_scheduler.LinearLR(self.opt, start_factor=1.0, end_factor=0.3, total_iters=10)
-        #scheduler = TanhLRScheduler(self.opt, ...)
-
         params = self.model.backbone.get_opt_params(args) + self.model.head.get_opt_params(args)
         if args.neck:
             params += self.model.neck.get_opt_params(args)
