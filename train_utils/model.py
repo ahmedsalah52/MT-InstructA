@@ -47,26 +47,12 @@ class base_model(pl.LightningModule):
         self.log("train_loss", loss,sync_dist=True,batch_size=self.batch_size,prog_bar=True)
         return loss
     
-  
-    
-    def validation_step(self, batch, batch_idx):
-        
-        
-        batch = {k : v.to(self.device) if k != 'instruction' else v  for k,v in batch.items()}
-        
-        logits = self.model(batch)
-
-        y = batch['action']
-
-        loss = self.loss_fun(logits, y)
-        self.log("val_loss", loss,sync_dist=True,batch_size=self.batch_size,prog_bar=True)
-        return loss
     
 
     def on_train_epoch_end(self):
         if (self.current_epoch % self.evaluate_every == 0):
             
-            print(f"epoch {self.current_epoch}  evaluation on device {self.device}")
+            print(f"\nepoch {self.current_epoch}  evaluation on device {self.device}")
             total_success = 0
             total_vids =[]
             success_rate_table = []
@@ -96,7 +82,7 @@ class base_model(pl.LightningModule):
                         #rendered_seq = np.array(rendered_seq, dtype=np.uint8)
                         #rendered_seq = rendered_seq.transpose(0,3, 1, 2)
                         #videos.append(wandb.Video(rendered_seq, fps=30))
-                self.log(task, np.mean(success_rate_row),on_epoch=True,sync_dist=True,batch_size=self.batch_size) # type: ignore
+                self.log(task, np.mean(success_rate_row),sync_dist=True,batch_size=self.batch_size) # type: ignore
 
                 #total_vids.append(list(reversed(videos)))
                 #success_rate_table.append([task]+list(reversed(success_rate_row))) 
@@ -106,7 +92,7 @@ class base_model(pl.LightningModule):
             #self.log("samples",total_vids    ,on_epoch=True,sync_dist=True)
             #self.log("evaluations",total_vids,on_epoch=True,sync_dist=True)
         
-            self.log("success_rate", float(total_success)/(len(self.tasks)*3*self.evaluation_episodes),on_epoch=True,sync_dist=True,batch_size=self.batch_size,prog_bar=True) # type: ignore
+            self.log("success_rate", float(total_success)/(len(self.tasks)*3*self.evaluation_episodes),sync_dist=True,batch_size=self.batch_size,prog_bar=True) # type: ignore
         #torch.cuda.empty_cache()
 
 

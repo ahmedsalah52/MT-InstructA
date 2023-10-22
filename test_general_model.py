@@ -71,10 +71,10 @@ def main():
     model = base_model(args=args,tasks_commands=None,env=None,wandb_logger=None,seed=None).to(device)
     model = base_model.load_from_checkpoint(args.load_checkpoint_path,args=args,tasks_commands=None,env=None,wandb_logger=None,seed=args.seed)
     model.eval()
-    taskname =  'coffee-button-v2' #random.choice(args.tasks)
+    taskname =  random.choice(args.tasks)
     pos = 2
     multi = True
-    variant = ['faucet','window_horizontal','coffee']
+    variant = None #['faucet','window_horizontal','coffee']
 
     task_man = task_manager(taskname,pos=pos,variant=variant,multi=multi,general_model=True)
 
