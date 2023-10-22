@@ -1,5 +1,5 @@
 import torch
-from train_utils.model import base_model
+from train_utils.model import TL_model
 from train_utils.args import  parser 
 from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning import Trainer
@@ -39,7 +39,7 @@ def main():
     tasks_commands = {k:list(set(v)) for k,v in tasks_commands.items() if k in args.tasks}
     train_tasks_commands,val_tasks_commands = split_dict(tasks_commands,args.commands_split_ratio,seed=args.seed)
     
-    model = base_model(args=args,tasks_commands=val_tasks_commands,env=meta_env,wandb_logger=wandb_logger,seed=args.seed)
+    model = TL_model(args=args,tasks_commands=val_tasks_commands,env=meta_env,wandb_logger=wandb_logger,seed=args.seed)
 
     train_dataset = MW_dataset(model.preprocess,os.path.join(args.project_dir,args.data_dir,'dataset_dict.json'),os.path.join(args.project_dir,args.data_dir,'data'),train_tasks_commands,total_data_len=args.train_data_total_steps)
     stats_table = train_dataset.get_stats()

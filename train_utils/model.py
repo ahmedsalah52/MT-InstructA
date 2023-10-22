@@ -8,9 +8,36 @@ from PIL import Image
 #from timm.scheduler import TanhLRScheduler
 #import torch.optim.lr_scheduler as lr_scheduler
 from torch.optim.lr_scheduler import StepLR
-from train_utils.networks import *
+from train_utils.backbones import *
+from train_utils.necks import *
+from train_utils.heads import *
 
-class base_model(pl.LightningModule):
+
+class base_model(nn.Module):
+    def __init__(self,args) -> None:
+        super().__init__()
+        self.args = args
+
+        backbones = {'simple_clip':ClIP,'open_ai_clip':Open_AI_CLIP}
+        necks = {'transformer':transformer_encoder}
+        heads = {'fc':fc_head}
+        
+        self.backbone  = backbones[args.backbone](args)
+        self.preprocess_image = self.backbone.preprocess_image
+        if args.neck:
+            self.neck = necks[args.neck](args)
+        self.head = heads[args.head](args)
+
+        
+    def forward(self,batch):
+        x = self.backbone(batch)
+        if self.args.neck:
+            x = self.neck(x)
+        x = self.head(x)
+        return x
+        
+
+class TL_model(pl.LightningModule):
     def __init__(self,args,tasks_commands,env,wandb_logger,seed):
         super().__init__()
         self.tasks_commands = tasks_commands
@@ -24,16 +51,23 @@ class base_model(pl.LightningModule):
         loss_funs = {'cross_entropy':nn.CrossEntropyLoss(),
                      'mse':nn.MSELoss()}
         
-        models = {'simple_clip':ClIP,'open_ai_clip':Open_AI_CLIP}
         self.loss_fun = loss_funs[args.loss_fun]
-        self.model = models[args.model_name](args)
+        self.model = base_model(args) 
         self.preprocess = self.model.preprocess_image
 
-        self.opt = self.model.get_opt(args)
 
-        self.my_scheduler = StepLR(self.opt, step_size=10, gamma=0.5) #lr_scheduler.LinearLR(self.opt, start_factor=1.0, end_factor=0.3, total_iters=10)
+        #lr_scheduler.LinearLR(self.opt, start_factor=1.0, end_factor=0.3, total_iters=10)
         #scheduler = TanhLRScheduler(self.opt, ...)
 
+        params = self.model.backbone.get_opt_params(args) + self.model.head.get_opt_params(args)
+        if args.neck:
+            params += self.model.neck.get_opt_params(args)
+
+        self.opt = torch.optim.Adam(
+                params,
+                lr=args.lr,
+            )
+        self.my_scheduler = StepLR(self.opt, step_size=10, gamma=0.5)
     def training_step(self, batch, batch_idx):
         
         
