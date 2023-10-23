@@ -96,16 +96,16 @@ class TL_model(pl.LightningModule):
                         instruction = random.choice(self.tasks_commands[task])
                         #rendered_seq = []
                         while 1:
-                            
-                            step_input = {'instruction':[instruction]}
-                            images = [self.model.preprocess_image(Image.fromarray(np.uint8(img))) for img in info['images']]
-                            step_input['images']   = torch.stack(images).unsqueeze(0).to(self.device)
-                            step_input['hand_pos'] = torch.tensor(np.concatenate((obs[0:4],obs[18:22]),axis =0)).to(torch.float32).unsqueeze(0).to(self.device)
-                            a = self.model(step_input)
-                            obs, reward, done,success, info = env.step(a.detach().cpu().numpy()[0]) 
-                            total_success+=success
-                            #rendered_seq.append(env.get_visual_obs_log())
-                            if (success or done): break 
+                            with torch.no_grad():
+                                step_input = {'instruction':[instruction]}
+                                images = [self.model.preprocess_image(Image.fromarray(np.uint8(img))) for img in info['images']]
+                                step_input['images']   = torch.stack(images).unsqueeze(0).to(self.device)
+                                step_input['hand_pos'] = torch.tensor(np.concatenate((obs[0:4],obs[18:22]),axis =0)).to(torch.float32).unsqueeze(0).to(self.device)
+                                a = self.model(step_input)
+                                obs, reward, done,success, info = env.step(a.detach().cpu().numpy()[0]) 
+                                total_success+=success
+                                #rendered_seq.append(env.get_visual_obs_log())
+                                if (success or done): break 
                         
                         env.close()
                         success_rate_row.append(success)

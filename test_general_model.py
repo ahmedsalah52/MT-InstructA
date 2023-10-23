@@ -20,7 +20,8 @@ class video():
             os.mkdir(save_dir)
 
         
-    def imshow_obs(self,env,instruction=None):
+    def imshow_obs(self,env,instruction=None,main_task_pos=None,tasks=None):
+
         behindGripper  = env.render(offscreen= True,camera_name='behindGripper')
         topview        = env.render(offscreen= True,camera_name='topview')
         topview        = cv2.rotate(topview, cv2.ROTATE_180)
@@ -29,9 +30,17 @@ class video():
         conc_image  = cv2.hconcat([behindGripper,topview])
         white_border = np.zeros((40,conc_image.shape[1],3),dtype=np.uint8)
         white_border.fill(255)
-        conc_image = cv2.vconcat([conc_image,white_border])
+        conc_image = cv2.vconcat([white_border,conc_image,white_border])
         if instruction is not None:
             cv2.putText(conc_image, instruction, (5,conc_image.shape[0] - 8), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+        if main_task_pos is not None and tasks is not None:
+            tasks = reversed(tasks)
+            main_task_pos = 2 - main_task_pos 
+            for i,task in enumerate(tasks):
+                x = (i * conc_image.shape[1]//3) + conc_image.shape[1]//8
+                color = (255, 0, 0)  if i == main_task_pos else  (0, 0, 255) 
+                cv2.putText(conc_image, task, (x, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
+
         final_frame = cv2.resize(cv2.cvtColor( conc_image, cv2.COLOR_RGB2BGR),self.res)
         if self.save_video:
             self.video.append(final_frame)
@@ -69,20 +78,22 @@ def main():
     video_man = video(save_dir=args.video_dir,save_video=args.save_video,res=args.video_res)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = TL_model(args=args,tasks_commands=None,env=None,wandb_logger=None,seed=None).to(device)
-    model = TL_model.load_from_checkpoint(args.load_checkpoint_path,args=args,tasks_commands=None,env=None,wandb_logger=None,seed=args.seed)
+    model = TL_model.load_from_checkpoint(args.load_checkpoint_path,args=args,tasks_commands=None,env=None,wandb_logger=None,seed=None)
     model.eval()
     taskname =  random.choice(args.tasks)
-    pos = 2
+    #rand int from 0 to 2
+    pos    = random.randint(0,2)
     multi = True
     variant = None #['faucet','window_horizontal','coffee']
-
+    
     task_man = task_manager(taskname,pos=pos,variant=variant,multi=multi,general_model=True)
 
 
     env = task_man.reset()
    
     obs = env.reset()  # Reset environment
-    key = video_man.imshow_obs(env)
+    print(env.current_task_variant , env.main_pos_index)
+    key = video_man.imshow_obs(env,main_task_pos=env.main_pos_index,tasks=env.current_task_variant)
     instruction = input('enter the instruction:')
     while 1:
         step_input = {'instruction':[instruction]}
@@ -93,7 +104,7 @@ def main():
         obs, reward, done, info = env.step(a.detach().cpu().numpy()[0]) 
         print(instruction , reward)
         #print(np.concatenate((obs[0:4],obs[18:22]),axis =0))
-        key = video_man.imshow_obs(env,instruction)
+        key = video_man.imshow_obs(env,instruction,main_task_pos=env.main_pos_index,tasks=env.current_task_variant)
         
         if key & 0xFF == ord('m'):
             instruction = input('enter the instruction:')
