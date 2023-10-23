@@ -11,6 +11,7 @@ import json
 
 def main():
     args = parser.parse_args()
+    data_dir = os.path.join(args.project_dir,'data',args.data_name)
 
     if not os.path.exists(os.path.join(args.project_dir,args.project_name,args.run_name)):
         os.makedirs(os.path.join(args.project_dir,args.project_name,args.run_name,args.logs_dir))
@@ -41,7 +42,7 @@ def main():
     
     model = TL_model(args=args,tasks_commands=val_tasks_commands,env=meta_env,wandb_logger=wandb_logger,seed=args.seed)
 
-    train_dataset = MW_dataset(model.preprocess,os.path.join(args.project_dir,args.data_dir,'dataset_dict.json'),os.path.join(args.project_dir,args.data_dir,'data'),train_tasks_commands,total_data_len=args.train_data_total_steps)
+    train_dataset = MW_dataset(model.preprocess,os.path.join(data_dir,'dataset_dict.json'),os.path.join(data_dir,'data'),train_tasks_commands,total_data_len=args.train_data_total_steps)
     stats_table = train_dataset.get_stats()
     wandb_logger.log_table(key=f"Dataset Success Rate",  columns=['Task name','Success Rate'],data=stats_table)
 

@@ -38,3 +38,33 @@ class base_model(arch):
 
         y = batch['action']
         return self.loss_fun(logits, y)
+
+
+class Discriminator(arch):
+    def __init__(self,args) -> None:
+        super().__init__(args)
+
+        self.loss_fun  = self.loss_funs[args.loss_fun]
+        self.backbone  = self.backbones[args.backbone](args)
+        self.preprocess_image = self.backbone.preprocess_image
+        if args.neck:
+            self.neck = self.necks[args.neck](args)
+        self.head     = self.heads[args.head](6*512+args.pos_emp,4)
+
+        self.generator     = self.backbones[args.backbone](args)
+        self.discriminator = self.backbones[args.backbone](args)
+        
+    def forward(self,batch):
+        x = self.backbone(batch)
+        if self.args.neck:
+            x = self.neck(x)
+        x = self.head(x)
+        return x
+    
+    def train_step(self,batch,loss_fun,device):
+        batch = {k : v.to(device) if k != 'instruction' else v  for k,v in batch.items()}
+        
+        logits = self.forward(batch)
+
+        y = batch['action']
+        return self.loss_fun(logits, y)

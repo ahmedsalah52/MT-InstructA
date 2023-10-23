@@ -26,9 +26,9 @@ class transformer_encoder(nn.Module):
     def __init__(self, args):
         super().__init__()
         self.att_head_emp = args.att_head_emp
-        self.pos_encoder = PositionalEncoding(args.att_head_emp, dropout=args.neck_dropout, max_len=args.neck_max_len)
-        encoder_layer = nn.TransformerEncoderLayer(d_model=args.att_head_emp,dropout=args.neck_dropout, nhead=args.n_heads)
-        self.model    = nn.TransformerEncoder(encoder_layer, num_layers=args.neck_layers)
+        self.pos_encoder  = PositionalEncoding(args.att_head_emp, dropout=args.neck_dropout, max_len=args.neck_max_len)
+        encoder_layer     = nn.TransformerEncoderLayer(d_model=args.att_head_emp,dropout=args.neck_dropout, nhead=args.n_heads)
+        self.encoder      = nn.TransformerEncoder(encoder_layer, num_layers=args.neck_layers)
         
 
     def forward(self, embeddings):
@@ -37,7 +37,7 @@ class transformer_encoder(nn.Module):
         
         embeddings = embeddings * math.sqrt(self.att_head_emp)
         embeddings = self.pos_encoder(embeddings)
-        embeddings = self.model(embeddings)
+        embeddings = self.encoder(embeddings)
         return embeddings
     
 
