@@ -19,7 +19,7 @@ class PositionalEncoding(nn.Module):
         Arguments:
             x: Tensor, shape ``[seq_len, batch_size, embedding_dim]``
         """
-        x = x + self.pe[:x.size(0)]
+        x = x + self.pe[:x.size(0)].to(x.device)
         return self.dropout(x)
     
 class transformer_encoder(nn.Module):
@@ -38,12 +38,13 @@ class transformer_encoder(nn.Module):
         embeddings = embeddings * math.sqrt(self.att_head_emp)
         embeddings = self.pos_encoder(embeddings)
         embeddings = self.encoder(embeddings)
-        return embeddings
+
+        return embeddings.permute(1,0,2)
     
 
       
     def get_opt_params(self,args):
         return  [
-            {"params": self.model.parameters()}
+            {"params": self.encoder.parameters()}
              ]
 

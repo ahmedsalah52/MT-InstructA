@@ -5,18 +5,19 @@ from train_utils.heads import *
 
 class arch(nn.Module):
     def __init__(self,args):
+        super().__init__()
         self.backbones = {'simple_clip':ClIP,'open_ai_clip':Open_AI_CLIP}
         self.necks = {'transformer':transformer_encoder}
         self.heads = {'fc':fc_head}
-        self.loss_funs = {'cross_entropy':nn.CrossEntropyLoss(),
-                     'mse':nn.MSELoss()}
+        self.loss_funs = {'cross_entropy':nn.CrossEntropyLoss,
+                     'mse':nn.MSELoss}
         self.args = args
 
 class base_model(arch):
     def __init__(self,args) -> None:
         super().__init__(args)
 
-        self.loss_fun  = self.loss_funs[args.loss_fun]
+        self.loss_fun  = self.loss_funs[args.loss_fun]()
         self.backbone  = self.backbones[args.backbone](args)
         self.preprocess_image = self.backbone.preprocess_image
         if args.neck:
@@ -26,8 +27,11 @@ class base_model(arch):
         
     def forward(self,batch):
         x = self.backbone(batch)
+        print('before neck',x.shape)
+
         if self.args.neck:
             x = self.neck(x)
+        print('after neck',x.shape)
         x = self.head(x)
         return x
     
