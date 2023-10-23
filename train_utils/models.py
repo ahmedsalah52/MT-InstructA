@@ -27,11 +27,8 @@ class base_model(arch):
         
     def forward(self,batch):
         x = self.backbone(batch)
-        print('before neck',x.shape)
-
         if self.args.neck:
             x = self.neck(x)
-        print('after neck',x.shape)
         x = self.head(x)
         return x
     
