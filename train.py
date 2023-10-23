@@ -11,7 +11,7 @@ import json
 
 def main():
     args = parser.parse_args()
-    data_dir = os.path.join(args.project_dir,'data',args.data_name)
+    data_dir = os.path.join(args.project_dir,'data',args.dataset)
 
     if not os.path.exists(os.path.join(args.project_dir,args.project_name,args.run_name)):
         os.makedirs(os.path.join(args.project_dir,args.project_name,args.run_name,args.logs_dir))
