@@ -180,7 +180,7 @@ class Generate_data():
                 if self.with_imgs: prev_images_obs = self.save_images(info['images'],task,pos,id_num,step_num,agent_level)
                 a , _states = agent.predict(prev_obs, deterministic=True)
                 obs, reward, done,success, info = env.step(a) 
-                episode.append({'obs':prev_obs.tolist(),'action':a.tolist(),'reward':reward,'success':success,'images_dir':prev_images_obs})
+                episode.append({'obs':prev_obs.tolist(),'action':a.tolist(),'reward':reward,'success':success,'pos':self.task_poses[pos],'images_dir':prev_images_obs})
                 
                 if (success or done): break 
                 prev_obs = obs
