@@ -1,5 +1,5 @@
 import torch
-from train_utils.model import TL_model
+from train_utils.tl_model import TL_model
 from train_utils.args import  parser 
 from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning import Trainer

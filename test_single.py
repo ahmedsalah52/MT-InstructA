@@ -52,7 +52,7 @@ for taskname in dataset_tasks:#tasks:#ALL_V2_ENVIRONMENTS.keys():
         print(np.concatenate((obs[0:4],obs[18:22]),axis =0))
 
         
-        #print(i,'-',reward,' - ',obs[:3] )
+        print(obs[4:8])
         print(i,'action ',a,' reward ' ,round(reward,2),' state ',info['success'])
         #print(read_obs)
 

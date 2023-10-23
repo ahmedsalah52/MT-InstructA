@@ -5,37 +5,10 @@ import torch
 import numpy as np
 import random
 from PIL import Image 
-#from timm.scheduler import TanhLRScheduler
-#import torch.optim.lr_scheduler as lr_scheduler
+
 from torch.optim.lr_scheduler import StepLR
-from train_utils.backbones import *
-from train_utils.necks import *
-from train_utils.heads import *
+from train_utils.models import *
 
-
-class base_model(nn.Module):
-    def __init__(self,args) -> None:
-        super().__init__()
-        self.args = args
-
-        backbones = {'simple_clip':ClIP,'open_ai_clip':Open_AI_CLIP}
-        necks = {'transformer':transformer_encoder}
-        heads = {'fc':fc_head}
-        
-        self.backbone  = backbones[args.backbone](args)
-        self.preprocess_image = self.backbone.preprocess_image
-        if args.neck:
-            self.neck = necks[args.neck](args)
-        self.head = heads[args.head](args)
-
-        
-    def forward(self,batch):
-        x = self.backbone(batch)
-        if self.args.neck:
-            x = self.neck(x)
-        x = self.head(x)
-        return x
-        
 
 class TL_model(pl.LightningModule):
     def __init__(self,args,tasks_commands,env,wandb_logger,seed):
@@ -48,10 +21,7 @@ class TL_model(pl.LightningModule):
         self.batch_size = args.batch_size
         self.env = env
         self.wandb_logger = wandb_logger
-        loss_funs = {'cross_entropy':nn.CrossEntropyLoss(),
-                     'mse':nn.MSELoss()}
         
-        self.loss_fun = loss_funs[args.loss_fun]
         self.model = base_model(args) 
         self.preprocess = self.model.preprocess_image
 
@@ -68,12 +38,7 @@ class TL_model(pl.LightningModule):
         
         
 
-        batch = {k : v.to(self.device) if k != 'instruction' else v  for k,v in batch.items()}
-        
-        logits = self.model(batch)
-
-        y = batch['action']
-        loss = self.loss_fun(logits, y)
+        loss = self.model.train_step(batch,self.device)
         self.log("train_loss", loss,sync_dist=True,batch_size=self.batch_size,prog_bar=True)
         return loss
     
