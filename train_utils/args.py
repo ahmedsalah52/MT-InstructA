@@ -67,8 +67,10 @@ parser.add_argument('--op_image_model_name', type=str, default='ViT-B/32',choice
 parser.add_argument('--n_heads'     , type=int, default=8)
 parser.add_argument('--att_head_emp', type=int, default=128)
 parser.add_argument('--neck_layers' , type=int, default=1)
-neck_max_len
-neck_dropout
+parser.add_argument('--neck_dropout', type=int, default=0.2)
+parser.add_argument('--neck_max_len', type=int, default=25)
+
+
 #head params
 
 

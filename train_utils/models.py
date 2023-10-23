@@ -38,4 +38,3 @@ class base_model(arch):
 
         y = batch['action']
         return self.loss_fun(logits, y)
-
