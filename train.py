@@ -33,7 +33,16 @@ def main():
         every_n_epochs=args.evaluate_every,
         save_on_train_epoch_end=True
         )
-  
+    train_loss_checkpoint_callback = ModelCheckpoint(
+        dirpath = checkpoints_dir,
+        filename= '{epoch}-{train_loss:.2f}',
+        monitor="train_loss",  # Monitor validation loss
+        mode="min",  # "min" if you want to save the lowest validation loss
+        save_top_k=10,  # Save only the best model
+        save_last=True,  # Save the last model as well
+        every_n_epochs=1,
+        save_on_train_epoch_end=True
+        )
     #lr_logger_callback  = LearningRateMonitor(logging_interval='step')
 
     tasks_commands = json.load(open(args.tasks_commands_dir))
@@ -49,7 +58,7 @@ def main():
     train_dataloader = torch.utils.data.DataLoader(train_dataset,batch_size=args.batch_size,shuffle=True,num_workers = args.num_workers,pin_memory=True)
 
 
-    trainer = Trainer(default_root_dir=checkpoints_dir,callbacks=[succ_rate_checkpoint_callback],logger = wandb_logger,max_epochs=args.num_epochs,strategy='ddp_find_unused_parameters_true',devices=args.n_gpus)#,reload_dataloaders_every_n_epochs=args.generate_data_every,use_distributed_sampler=False)
+    trainer = Trainer(default_root_dir=checkpoints_dir,callbacks=[succ_rate_checkpoint_callback,train_loss_checkpoint_callback],logger = wandb_logger,max_epochs=args.num_epochs,strategy='ddp_find_unused_parameters_true',devices=args.n_gpus)#,reload_dataloaders_every_n_epochs=args.generate_data_every,use_distributed_sampler=False)
     trainer.fit(model,train_dataloader,ckpt_path= args.load_checkpoint_path)
 
 
