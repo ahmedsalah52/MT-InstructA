@@ -12,7 +12,7 @@ class fc_head(nn.Module):
     def forward(self,embeddings):
         return self.head(embeddings)
     
-    def get_opt_params(self,args):
+    def get_opt_params(self):
         return  [
             {"params": self.head.parameters()}
              ]

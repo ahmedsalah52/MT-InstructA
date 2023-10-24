@@ -6,7 +6,7 @@ from pytorch_lightning import Trainer
 from meta_env import meta_env
 import os
 from pytorch_lightning.callbacks import ModelCheckpoint ,LearningRateMonitor
-from train_utils.metaworld_dataset import MW_dataset,split_dict
+from train_utils.metaworld_dataset import MW_dataset,split_dict,temp_dataset
 import json
 
 def main():

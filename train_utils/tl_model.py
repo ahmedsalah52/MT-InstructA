@@ -27,11 +27,8 @@ class TL_model(pl.LightningModule):
         self.model = models[args.model](args)
         self.preprocess = self.model.preprocess_image
         
-        params = self.model.get_opt_params(args)
-        self.opt = torch.optim.Adam(
-                params,
-                lr=args.lr,
-            )
+        self.opt = self.model.get_optimizer()
+        
         self.automatic_optimization =  self.model_name != 'GAN'
 
         #self.my_scheduler = StepLR(self.opt, step_size=10, gamma=0.5)
@@ -41,10 +38,32 @@ class TL_model(pl.LightningModule):
         self.log("train_loss", loss,sync_dist=True,batch_size=self.batch_size,prog_bar=True)
         return loss
     def gan_training_step(self, batch, batch_idx):
-       
-        loss = self.model.train_step(batch,self.device)
-        self.log("train_loss", loss,sync_dist=True,batch_size=self.batch_size,prog_bar=True)
-        return loss
+        batch = {k : v.to(self.device) if k != 'instruction' else v  for k,v in batch.items()}
+
+        optimizer_g, optimizer_d = self.optimizers()
+        
+        self.toggle_optimizer(optimizer_g)
+
+        #generator step
+        g_loss = self.model.generator_step(batch)
+        self.manual_backward(g_loss)
+        optimizer_g.step()
+        optimizer_g.zero_grad()
+        self.untoggle_optimizer(optimizer_g)
+
+        # train discriminator
+        self.toggle_optimizer(optimizer_d)
+
+        d_loss = self.model.discriminator_step(batch)
+        
+        self.manual_backward(d_loss)
+        optimizer_d.step()
+        optimizer_d.zero_grad()
+        self.untoggle_optimizer(optimizer_d)
+
+        self.log("g_loss", g_loss,sync_dist=True,batch_size=self.batch_size,prog_bar=True)
+        self.log("d_loss", d_loss,sync_dist=True,batch_size=self.batch_size,prog_bar=True)
+
     
     def training_step(self, batch, batch_idx):
         if self.model_name == 'GAN':
@@ -91,5 +110,5 @@ class TL_model(pl.LightningModule):
 
     def configure_optimizers(self):
         #return self.opt
-        return self.opt#, [{"scheduler": self.my_scheduler,  'name': 'lr_scheduler'}]
+        return self.model.get_optimizer()#, [{"scheduler": self.my_scheduler,  'name': 'lr_scheduler'}]
 

@@ -43,7 +43,7 @@ class transformer_encoder(nn.Module):
     
 
       
-    def get_opt_params(self,args):
+    def get_opt_params(self):
         return  [
             {"params": self.encoder.parameters()}
              ]

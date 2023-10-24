@@ -74,6 +74,7 @@ class ProjectionHead(nn.Module):
 class ClIP(nn.Module):
     def __init__(self,args):
         super().__init__()
+        self.args = args
         self.image_encoder    = ImageEncoder(model_name=args.image_model_name, pretrained=args.image_model_pretrained, trainable=args.image_model_trainable)
         self.text_encoder     = TextEncoder(model_name=args.text_model_name, pretrained=args.text_model_pretrained, trainable=args.text_model_trainable,command_max_length=args.text_model_max_length)
         self.image_projection = ProjectionHead(embedding_dim=2048)
@@ -116,7 +117,7 @@ class ClIP(nn.Module):
 
         return logits
 
-    def get_opt(self,args):
+    def get_opt(self):
         return torch.optim.Adam(
                 [
                     {"params": self.image_encoder.parameters()   , "lr": args.img_model_lr},
@@ -126,7 +127,7 @@ class ClIP(nn.Module):
                     {"params": self.pos_emp.parameters()},
                     {"params": self.head.parameters()},
                 ],
-                lr=args.lr,
+                lr=self.args.lr,
             )
     
 
@@ -134,6 +135,7 @@ class ClIP(nn.Module):
 class Open_AI_CLIP(nn.Module):
     def __init__(self,args):
         super().__init__()
+        self.args = args
         self.model, self.preprocess_image = clip.load(args.op_image_model_name,jit=False)
         self.model = self.model.float()
         self.pos_emp = nn.Linear(8,args.pos_emp)
@@ -146,6 +148,7 @@ class Open_AI_CLIP(nn.Module):
         batch["images"] = torch.flatten(batch["images"], start_dim=0, end_dim=1)
         image_features = self.model.encode_image(batch['images'])
         image_features = torch.unflatten(image_features,dim = 0,sizes=(batch_size,cams))
+        batch["images"] = torch.unflatten(batch["images"],dim = 0,sizes=(batch_size,cams))
 
 
         text = clip.tokenize(batch['instruction']).to(batch['images'].device)
@@ -157,8 +160,8 @@ class Open_AI_CLIP(nn.Module):
 
         return torch.cat([text_images_embeddings,pos_embeddings],dim=1)
     
-    def get_opt_params(self,args):
+    def get_opt_params(self):
         return  [
-            {"params": self.model.parameters(),"lr": args.clip_lr},
+            {"params": self.model.parameters(),"lr": self.args.clip_lr},
             {"params": self.pos_emp.parameters()}
              ]
