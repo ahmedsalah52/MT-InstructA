@@ -22,7 +22,7 @@ class TL_model(pl.LightningModule):
         self.env = env
         self.wandb_logger = wandb_logger
         models = {'base':base_model,'GAN':simple_GAN}
-        self.model = models(args.model)
+        self.model = models[args.model](args)
         self.automatic_optimization =  args.model != 'GAN'
         self.preprocess = self.model.preprocess_image
 
