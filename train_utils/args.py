@@ -28,12 +28,16 @@ parser.add_argument('--agents_dict_dir', type=str, default='configs/general_mode
 
 #model                
 parser.add_argument('--seed', type=int, default=42)
+parser.add_argument('--model', type=str, default='base',choices=['base','GAN'])
 parser.add_argument('--backbone', type=str, default='open_ai_clip',choices=['open_ai_clip','simple_clip'])
 parser.add_argument('--neck', type=str, default='transformer',choices=[None,'transformer'])
 parser.add_argument('--head', type=str, default='fc',choices=['fc'])
+parser.add_argument('--action_dim', type=int, default=4)
 parser.add_argument('--pos_emp', type=int, default=128)
 
-
+#GAN params
+parser.add_argument('--action_emp', type=int, default=128)
+parser.add_argument('--noise_len' , type=int, default=128)
 
 #simple clip backbone params
 parser.add_argument('--image_model_name', type=str, default='resnet50')
@@ -68,10 +72,12 @@ parser.add_argument('--n_heads'     , type=int, default=8)
 parser.add_argument('--att_head_emp', type=int, default=128)
 parser.add_argument('--neck_layers' , type=int, default=1)
 parser.add_argument('--neck_dropout', type=int, default=0.2)
-parser.add_argument('--neck_max_len', type=int, default=25)
+parser.add_argument('--neck_max_len', type=int, default=26)
 
 
 #head params
+
+
 
 
 #training
