@@ -13,6 +13,8 @@ from train_utils.models import *
 class TL_model(pl.LightningModule):
     def __init__(self,args,tasks_commands,env,wandb_logger,seed):
         super().__init__()
+        self.model_name = args.model
+
         self.tasks_commands = tasks_commands
         self.generate_data_every = args.generate_data_every
         self.evaluate_every = args.evaluate_every
@@ -23,15 +25,15 @@ class TL_model(pl.LightningModule):
         self.wandb_logger = wandb_logger
         models = {'base':base_model,'GAN':simple_GAN}
         self.model = models[args.model](args)
-        self.automatic_optimization =  args.model != 'GAN'
         self.preprocess = self.model.preprocess_image
-
         
         params = self.model.get_opt_params(args)
         self.opt = torch.optim.Adam(
                 params,
                 lr=args.lr,
             )
+        self.automatic_optimization =  self.model_name != 'GAN'
+
         #self.my_scheduler = StepLR(self.opt, step_size=10, gamma=0.5)
     def base_training_step(self, batch, batch_idx):
        
