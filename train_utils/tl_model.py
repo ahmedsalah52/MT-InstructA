@@ -33,12 +33,23 @@ class TL_model(pl.LightningModule):
                 lr=args.lr,
             )
         self.my_scheduler = StepLR(self.opt, step_size=10, gamma=0.5)
-    def training_step(self, batch, batch_idx):
+    def base_training_step(self, batch, batch_idx):
        
-        loss = self.model.train_step(batch,self.device,self.optimizers())
+        loss = self.model.train_step(batch,self.device)
+        self.log("train_loss", loss,sync_dist=True,batch_size=self.batch_size,prog_bar=True)
+        return loss
+    def gan_training_step(self, batch, batch_idx):
+       
+        loss = self.model.train_step(batch,self.device)
         self.log("train_loss", loss,sync_dist=True,batch_size=self.batch_size,prog_bar=True)
         return loss
     
+    def training_step(self, batch, batch_idx):
+        if self.args.model == 'GAN':
+            return self.gan_training_step(batch,batch_idx)
+        else:
+            return self.base_training_step(batch,batch_idx)
+        
     def on_train_epoch_end(self):
         if (self.current_epoch % self.evaluate_every == 0):
             print(f"\n epoch {self.current_epoch}  evaluation on device {self.device}")
