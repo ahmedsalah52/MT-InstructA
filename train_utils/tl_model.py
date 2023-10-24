@@ -47,7 +47,7 @@ class TL_model(pl.LightningModule):
         return loss
     
     def training_step(self, batch, batch_idx):
-        if self.args.model == 'GAN':
+        if self.model_name == 'GAN':
             return self.gan_training_step(batch,batch_idx)
         else:
             return self.base_training_step(batch,batch_idx)
