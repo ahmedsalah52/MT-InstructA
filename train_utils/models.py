@@ -32,7 +32,7 @@ class base_model(arch):
         x = self.head(x)
         return x
     
-    def train_step(self,batch,device,opts):
+    def train_step(self,batch,device,opts=None):
         batch = {k : v.to(device) if k != 'instruction' else v  for k,v in batch.items()}
         
         logits = self.forward(batch)
