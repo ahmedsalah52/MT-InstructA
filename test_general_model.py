@@ -74,8 +74,10 @@ def get_visual_obs(env):
     return np.array(images)
 def main():
     args = parser.parse_args()
-    print('save video ',args.save_video)
-    video_man = video(save_dir=args.video_dir,save_video=args.save_video,res=args.video_res)
+    save_video = args.video_exp_name != None
+    print('save video ',save_video)
+    
+    video_man = video(save_dir=args.video_dir,save_video=save_video,res=args.video_res)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = TL_model(args=args,tasks_commands=None,env=None,wandb_logger=None,seed=None).to(device)
     model = TL_model.load_from_checkpoint(args.load_checkpoint_path,args=args,tasks_commands=None,env=None,wandb_logger=None,seed=None)

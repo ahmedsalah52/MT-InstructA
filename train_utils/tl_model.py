@@ -74,19 +74,25 @@ class TL_model(pl.LightningModule):
     def on_train_epoch_end(self):
         if (self.current_epoch % self.evaluate_every == 0):
             print(f"\n epoch {self.current_epoch}  evaluation on device {self.device}")
-            total_success = 0 
-            for task in self.tasks:
-                success_rate_row = []
-                for pos in [0,1,2]:
-                    for i in range(self.evaluation_episodes):
-                        success = self.run_epi(task,pos)
-                        total_success+=success
-                        success_rate_row.append(success)
-                       
-                self.log(task, np.mean(success_rate_row),sync_dist=True,batch_size=self.batch_size) # type: ignore
-            self.log("success_rate", float(total_success)/(len(self.tasks)*3*self.evaluation_episodes),sync_dist=True,batch_size=self.batch_size,prog_bar=True) # type: ignore
+            success_rate = self.evaluate_model()
+            self.log("success_rate", success_rate,sync_dist=True,batch_size=self.batch_size,prog_bar=True) # type: ignore
+
         #torch.cuda.empty_cache()
         return
+    def evaluate_model(self):
+        total_success = 0 
+        for task in self.tasks:
+            success_rate_row = []
+            for pos in [0,1,2]:
+                for i in range(self.evaluation_episodes):
+                    success = self.run_epi(task,pos)
+                    total_success+=success
+                    success_rate_row.append(success)
+        success_rate =  float(total_success)/(len(self.tasks)*3*self.evaluation_episodes)
+        print('success rate',success_rate)         
+            #self.log(task, np.mean(success_rate_row),sync_dist=True,batch_size=self.batch_size) # type: ignore
+        return success_rate
+
 
     def run_epi(self,task,pos):
         env = self.env(task,pos,save_images=True,wandb_render = False,wandb_log = False,general_model=True)
