@@ -30,7 +30,7 @@ parser.add_argument('--agents_dict_dir', type=str, default='configs/general_mode
 parser.add_argument('--seed', type=int, default=42)
 parser.add_argument('--model', type=str, default='base',choices=['base','GAN'])
 parser.add_argument('--backbone', type=str, default='open_ai_clip',choices=['open_ai_clip','simple_clip'])
-parser.add_argument('--neck', type=str, default='transformer',choices=[None,'transformer'])
+parser.add_argument('--neck', type=str, default=None,choices=[None,'transformer'])
 parser.add_argument('--head', type=str, default='fc',choices=['fc'])
 parser.add_argument('--action_dim', type=int, default=4)
 parser.add_argument('--pos_emp', type=int, default=128)
