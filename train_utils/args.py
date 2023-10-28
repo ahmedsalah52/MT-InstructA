@@ -34,6 +34,7 @@ parser.add_argument('--neck', type=str, default=None,choices=[None,'transformer'
 parser.add_argument('--head', type=str, default='fc',choices=['fc'])
 parser.add_argument('--action_dim', type=int, default=4)
 parser.add_argument('--pos_emp', type=int, default=128)
+parser.add_argument('--imgs_instuction_emps', type=int, default=3072,help='the size of images and instruction embeddings together')
 
 #GAN params
 parser.add_argument('--action_emp', type=int, default=128)

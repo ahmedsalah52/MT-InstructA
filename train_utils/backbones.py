@@ -140,7 +140,7 @@ class Open_AI_CLIP(nn.Module):
         self.model = self.model.float()
         self.pos_emp = nn.Linear(8,args.pos_emp)
         self.flatten = nn.Flatten()
-        self.normalize = nn.LayerNorm(6*512+args.pos_emp)
+        self.normalize = nn.LayerNorm(args.imgs_instuction_emps+args.pos_emp)
 
         #self.grad_clip = nn.utils.clip_grad_norm_(self.parameters(), 0.5)
     def forward(self,batch):
