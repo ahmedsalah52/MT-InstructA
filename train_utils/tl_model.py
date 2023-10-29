@@ -125,3 +125,52 @@ class TL_model(pl.LightningModule):
         #return self.opt
         return self.model.get_optimizer()#, [{"scheduler": self.my_scheduler,  'name': 'lr_scheduler'}]
 
+
+
+def load_checkpoint(model,checkpoint_path):
+    """
+    Load a PyTorch Lightning checkpoint and ignore differences between
+    the loaded model and the current model.
+
+    Args:
+        checkpoint_path (str): Path to the checkpoint file.
+        model (pl.LightningModule): The current PyTorch Lightning model.
+
+    Returns:
+        model (pl.LightningModule): The model with the loaded checkpoint's state.
+    """
+    if not checkpoint_path:
+        return model
+    print('load weights')
+    # Load the checkpoint
+    checkpoint = torch.load(checkpoint_path, map_location=lambda storage, loc: storage)
+
+    # Retrieve the state dictionary from the checkpoint
+    checkpoint_state_dict = checkpoint['state_dict']
+
+    # Check for parameter mismatches and load matching parameters
+    model_state_dict = model.state_dict()
+    for name, param in checkpoint_state_dict.items():
+        if name in model_state_dict:
+            if model_state_dict[name].shape == param.shape:
+                model_state_dict[name] = param
+            else:
+                print(f"Ignored parameter '{name}' due to shape mismatch.")
+        else:
+            print(f"Ignored parameter '{name}' not found in the current model.")
+
+    # Load the modified state dictionary into the current model
+    model.load_state_dict(model_state_dict)
+
+    return model
+
+
+def freeze_layers(model,args):
+    if args.freeze_modules:
+        frozen_modules = args.freeze_modules.split(',')
+        for name, param in model.named_parameters():
+            for layer_name in frozen_modules:
+                if layer_name in name:
+                    param.requires_grad = False
+                    print('freeze layer ',name)
+    return model

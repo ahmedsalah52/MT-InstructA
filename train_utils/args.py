@@ -35,6 +35,7 @@ parser.add_argument('--head', type=str, default='fc',choices=['fc'])
 parser.add_argument('--action_dim', type=int, default=4)
 parser.add_argument('--pos_emp', type=int, default=128)
 parser.add_argument('--imgs_instuction_emps', type=int, default=3072,help='the size of images and instruction embeddings together')
+parser.add_argument('--freeze_modules', type=str, default=None)
 
 #GAN params
 parser.add_argument('--action_emp', type=int, default=128)
@@ -92,6 +93,7 @@ parser.add_argument('--check_val_every_n_epoch', type=int, default=2)
 parser.add_argument('--evaluate_every', type=int, default=1)
 parser.add_argument('--evaluation_episodes',help='number of episodes per task per position', type=int, default=1)
 parser.add_argument('--load_checkpoint_path', type=str, default=None)
+parser.add_argument('--load_weights', type=str, default=None)
 parser.add_argument('--n_gpus', type=int, default=1)
 
 

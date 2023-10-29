@@ -1,5 +1,5 @@
 import torch
-from train_utils.tl_model import TL_model
+from train_utils.tl_model import TL_model,load_checkpoint,freeze_layers
 from train_utils.args import  parser 
 from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning import Trainer
@@ -50,12 +50,15 @@ def main():
     train_tasks_commands,val_tasks_commands = split_dict(tasks_commands,args.commands_split_ratio,seed=args.seed)
     
     model = TL_model(args=args,tasks_commands=val_tasks_commands,env=meta_env,wandb_logger=wandb_logger,seed=args.seed)
+    model = load_checkpoint(model,args.load_weights)
+    model = freeze_layers(model , args)
 
-    train_dataset = MW_dataset(model.preprocess,os.path.join(data_dir,'dataset_dict.json'),os.path.join(data_dir,'data'),train_tasks_commands,total_data_len=args.train_data_total_steps)
-    stats_table = train_dataset.get_stats()
-    wandb_logger.log_table(key=f"Dataset Success Rate",  columns=['Task name','Success Rate'],data=stats_table)
 
-    train_dataloader = torch.utils.data.DataLoader(train_dataset,batch_size=args.batch_size,shuffle=True,num_workers = args.num_workers,pin_memory=True)
+    #train_dataset = MW_dataset(model.preprocess,os.path.join(data_dir,'dataset_dict.json'),os.path.join(data_dir,'data'),train_tasks_commands,total_data_len=args.train_data_total_steps)
+    #stats_table = train_dataset.get_stats()
+    #wandb_logger.log_table(key=f"Dataset Success Rate",  columns=['Task name','Success Rate'],data=stats_table)
+
+    train_dataloader = torch.utils.data.DataLoader(temp_dataset(),batch_size=args.batch_size,shuffle=True,num_workers = args.num_workers,pin_memory=True)
 
 
     trainer = Trainer(default_root_dir=checkpoints_dir,callbacks=[train_loss_checkpoint_callback],logger = wandb_logger,max_epochs=args.num_epochs,strategy='ddp_find_unused_parameters_true',devices=args.n_gpus)#,reload_dataloaders_every_n_epochs=args.generate_data_every,use_distributed_sampler=False)
