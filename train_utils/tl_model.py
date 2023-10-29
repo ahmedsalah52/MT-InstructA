@@ -80,16 +80,23 @@ class TL_model(pl.LightningModule):
         #torch.cuda.empty_cache()
         return
     def evaluate_model(self):
-        total_success = 0 
+        total_success = []
+        success_dict = {}
         for task in self.tasks:
             success_rate_row = []
             for pos in [0,1,2]:
+                pos_success = 0
                 for i in range(self.evaluation_episodes):
                     success = self.run_epi(task,pos)
-                    total_success+=success
-                    success_rate_row.append(success)
-        success_rate =  float(total_success)/(len(self.tasks)*3*self.evaluation_episodes)
-        print('success rate',success_rate)         
+                    pos_success+=success
+                success_rate_row.append(float(pos_success)/self.evaluation_episodes)
+                total_success+= success_rate_row
+            
+            success_dict[task]=success_rate_row[:]
+
+        for task , row in success_dict.items(): print(f'success rate in {task} with mean {np.mean(row)} and detailed {row}')
+        success_rate =  np.mean(total_success)
+        print('total success rate',success_rate)         
             #self.log(task, np.mean(success_rate_row),sync_dist=True,batch_size=self.batch_size) # type: ignore
         return success_rate
 
