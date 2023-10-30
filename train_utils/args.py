@@ -23,25 +23,37 @@ parser.add_argument('--dataset', type=str, default='generated_data')
 parser.add_argument('--tasks', type=list, default= ['button-press-topdown-v2', 'button-press-v2', 'door-lock-v2', 'door-open-v2',  'drawer-open-v2', 'window-open-v2', 'faucet-open-v2', 'faucet-close-v2', 'handle-press-v2', 'coffee-button-v2'])
 parser.add_argument('--poses', type=list, default= [0,1,2])
 parser.add_argument('--agents_dict_dir', type=str, default='configs/general_model_configs/agents_dict.json')
-parser.add_argument('--seq_len',type=int,default=1)
-parser.add_argument('--seq_overlap',type=int,default=5,help='overlap between sequences, the actual overlap is overlap/2 + rand_int(0,overlap) so it should be by maximam half seq len')
+
+
 
 
 
 #model                
 parser.add_argument('--seed', type=int, default=42)
-parser.add_argument('--model', type=str, default='base',choices=['base','GAN','seq'])
+parser.add_argument('--model', type=str, default='base',choices=['base','GAN','seq','dt'])
 parser.add_argument('--backbone', type=str, default='open_ai_clip',choices=['open_ai_clip','simple_clip'])
 parser.add_argument('--neck', type=str, default=None,choices=[None,'transformer'])
 parser.add_argument('--head', type=str, default='fc',choices=['fc'])
 parser.add_argument('--action_dim', type=int, default=4)
 parser.add_argument('--pos_emp', type=int, default=128)
-parser.add_argument('--imgs_instuction_emps', type=int, default=3072,help='the size of images and instruction embeddings together')
+parser.add_argument('--imgs_emps', type=int, default=2560,help='the size of images embeddings ')
+parser.add_argument('--instuction_emps', type=int, default=512,help='the size of instruction embeddings')
 parser.add_argument('--freeze_modules', type=str, default=None)
+parser.add_argument('--seq_len',type=int,default=1)
+parser.add_argument('--seq_overlap',type=int,default=5,help='overlap between sequences, the actual overlap is overlap/2 + rand_int(0,overlap) so it should be by maximam half seq len')
+parser.add_argument('--max_ep_len',type=int,default=200)
 
 #GAN params
 parser.add_argument('--action_emp', type=int, default=128)
 parser.add_argument('--noise_len' , type=int, default=128)
+
+
+#Decision Transformer params
+parser.add_argument('--dt_embed_dim', type=int, default=128)
+parser.add_argument('--dt_n_layer', type=int, default=3)
+parser.add_argument('--dt_n_head', type=int, default=1)
+parser.add_argument('--dt_activation_function', type=str, default='relu')
+parser.add_argument('--dt_dropout', type=float, default=0.1)
 
 #simple clip backbone params
 parser.add_argument('--image_model_name', type=str, default='resnet50')
@@ -90,10 +102,9 @@ parser.add_argument('--commands_split_ratio', type=float,default=0.8,help='how m
 parser.add_argument('--batch_size', type=int, default=4)
 parser.add_argument('--num_workers', type=int, default=12)
 parser.add_argument('--num_epochs', type=int, default=60)
-parser.add_argument('--generate_data_every', type=int, default=2)
-parser.add_argument('--check_val_every_n_epoch', type=int, default=2)
+parser.add_argument('--gradient_clip_val', type=float, default=0.25)
 parser.add_argument('--evaluate_every', type=int, default=1)
-parser.add_argument('--evaluation_episodes',help='number of episodes per task per position', type=int, default=1)
+parser.add_argument('--evaluation_episodes',type=int, default=1,help='number of episodes per task per position')
 parser.add_argument('--load_checkpoint_path', type=str, default=None)
 parser.add_argument('--load_weights', type=str, default=None)
 parser.add_argument('--n_gpus', type=int, default=1)
@@ -104,3 +115,4 @@ parser.add_argument('--save_video', action='store_true')
 parser.add_argument('--video_exp_name', type=str, default=None)
 parser.add_argument('--video_dir', type=str, default='video_results')
 parser.add_argument('--video_res', type=tuple, default=(1920,1080))
+parser.add_argument('--model_eval', action='store_true')

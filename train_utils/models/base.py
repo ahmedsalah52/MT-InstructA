@@ -13,6 +13,8 @@ class arch(nn.Module):
                      'mse':nn.MSELoss}
         
         self.args = args
+        self.dummy_param = nn.Parameter(torch.empty(0))
+
     def eval_step(self,input_step):
         return self.forward(input_step)
 

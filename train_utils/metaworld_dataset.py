@@ -39,7 +39,8 @@ class temp_dataset(Dataset):
         ret['images']         = torch.zeros((5,3,224,224)).to(torch.float32)
         ret['hand_pos']       = torch.zeros(8).to(torch.float32)
         ret['action']         = torch.zeros(4).to(torch.float32)
-        
+        ret['timesteps']      = 1
+
         ret['instruction']    = "empty instruction"
 
         return ret
@@ -103,6 +104,7 @@ class MW_dataset(Dataset):
                 for s in range(len(self.data_dict[task][epi])):
                     step = self.data_dict[task][epi][s]
                     step['instruction'] = random.choice(self.tasks_commands[task])
+                    step['timesteps'] = s
                     episode.append(step)
                 self.data += self.get_seqs(episode[:])
 

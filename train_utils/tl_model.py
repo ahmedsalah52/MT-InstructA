@@ -10,6 +10,7 @@ from torch.optim.lr_scheduler import StepLR
 from train_utils.models.base import base_model
 from train_utils.models.GAN import simple_GAN
 from train_utils.models.seq import seq_model
+from train_utils.models.decision_transformer import DL_model
 
 class TL_model(pl.LightningModule):
     def __init__(self,args,tasks_commands,env,wandb_logger,seed):
@@ -17,14 +18,13 @@ class TL_model(pl.LightningModule):
         self.model_name = args.model
 
         self.tasks_commands = tasks_commands
-        self.generate_data_every = args.generate_data_every
         self.evaluate_every = args.evaluate_every
         self.evaluation_episodes = args.evaluation_episodes
         self.tasks = args.tasks
         self.batch_size = args.batch_size
         self.env = env
         self.wandb_logger = wandb_logger
-        models = {'base':base_model,'GAN':simple_GAN,'seq':seq_model}
+        models = {'base':base_model,'GAN':simple_GAN,'seq':seq_model,'dt':DL_model}
         self.model = models[args.model](args)
         self.preprocess = self.model.preprocess_image
         
@@ -107,15 +107,21 @@ class TL_model(pl.LightningModule):
         obs , info = env.reset()
         instruction = random.choice(self.tasks_commands[task])
         #rendered_seq = []
+        i = 0
+        a = torch.tensor([0,0,0,0],dtype=torch.float16)
         while 1:
             with torch.no_grad():
                 step_input = {'instruction':[instruction]}
                 images = [self.model.preprocess_image(Image.fromarray(np.uint8(img))) for img in info['images']]
                 step_input['images']   = torch.stack(images).unsqueeze(0).to(self.device)
                 step_input['hand_pos'] = torch.tensor(np.concatenate((obs[0:4],obs[18:22]),axis =0)).to(torch.float32).unsqueeze(0).to(self.device)
+                step_input['timesteps'] = torch.tensor([i],dtype=torch.int16).unsqueeze(0).to(self.device)
+                step_input['action']    = a.unsqueeze(0).to(self.device)
+
                 a = self.model.eval_step(step_input)
                 obs, reward, done,success, info = env.step(a.detach().cpu().numpy()[0]) 
                 #rendered_seq.append(env.get_visual_obs_log())
+                i+=1
                 if (success or done): break 
         
         env.close()

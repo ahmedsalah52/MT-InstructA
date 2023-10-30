@@ -12,12 +12,11 @@ class seq_model(arch):
         self.preprocess_image = self.backbone.preprocess_image
         if args.neck:
             self.neck = self.necks[args.neck](args)
-        self.seq_module = nn.LSTM(args.imgs_instuction_emps+args.pos_emp,hidden_size=512,batch_first=False,bidirectional=False,num_layers=2)
+        self.seq_module = nn.LSTM(args.imgs_emps+args.instuction_emps+args.pos_emp,hidden_size=512,batch_first=False,bidirectional=False,num_layers=2)
 
         self.head = self.heads[args.head](512,args.action_dim)
-        self.dummy_param = nn.Parameter(torch.empty(0))
         self.hidden_state = None
-        self.normalize = nn.LayerNorm(args.imgs_instuction_emps+args.pos_emp)
+        self.normalize = nn.LayerNorm(args.imgs_emps+args.instuction_emps+args.pos_emp)
         #self.memory = deque([torch.zeros(1, self.model.backbone.out_channels, 152, 272).cuda() for _ in range(8)], maxlen=8)  
     def forward(self,batch):
         embeddings = []
@@ -28,6 +27,7 @@ class seq_model(arch):
            
             batch_step = {k : v.to(self.dummy_param.device) if k != 'instruction' else v  for k,v in batch_step.items()}
             x = self.backbone(batch_step)
+            
             del batch_step
           
 
