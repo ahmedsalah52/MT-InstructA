@@ -24,7 +24,7 @@ parser.add_argument('--tasks', type=list, default= ['button-press-topdown-v2', '
 parser.add_argument('--poses', type=list, default= [0,1,2])
 parser.add_argument('--agents_dict_dir', type=str, default='configs/general_model_configs/agents_dict.json')
 parser.add_argument('--seq_len',type=int,default=1)
-parser.add_argument('--seq_overlap',type=int,default=5)
+parser.add_argument('--seq_overlap',type=int,default=5,help='overlap between sequences, the actual overlap is overlap/2 + rand_int(0,overlap) so it should be by maximam half seq len')
 
 
 

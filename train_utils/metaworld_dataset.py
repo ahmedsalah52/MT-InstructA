@@ -125,7 +125,7 @@ class MW_dataset(Dataset):
         return seqs
     def get_overlap(self):
 
-        rand = random.randint(0,self.seq_overlap//2)
+        rand = random.randint(0,self.seq_overlap)
         return rand + self.seq_overlap//2
     
     def get_stats(self):
