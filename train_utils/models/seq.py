@@ -18,7 +18,7 @@ class seq_model(arch):
         self.dummy_param = nn.Parameter(torch.empty(0))
         self.hidden_state = None
         self.normalize = nn.LayerNorm(args.imgs_instuction_emps+args.pos_emp)
-
+        #self.memory = deque([torch.zeros(1, self.model.backbone.out_channels, 152, 272).cuda() for _ in range(8)], maxlen=8)  
     def forward(self,batch):
         embeddings = []
         for i in range(self.args.seq_len):
