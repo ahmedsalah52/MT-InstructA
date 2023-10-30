@@ -119,7 +119,7 @@ class MW_dataset(Dataset):
                 sublist = episode[-self.seq_len:]
             else:
                 sublist = episode[start:end]
-                i = end - self.get_overlap()
+                i = end - self.seq_overlap
 
             seqs.append(sublist)
         return seqs
