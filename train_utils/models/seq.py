@@ -17,6 +17,8 @@ class seq_model(arch):
         self.head = self.heads[args.head](512,args.action_dim)
         self.dummy_param = nn.Parameter(torch.empty(0))
         self.hidden_state = None
+        self.normalize = nn.LayerNorm(args.imgs_instuction_emps+args.pos_emp)
+
     def forward(self,batch):
         embeddings = []
         for i in range(self.args.seq_len):
@@ -26,6 +28,7 @@ class seq_model(arch):
            
             batch_step = {k : v.to(self.dummy_param.device) if k != 'instruction' else v  for k,v in batch_step.items()}
             x = self.backbone(batch_step)
+            self.normalize(x)
             if self.args.neck:
                 x = self.neck(x)
             embeddings.append(x)
