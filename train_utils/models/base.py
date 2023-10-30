@@ -13,6 +13,8 @@ class arch(nn.Module):
                      'mse':nn.MSELoss}
         
         self.args = args
+    def eval_step(self,input_step):
+        return self.forward(input_step)
 
 class base_model(arch):
     def __init__(self,args) -> None:

@@ -16,7 +16,7 @@ class seq_model(arch):
 
         self.head = self.heads[args.head](512,args.action_dim)
         self.dummy_param = nn.Parameter(torch.empty(0))
-
+        self.hidden_state = None
     def forward(self,batch):
         embeddings = []
         for i in range(self.args.seq_len):
@@ -31,16 +31,21 @@ class seq_model(arch):
             embeddings.append(x)
         
         embeddings = torch.stack(embeddings,dim=0)
-        print(embeddings.shape)
         xs , h = self.seq_module(embeddings)
-        print(xs.shape)
 
         outs = [self.head(x) for x in xs]
         outs = torch.stack(outs,dim=0)
-        print(outs.shape)
         return outs
 
-        
+    def eval_step(self,input_step):
+        input_step = {k : v.to(self.dummy_param.device) if k != 'instruction' else v  for k,v in input_step.items()}
+
+        x = self.backbone(input_step)
+        if self.args.neck:
+            x = self.neck(x)
+
+        x , self.hidden_state = self.seq_module(x.unsqueeze(0),self.hidden_state)
+        return self.head(x)
     def train_step(self,batch,device,opts=None):
         
         logits = self.forward(batch)
