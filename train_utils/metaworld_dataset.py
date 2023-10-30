@@ -10,6 +10,7 @@ import uuid
 import meta_env
 from PIL import Image 
 from collections import defaultdict
+from tqdm import tqdm
 class temp_dataset(Dataset):
     def __init__(self,seq_len=1,seq_overlap=10):
         self.data = []
@@ -95,15 +96,17 @@ class MW_dataset(Dataset):
         self.tasks = list(self.data_dict.keys())
         self.data = []
         for task in self.tasks:
-            for epi in range(len(self.data_dict[task])):
+            print('preparing task:',task)
+            for epi in tqdm(range(len(self.data_dict[task]))):
+            #for epi in range(len(self.data_dict[task])):
                 episode = []
                 for s in range(len(self.data_dict[task][epi])):
                     step = self.data_dict[task][epi][s]
                     step['instruction'] = random.choice(self.tasks_commands[task])
                     episode.append(step)
-                
                 self.data += self.get_seqs(episode[:])
 
+        print('seq data preparation done with length',len(self.data))
     def get_seqs(self,episode):
         seqs = []
         i  = 0
