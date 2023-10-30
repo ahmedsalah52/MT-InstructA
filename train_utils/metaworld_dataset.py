@@ -46,15 +46,25 @@ class temp_dataset(Dataset):
 def get_stats(data_dict):
     table=[]
     total_success_rate = 0
+    avg_length = 0
+    max_length = 0
+    min_length = np.inf
     for task_name , episodes in data_dict.items():
         task_success = 0
         for episode in episodes:
             task_success += episode[-1]['success']
-        
+            avg_length += len(episode)
+            max_length = max(max_length,len(episode))
+            min_length = min(min_length,len(episode))
+        avg_length = float(avg_length)/len(episodes)
         task_success_rate = float(task_success) / len(episodes)
         total_success_rate += task_success_rate
         table.append([task_name,task_success_rate])
     table.append(['total_success_rate',total_success_rate/len(data_dict.items())])
+    table.append(['avg_length',avg_length])
+    table.append(['max_length',max_length])
+    table.append(['min_length',min_length])
+
     return table
 
 class MW_dataset(Dataset):
