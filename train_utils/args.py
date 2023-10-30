@@ -23,12 +23,14 @@ parser.add_argument('--dataset', type=str, default='generated_data')
 parser.add_argument('--tasks', type=list, default= ['button-press-topdown-v2', 'button-press-v2', 'door-lock-v2', 'door-open-v2',  'drawer-open-v2', 'window-open-v2', 'faucet-open-v2', 'faucet-close-v2', 'handle-press-v2', 'coffee-button-v2'])
 parser.add_argument('--poses', type=list, default= [0,1,2])
 parser.add_argument('--agents_dict_dir', type=str, default='configs/general_model_configs/agents_dict.json')
+parser.add_argument('--seq_len',type=int,default=1)
+parser.add_argument('--seq_overlap',type=int,default=5)
 
 
 
 #model                
 parser.add_argument('--seed', type=int, default=42)
-parser.add_argument('--model', type=str, default='base',choices=['base','GAN'])
+parser.add_argument('--model', type=str, default='base',choices=['base','GAN','seq'])
 parser.add_argument('--backbone', type=str, default='open_ai_clip',choices=['open_ai_clip','simple_clip'])
 parser.add_argument('--neck', type=str, default=None,choices=[None,'transformer'])
 parser.add_argument('--head', type=str, default='fc',choices=['fc'])

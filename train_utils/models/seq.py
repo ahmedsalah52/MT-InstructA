@@ -1,0 +1,59 @@
+import torch.nn as nn
+import torch
+from train_utils.models.base import arch
+
+
+class seq_model(arch):
+    def __init__(self,args):
+        super().__init__(args)
+        self.args = args
+        self.loss_fun  = self.loss_funs[args.loss_fun]()
+        self.backbone  = self.backbones[args.backbone](args)
+        self.preprocess_image = self.backbone.preprocess_image
+        if args.neck:
+            self.neck = self.necks[args.neck](args)
+        self.seq_module = nn.LSTM(args.imgs_instuction_emps+args.pos_emp,hidden_size=512,batch_first=False,bidirectional=False,num_layers=2)
+
+        self.head = self.heads[args.head](512,args.action_dim)
+        self.dummy_param = nn.Parameter(torch.empty(0))
+
+    def forward(self,batch):
+        embeddings = []
+        for i in range(self.args.seq_len):
+            batch_step = {}
+            for k,vs in batch.items():
+                batch_step[k] = vs[i]
+           
+            batch_step = {k : v.to(self.dummy_param.device) if k != 'instruction' else v  for k,v in batch_step.items()}
+            x = self.backbone(batch_step)
+            if self.args.neck:
+                x = self.neck(x)
+            embeddings.append(x)
+        
+        embeddings = torch.stack(embeddings,dim=0)
+        print(embeddings.shape)
+        xs , h = self.seq_module(embeddings)
+        print(xs.shape)
+
+        outs = [self.head(x) for x in xs]
+        outs = torch.stack(outs,dim=0)
+        print(outs.shape)
+        return outs
+
+        
+    def train_step(self,batch,device,opts=None):
+        
+        logits = self.forward(batch)
+
+        y = torch.stack(batch['action'],dim=0).to(device)
+        return self.loss_fun(logits, y)
+    
+    def get_opt_params(self):
+        params = self.backbone.get_opt_params() + self.head.get_opt_params() + [{"params": self.seq_module.parameters()}]
+        if self.args.neck:
+            params += self.neck.get_opt_params()
+        return params
+    def get_optimizer(self):
+        params = self.get_opt_params()
+
+        return torch.optim.Adam(params,lr=self.args.lr)

@@ -9,14 +9,31 @@ import torch
 import uuid
 import meta_env
 from PIL import Image 
+from collections import defaultdict
 class temp_dataset(Dataset):
-    def __init__(self):
+    def __init__(self,seq_len=1,seq_overlap=10):
         self.data = []
         for i in range(100):
             self.data.append(i)
+        self.sequence = seq_len>1
+        self.seq_len = seq_len
+        self.seq_overlap = seq_overlap 
     def __len__(self):
         return len(self.data)
     def __getitem__(self, index):
+        if not self.sequence:
+            return self.prepare_step(None)
+        
+        rets = defaultdict(list)
+        for i in range(self.seq_len):
+            step = self.prepare_step(None)
+            for k,v in step.items():
+                rets[k].append(v)
+        
+        #rets = {k : torch.tensor(v) if k != 'instruction' else v  for k,v in rets.items()}
+
+        return rets
+    def prepare_step(self,step_data):
         ret = {}
         ret['images']         = torch.zeros((5,3,224,224)).to(torch.float32)
         ret['hand_pos']       = torch.zeros(8).to(torch.float32)
@@ -41,14 +58,18 @@ def get_stats(data_dict):
     return table
 
 class MW_dataset(Dataset):
-    def __init__(self,preprocess,dataset_dict_dir,dataset_dir,tasks_commands,total_data_len):
+    def __init__(self,preprocess,dataset_dict_dir,dataset_dir,tasks_commands,total_data_len,seq_len=1,seq_overlap=10):
         self.data_dict = json.load(open(dataset_dict_dir))
         self.dataset_dir = dataset_dir
         self.tasks_commands = tasks_commands
         self.total_data_len = total_data_len
         self.preprocess = preprocess
-        self.load_data()
-    def load_data(self):
+        self.sequence = seq_len>1
+        self.seq_len = seq_len
+        self.seq_overlap = seq_overlap 
+        if self.sequence: self.load_data_sequence()
+        else: self.load_data_single()
+    def load_data_single(self):
         self.tasks = list(self.data_dict.keys())
         self.data = []
         for task in self.tasks:
@@ -60,13 +81,55 @@ class MW_dataset(Dataset):
         
         #random.shuffle(self.data)
         #self.data = self.data[0:self.total_data_len]
+    def load_data_sequence(self):
+        self.tasks = list(self.data_dict.keys())
+        self.data = []
+        for task in self.tasks:
+            for epi in range(len(self.data_dict[task])):
+                episode = []
+                for s in range(len(self.data_dict[task][epi])):
+                    step = self.data_dict[task][epi][s]
+                    step['instruction'] = random.choice(self.tasks_commands[task])
+                    episode.append(step)
+                
+                self.data += self.get_seqs(episode[:])
+
+    def get_seqs(self,episode):
+        seqs = []
+        i  = 0
+        done = False
+        while not done:
+            start = i
+            end = i + self.seq_len
+            if end >= len(episode)-1:
+                done = 0
+                sublist = episode[-self.seq_len:]
+            else:
+                sublist = episode[start:end]
+                i = end - self.seq_overlap
+
+            seqs.append(sublist)
+        return seqs
     def get_stats(self):
         return get_stats(self.data_dict)
     def __len__(self):
         return len(self.data)
     
     def __getitem__(self,idx):
-        step_data = self.data[idx]
+        if not self.sequence:
+            return self.prepare_step(self.data[idx])
+        
+        sequence_steps = self.data[idx]
+        rets = defaultdict(list)
+        for step in sequence_steps:
+            step = self.prepare_step(step)
+            for k,v in step.items():
+                rets[k].append(v)
+        
+        #rets = {k : torch.tensor(v) if k != 'instruction' else v  for k,v in rets.items()}
+
+        return rets
+    def prepare_step(self,step_data):
         images_dir = step_data['images_dir']
         images = [self.preprocess(Image.open(os.path.join(self.dataset_dir,dir))) for dir in images_dir]
         ret = {}
@@ -75,7 +138,6 @@ class MW_dataset(Dataset):
         ret['action']      = torch.tensor(step_data['action'])
         ret['instruction'] = step_data['instruction']
         return ret
-
 
 def split_dict(dict_of_lists, split_ratio=0.8,seed=42):
     """

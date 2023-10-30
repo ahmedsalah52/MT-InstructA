@@ -7,8 +7,9 @@ import random
 from PIL import Image 
 
 from torch.optim.lr_scheduler import StepLR
-from train_utils.models import *
-
+from train_utils.models.base import base_model
+from train_utils.models.GAN import simple_GAN
+from train_utils.models.seq import seq_model
 
 class TL_model(pl.LightningModule):
     def __init__(self,args,tasks_commands,env,wandb_logger,seed):
@@ -23,7 +24,7 @@ class TL_model(pl.LightningModule):
         self.batch_size = args.batch_size
         self.env = env
         self.wandb_logger = wandb_logger
-        models = {'base':base_model,'GAN':simple_GAN}
+        models = {'base':base_model,'GAN':simple_GAN,'seq':seq_model}
         self.model = models[args.model](args)
         self.preprocess = self.model.preprocess_image
         

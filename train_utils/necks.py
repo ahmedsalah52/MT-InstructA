@@ -48,3 +48,5 @@ class transformer_encoder(nn.Module):
             {"params": self.encoder.parameters()}
              ]
 
+
+
