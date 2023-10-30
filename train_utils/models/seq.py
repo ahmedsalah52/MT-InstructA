@@ -28,11 +28,14 @@ class seq_model(arch):
            
             batch_step = {k : v.to(self.dummy_param.device) if k != 'instruction' else v  for k,v in batch_step.items()}
             x = self.backbone(batch_step)
+            del batch_step
+          
+
             self.normalize(x)
             if self.args.neck:
                 x = self.neck(x)
             embeddings.append(x)
-        
+        del batch
         embeddings = torch.stack(embeddings,dim=0)
         xs , h = self.seq_module(embeddings)
 
@@ -50,10 +53,10 @@ class seq_model(arch):
         x , self.hidden_state = self.seq_module(x.unsqueeze(0),self.hidden_state)
         return self.head(x)
     def train_step(self,batch,device,opts=None):
-        
+        y = torch.stack(batch['action'],dim=0).to(device)
+
         logits = self.forward(batch)
 
-        y = torch.stack(batch['action'],dim=0).to(device)
         return self.loss_fun(logits, y)
     
     def get_opt_params(self):
