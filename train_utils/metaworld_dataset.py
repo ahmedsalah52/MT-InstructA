@@ -115,7 +115,7 @@ class MW_dataset(Dataset):
             start = i
             end = i + self.seq_len
             if end >= len(episode)-1:
-                done = 0
+                done = True
                 sublist = episode[-self.seq_len:]
             else:
                 sublist = episode[start:end]
