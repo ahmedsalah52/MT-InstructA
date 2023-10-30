@@ -119,10 +119,15 @@ class MW_dataset(Dataset):
                 sublist = episode[-self.seq_len:]
             else:
                 sublist = episode[start:end]
-                i = end - self.seq_overlap
+                i = end - self.get_overlap()
 
             seqs.append(sublist)
         return seqs
+    def get_overlap(self):
+
+        rand = random.randint(0,self.seq_overlap//2)
+        return rand + self.seq_overlap//2
+    
     def get_stats(self):
         return get_stats(self.data_dict)
     def __len__(self):
