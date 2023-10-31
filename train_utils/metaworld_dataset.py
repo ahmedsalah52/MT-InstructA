@@ -157,6 +157,8 @@ class MW_dataset(Dataset):
         ret['hand_pos'] = torch.tensor(np.concatenate((step_data['obs'][0:4],step_data['obs'][18:22]),axis =0)).to(torch.float32)
         ret['action']      = torch.tensor(step_data['action'])
         ret['instruction'] = step_data['instruction']
+        ret['timesteps']   = step_data['timesteps']
+
         return ret
 
 def split_dict(dict_of_lists, split_ratio=0.8,seed=42):
