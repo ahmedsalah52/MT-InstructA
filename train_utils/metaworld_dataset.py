@@ -105,6 +105,7 @@ class MW_dataset(Dataset):
                     step = self.data_dict[task][epi][s]
                     step['instruction'] = random.choice(self.tasks_commands[task])
                     step['timesteps'] = s
+                    step['reward'] = self.data_dict[task][epi][-1]
                     episode.append(step)
                 self.data += self.get_seqs(episode[:])
 
