@@ -181,8 +181,8 @@ class DL_model(arch):
             self.commands_embeddings = deque([torch.zeros(1, args.instuction_emps).to(self.dummy_param.device) for _ in range(args.seq_len)], maxlen=args.seq_len)  
             self.poses_embeddings    = deque([torch.zeros(1, args.pos_emp).to(self.dummy_param.device)    for _ in range(args.seq_len)], maxlen=args.seq_len)  
             self.actions             = deque([torch.zeros(1, args.action_dim).to(self.dummy_param.device) for _ in range(args.seq_len)], maxlen=args.seq_len)  
-            self.timesteps           = deque([torch.zeros(1, 1,dtype=torch.int).to(self.dummy_param.device)    for _ in range(args.seq_len)], maxlen=args.seq_len)  
-            self.attention_mask      = deque([torch.zeros(1, 1,dtype=torch.int).to(self.dummy_param.device)    for _ in range(args.seq_len)], maxlen=args.seq_len)  
+            self.timesteps           = deque([torch.zeros(1  ,dtype=torch.int).to(self.dummy_param.device)    for _ in range(args.seq_len)], maxlen=args.seq_len)  
+            self.attention_mask      = deque([torch.zeros(1  ,dtype=torch.int).to(self.dummy_param.device)    for _ in range(args.seq_len)], maxlen=args.seq_len)  
 
     def forward(self,batch):
         states_embeddings ,commands_embeddings,poses_embeddings= [],[],[]
@@ -209,25 +209,14 @@ class DL_model(arch):
         batch_size,seq_length,_ = actions.shape
         attention_mask = torch.ones((batch_size, self.args.seq_len), dtype=torch.long).to(self.dummy_param.device)
 
-        #states, actions, rewards, dones, rtg, timesteps, attention_mask = self.get_batch(self.batch_size)
-        #action_target = torch.clone(actions)
-        print(states_embeddings.shape)
-        print(commands_embeddings.shape)
-        print(poses_embeddings.shape)
-        print(actions.shape)
-        print(timesteps.shape)
-        print(attention_mask.shape)
+        
         action_preds = self.dl_model.forward(
             states_embeddings, actions,poses_embeddings, commands_embeddings, timesteps, attention_mask=attention_mask,
         )
 
-        #act_dim = action_preds.shape[2]
-        #action_preds = action_preds.reshape(-1, act_dim)[attention_mask.reshape(-1) > 0]
-        #action_target = action_target.reshape(-1, act_dim)[attention_mask.reshape(-1) > 0]
-
+       
         
         action_preds = action_preds.transpose(1,0)
-        print('action',action_preds.shape)
 
         return action_preds
     
@@ -250,7 +239,7 @@ class DL_model(arch):
         self.poses_embeddings.append(poses)
         self.actions.append(input_step['action'])
         self.timesteps.append(input_step['timesteps'])
-        self.attention_mask.append(torch.tensor([1]).unsqueeze(0))
+        self.attention_mask.append(torch.tensor([1]))
 
         
 
@@ -261,11 +250,9 @@ class DL_model(arch):
         timesteps           = torch.stack([s.to(self.dummy_param.device) for s in self.timesteps],dim=0).transpose(1,0).to(self.dummy_param.device)
         attention_mask      = torch.stack([s.to(self.dummy_param.device) for s in self.attention_mask],dim=0).transpose(1,0).to(self.dummy_param.device)
 
-
         action_preds = self.dl_model.forward(
             states_embeddings, actions,poses_embeddings, commands_embeddings, timesteps, attention_mask=attention_mask,
         )
-
         return action_preds[0,-1]
         
     def get_opt_params(self):

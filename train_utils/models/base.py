@@ -16,7 +16,7 @@ class arch(nn.Module):
         self.dummy_param = nn.Parameter(torch.empty(0))
 
     def eval_step(self,input_step):
-        return self.forward(input_step)
+        return self.forward(input_step)[0]
 
 class base_model(arch):
     def __init__(self,args) -> None:

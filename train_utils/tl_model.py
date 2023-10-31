@@ -73,7 +73,7 @@ class TL_model(pl.LightningModule):
             return self.base_training_step(batch,batch_idx)
         
     def on_train_epoch_end(self):
-        if (self.current_epoch % self.evaluate_every == 0) and self.current_epoch > 0:
+        if (self.current_epoch % self.evaluate_every == 0) :#and self.current_epoch > 0:
             print(f"\n epoch {self.current_epoch}  evaluation on device {self.device}")
             success_rate = self.evaluate_model()
             self.log("success_rate", success_rate,sync_dist=True,batch_size=self.batch_size,prog_bar=True) # type: ignore
@@ -115,11 +115,11 @@ class TL_model(pl.LightningModule):
                 images = [self.model.preprocess_image(Image.fromarray(np.uint8(img))) for img in info['images']]
                 step_input['images']   = torch.stack(images).unsqueeze(0).to(self.device)
                 step_input['hand_pos'] = torch.tensor(np.concatenate((obs[0:4],obs[18:22]),axis =0)).to(torch.float32).unsqueeze(0).to(self.device)
-                step_input['timesteps'] = torch.tensor([i],dtype=torch.int16).unsqueeze(0).to(self.device)
+                step_input['timesteps'] = torch.tensor([i],dtype=torch.int).to(self.device)
                 step_input['action']    = a.unsqueeze(0).to(self.device)
 
                 a = self.model.eval_step(step_input)
-                obs, reward, done,success, info = env.step(a.detach().cpu().numpy()[0]) 
+                obs, reward, done,success, info = env.step(a.detach().cpu().numpy()) 
                 #rendered_seq.append(env.get_visual_obs_log())
                 i+=1
                 if (success or done): break 

@@ -51,7 +51,7 @@ class seq_model(arch):
             x = self.neck(x)
 
         x , self.hidden_state = self.seq_module(x.unsqueeze(0),self.hidden_state)
-        return self.head(x)
+        return self.head(x)[0]
     def train_step(self,batch,device,opts=None):
         y = torch.stack(batch['action'],dim=0).to(device)
 
