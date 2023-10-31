@@ -49,11 +49,12 @@ parser.add_argument('--noise_len' , type=int, default=128)
 
 
 #Decision Transformer params
-parser.add_argument('--dt_embed_dim', type=int, default=128)
+parser.add_argument('--dt_embed_dim', type=int, default=512)
 parser.add_argument('--dt_n_layer', type=int, default=3)
 parser.add_argument('--dt_n_head', type=int, default=1)
 parser.add_argument('--dt_activation_function', type=str, default='relu')
 parser.add_argument('--dt_dropout', type=float, default=0.1)
+parser.add_argument('--reward_max_value', type=float, default=10.0)
 
 #simple clip backbone params
 parser.add_argument('--image_model_name', type=str, default='resnet50')

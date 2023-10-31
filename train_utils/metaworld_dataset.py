@@ -158,6 +158,7 @@ class MW_dataset(Dataset):
         ret['action']      = torch.tensor(step_data['action'])
         ret['instruction'] = step_data['instruction']
         ret['timesteps']   = step_data['timesteps']
+        ret['reward']   = step_data['reward']
 
         return ret
 
