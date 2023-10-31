@@ -163,7 +163,7 @@ class DL_model(arch):
         self.loss_fun  = self.loss_funs[args.loss_fun]()
         self.backbone  = self.backbones[args.backbone](args)
         self.preprocess_image = self.backbone.preprocess_image
-        
+        self.reward_norm = args.reward_max_value
         self.dl_model = DecisionTransformer(
             state_dim=args.imgs_emps,
             act_dim=args.action_dim,
@@ -208,14 +208,14 @@ class DL_model(arch):
         states_embeddings   = torch.stack(states_embeddings,dim=0).transpose(1,0).to(self.dummy_param.device)
         commands_embeddings = torch.stack(commands_embeddings,dim=0).transpose(1,0).to(self.dummy_param.device)
         poses_embeddings    = torch.stack(poses_embeddings,dim=0).transpose(1,0).to(self.dummy_param.device)
-        returns_to_go       = torch.stack(batch['reward'],dim=0).transpose(1,0).to(self.dummy_param.device)
+        returns_to_go       = torch.stack(batch['reward']/self.reward_norm,dim=0).transpose(1,0).to(self.dummy_param.device)
         actions             = torch.stack(batch['action'],dim=0).transpose(1,0).to(self.dummy_param.device)
         timesteps           = torch.stack(batch['timesteps'],dim=0).transpose(1,0).to(self.dummy_param.device)
 
         batch_size,seq_length,_ = actions.shape
         attention_mask = torch.ones((batch_size, self.args.seq_len), dtype=torch.long).to(self.dummy_param.device)
 
-        
+                
         action_preds = self.dl_model.forward(
             states_embeddings, actions,poses_embeddings, commands_embeddings,returns_to_go, timesteps, attention_mask=attention_mask,
         )
