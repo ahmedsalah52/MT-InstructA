@@ -23,8 +23,10 @@ def main():
     
     model = TL_model.load_from_checkpoint(args.load_checkpoint_path,args=args,tasks_commands=val_tasks_commands,env=meta_env,wandb_logger=None,seed=None)
     model.eval()
-    model.evaluate_model()
-
+    success_rate = model.evaluate_model()
+    print('-'*50)
+    print(f'model {args.load_checkpoint_path} with success rate {success_rate}')
+    print('-'*50)
 if __name__ == "__main__":
     main()
     
