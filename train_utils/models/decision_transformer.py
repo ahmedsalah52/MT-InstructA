@@ -303,9 +303,9 @@ class DL_model(arch):
         states_embeddings   = torch.stack(states_embeddings,dim=0).transpose(1,0).to(self.dummy_param.device)
         #commands_embeddings = torch.stack(commands_embeddings,dim=0).transpose(1,0).to(self.dummy_param.device)
         #poses_embeddings    = torch.stack(poses_embeddings,dim=0).transpose(1,0).to(self.dummy_param.device)
-        returns_to_go       = torch.stack(batch['reward'],dim=0).transpose(1,0).float().to(self.dummy_param.device)
         actions             = torch.stack(batch['action'],dim=0).transpose(1,0).to(self.dummy_param.device)
         timesteps           = torch.stack(batch['timesteps'],dim=0).transpose(1,0).to(self.dummy_param.device)
+        returns_to_go       = torch.stack(batch['reward'],dim=0).unsqueeze(-1).transpose(1,0).float().to(self.dummy_param.device)
 
         batch_size,seq_length,_ = actions.shape
         attention_mask = torch.ones((batch_size, self.args.seq_len), dtype=torch.long).to(self.dummy_param.device)
