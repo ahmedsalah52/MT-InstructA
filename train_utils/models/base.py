@@ -7,7 +7,7 @@ class arch(nn.Module):
     def __init__(self,args):
         super().__init__()
         self.backbones = {'simple_clip':ClIP,'open_ai_clip':Open_AI_CLIP}
-        self.necks = {'transformer':transformer_encoder}
+        self.necks = {'transformer':transformer_encoder,None:None}
         self.heads = {'fc':fc_head}
         self.loss_funs = {'cross_entropy':nn.CrossEntropyLoss,
                      'mse':nn.MSELoss}

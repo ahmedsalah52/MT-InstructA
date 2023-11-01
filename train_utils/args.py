@@ -49,7 +49,7 @@ parser.add_argument('--noise_len' , type=int, default=128)
 
 
 #Decision Transformer params
-parser.add_argument('--dt_embed_dim', type=int, default=512)
+parser.add_argument('--dt_embed_dim', type=int, default=128)
 parser.add_argument('--dt_n_layer', type=int, default=3)
 parser.add_argument('--dt_n_head', type=int, default=1)
 parser.add_argument('--dt_activation_function', type=str, default='relu')
