@@ -102,10 +102,12 @@ class MW_dataset(Dataset):
             #for epi in range(len(self.data_dict[task])):
                 episode = []
                 for s in range(len(self.data_dict[task][epi])):
-                    step = self.data_dict[task][epi][s]
+                    step = {k:v for k,v in self.data_dict[task][epi][s].items()}
+
                     step['instruction'] = random.choice(self.tasks_commands[task])
                     step['timesteps'] = s
-                    step['reward'] = 1#self.data_dict[task][epi][-1]
+                    step['reward'] = self.data_dict[task][epi][-1]
+                    print(self.data_dict[task][epi][-1])
                     episode.append(step)
                 self.data += self.get_seqs(episode[:])
 
