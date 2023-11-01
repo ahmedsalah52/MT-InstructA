@@ -40,7 +40,7 @@ class temp_dataset(Dataset):
         ret['hand_pos']       = torch.zeros(8).to(torch.float32)
         ret['action']         = torch.zeros(4).to(torch.float32)
         ret['timesteps']      = 1
-
+        ret['reward']         = 8.0
         ret['instruction']    = "empty instruction"
 
         return ret

@@ -3,11 +3,13 @@ from train_utils.backbones import *
 from train_utils.necks import *
 from train_utils.heads import *
 
+def ret_None(args):
+    return None
 class arch(nn.Module):
     def __init__(self,args):
         super().__init__()
         self.backbones = {'simple_clip':ClIP,'open_ai_clip':Open_AI_CLIP}
-        self.necks = {'transformer':transformer_encoder,None:None}
+        self.necks = {'transformer':transformer_encoder,None:ret_None}
         self.heads = {'fc':fc_head}
         self.loss_funs = {'cross_entropy':nn.CrossEntropyLoss,
                      'mse':nn.MSELoss}
