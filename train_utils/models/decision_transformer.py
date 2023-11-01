@@ -254,6 +254,7 @@ class DL_model(arch):
         self.loss_fun  = self.loss_funs[args.loss_fun]()
         self.backbone  = self.backbones[args.backbone](args)
         self.neck = self.necks[args.neck](args)
+        self.flatten = nn.Flatten()
         self.preprocess_image = self.backbone.preprocess_image
         self.reward_norm = args.reward_max_value
         self.dl_model = DecisionTransformer(
@@ -293,11 +294,11 @@ class DL_model(arch):
             states = self.backbone(batch_step,cat=True)
             if self.neck:
                 states = self.neck(states)
+                states = self.flatten(states)
             states_embeddings.append(states)
             #commands_embeddings.append(commands)
             #poses_embeddings.append(poses)
         
-        print('batch sucess_rate' ,(batch['reward']))
 
         states_embeddings   = torch.stack(states_embeddings,dim=0).transpose(1,0).to(self.dummy_param.device)
         #commands_embeddings = torch.stack(commands_embeddings,dim=0).transpose(1,0).to(self.dummy_param.device)
