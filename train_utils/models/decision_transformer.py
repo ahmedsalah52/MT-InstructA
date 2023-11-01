@@ -297,7 +297,7 @@ class DL_model(arch):
             #commands_embeddings.append(commands)
             #poses_embeddings.append(poses)
         
-        print('batch sucess_rate' ,torch.mean(batch['reward']))
+        print('batch sucess_rate' ,(batch['reward']))
 
         states_embeddings   = torch.stack(states_embeddings,dim=0).transpose(1,0).to(self.dummy_param.device)
         #commands_embeddings = torch.stack(commands_embeddings,dim=0).transpose(1,0).to(self.dummy_param.device)
