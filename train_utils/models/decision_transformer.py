@@ -274,7 +274,7 @@ class DL_model(arch):
             attn_pdrop=args.dt_dropout,
         )
         if args.model_eval:
-            self.states_embeddings   = deque([torch.zeros(1, args.imgs_emps).to(self.dummy_param.device) for _ in range(args.seq_len)], maxlen=args.seq_len)  
+            self.states_embeddings   = deque([torch.zeros(1, args.imgs_emps+args.instuction_emps+args.pos_emp).to(self.dummy_param.device) for _ in range(args.seq_len)], maxlen=args.seq_len)  
             #self.commands_embeddings = deque([torch.zeros(1, args.instuction_emps).to(self.dummy_param.device) for _ in range(args.seq_len)], maxlen=args.seq_len)  
             #self.poses_embeddings    = deque([torch.zeros(1, args.pos_emp).to(self.dummy_param.device)    for _ in range(args.seq_len)], maxlen=args.seq_len)  
             self.actions             = deque([torch.zeros(1, args.action_dim).to(self.dummy_param.device) for _ in range(args.seq_len)], maxlen=args.seq_len)  
@@ -332,8 +332,10 @@ class DL_model(arch):
     def eval_step(self,input_step):
         batch_step = {k : v.to(self.dummy_param.device) if k != 'instruction' else v  for k,v in input_step.items()}
             
-        states,commands,poses = self.backbone(batch_step,cat=False)
-      
+        states= self.backbone(batch_step,cat=True)
+        if self.neck:
+            states = self.neck(states)
+            states = self.flatten(states)
 
         self.states_embeddings.append(states)
         #self.commands_embeddings.append(commands)
@@ -354,8 +356,7 @@ class DL_model(arch):
         attention_mask      = torch.stack([s.to(self.dummy_param.device) for s in self.attention_mask],dim=0).transpose(1,0).to(self.dummy_param.device)
 
         action_preds = self.dl_model.forward(
-            states_embeddings, actions,poses_embeddings, commands_embeddings, timesteps, returns_to_go,attention_mask=attention_mask,
-        )
+        states_embeddings, actions,None,returns_to_go.unsqueeze(-1), timesteps, attention_mask=attention_mask)
         return action_preds[0,-1]
         
     def get_opt_params(self):

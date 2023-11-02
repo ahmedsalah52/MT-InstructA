@@ -88,7 +88,7 @@ class MW_dataset(Dataset):
             for epi in range(len(self.data_dict[task])):
                 for s in range(len(self.data_dict[task][epi])):
                     step = self.data_dict[task][epi][s]
-                    step['instruction'] = random.choice(self.tasks_commands[task])
+                    step['task'] = task #random.choice(self.tasks_commands[task])
                     self.data.append(step)
         
         #random.shuffle(self.data)
@@ -103,7 +103,7 @@ class MW_dataset(Dataset):
                 episode = []
                 for s in range(len(self.data_dict[task][epi])):
                     step = self.data_dict[task][epi][s]
-                    step['instruction'] = random.choice(self.tasks_commands[task])
+                    step['task'] = task 
                     step['timesteps'] = s
                     #step['reward'] = float(self.data_dict[task][epi][-1]['success'])
                     episode.append(step)
@@ -157,7 +157,7 @@ class MW_dataset(Dataset):
         ret['images']   = torch.stack(images)
         ret['hand_pos'] = torch.tensor(np.concatenate((step_data['obs'][0:4],step_data['obs'][18:22]),axis =0)).to(torch.float32)
         ret['action']      = torch.tensor(step_data['action'])
-        ret['instruction'] = step_data['instruction']
+        ret['instruction'] = random.choice(self.tasks_commands[step_data['task']])
         ret['timesteps']   = step_data['timesteps']
         ret['reward']   = step_data['reward']
 
