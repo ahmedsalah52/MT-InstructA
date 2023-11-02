@@ -157,7 +157,7 @@ class Open_AI_CLIP(nn.Module):
         pos_embeddings = self.pos_emp(batch['hand_pos'])
         
         if not cat: 
-            return self.flatten(image_features),text_features,pos_embeddings
+            return image_features,text_features,pos_embeddings
         
         text_images_embeddings = torch.cat([image_features,text_features[:,None,:]],dim=1)
         text_images_embeddings = self.flatten(text_images_embeddings)
