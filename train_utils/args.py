@@ -109,6 +109,7 @@ parser.add_argument('--evaluation_episodes',type=int, default=1,help='number of 
 parser.add_argument('--load_checkpoint_path', type=str, default=None)
 parser.add_argument('--load_weights', type=str, default=None)
 parser.add_argument('--n_gpus', type=int, default=1)
+parser.add_argument('--schedular_step', type=int, default=5)
 
 
 #testing
