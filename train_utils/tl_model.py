@@ -32,7 +32,7 @@ class TL_model(pl.LightningModule):
         
         self.automatic_optimization =  self.model_name != 'GAN'
 
-        #self.my_scheduler = StepLR(self.opt, step_size=10, gamma=0.5)
+        self.my_scheduler = StepLR(self.opt, step_size=10, gamma=0.5)
     def base_training_step(self, batch, batch_idx):
        
         loss = self.model.train_step(batch,self.device)
@@ -132,7 +132,7 @@ class TL_model(pl.LightningModule):
 
     def configure_optimizers(self):
         #return self.opt
-        return self.model.get_optimizer()#, [{"scheduler": self.my_scheduler,  'name': 'lr_scheduler'}]
+        return self.model.get_optimizer(), [{"scheduler": self.my_scheduler,  'name': 'lr_scheduler'}]
 
 
 
