@@ -44,9 +44,11 @@ class TL_model(pl.LightningModule):
         optimizer_g, optimizer_d = self.optimizers()
         
         self.toggle_optimizer(optimizer_g)
+        embeddings = self.model.encode(batch)
 
         #generator step
-        g_loss = self.model.generator_step(batch)
+        generated_embeddings,generated_actions = self.generate_batch()
+        g_loss = self.model.generator_step(generated_embeddings,generated_actions)
         self.manual_backward(g_loss)
         optimizer_g.step()
         optimizer_g.zero_grad()
@@ -55,7 +57,7 @@ class TL_model(pl.LightningModule):
         # train discriminator
         self.toggle_optimizer(optimizer_d)
 
-        d_loss = self.model.discriminator_step(batch)
+        d_loss = self.model.discriminator_step(embeddings,batch['action'],generated_embeddings,generated_actions)
         
         self.manual_backward(d_loss)
         optimizer_d.step()
