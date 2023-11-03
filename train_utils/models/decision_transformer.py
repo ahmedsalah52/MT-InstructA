@@ -167,7 +167,7 @@ class DecisionTransformer(TrajectoryModel):
             hidden_size,
             max_length=None,
             max_ep_len=4096,
-            action_tanh=True,
+            action_tanh=False,
             **kwargs
     ):
         super().__init__(state_dim, act_dim, max_length=max_length)
