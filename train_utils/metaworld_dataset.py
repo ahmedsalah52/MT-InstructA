@@ -81,17 +81,27 @@ class MW_dataset(Dataset):
         self.seq_len = seq_len
         self.seq_overlap = seq_overlap 
         self.cams = cams
-        if self.sequence: self.load_data_sequence()
-        else: self.load_data_single()
-    def load_data_single(self):
+        self.load_data()
+        print('seq' if self.sequence else 'single step'+' data preparation done with length',len(self.data))
+
+    def load_data(self):
         self.tasks = list(self.data_dict.keys())
         self.data = []
         for task in self.tasks:
-            for epi in range(len(self.data_dict[task])):
+            print('preparing task:',task)
+            for epi in tqdm(range(len(self.data_dict[task]))):
+                episode = []
                 for s in range(len(self.data_dict[task][epi])):
                     step = self.data_dict[task][epi][s]
-                    step['task'] = task #random.choice(self.tasks_commands[task])
-                    self.data.append(step)
+                    step['task'] = task 
+                    step['timesteps'] = s
+                    #step['reward'] = float(self.data_dict[task][epi][-1]['success'])
+                    episode.append(step)
+                
+                if self.sequence:
+                    self.data += self.get_seqs(episode[:])
+                else:
+                    self.data += episode
         
         #random.shuffle(self.data)
         #self.data = self.data[0:self.total_data_len]
@@ -101,7 +111,6 @@ class MW_dataset(Dataset):
         for task in self.tasks:
             print('preparing task:',task)
             for epi in tqdm(range(len(self.data_dict[task]))):
-            #for epi in range(len(self.data_dict[task])):
                 episode = []
                 for s in range(len(self.data_dict[task][epi])):
                     step = self.data_dict[task][epi][s]
