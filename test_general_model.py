@@ -48,6 +48,7 @@ class video():
         return cv2.waitKey(0)
     
     def write_video(self,task_name):
+        if not self.save_video: return
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
         out = cv2.VideoWriter(os.path.join(self.save_dir,task_name+'.mp4'), fourcc, 30.0, (self.res[0],self.res[1]))
         for i in self.video:
@@ -97,13 +98,20 @@ def main():
     print(env.current_task_variant , env.main_pos_index)
     key = video_man.imshow_obs(env,main_task_pos=env.main_pos_index,tasks=env.current_task_variant)
     instruction = input('enter the instruction:')
+    a = torch.tensor([0,0,0,0],dtype=torch.float16)
+    i = 0
     while 1:
         step_input = {'instruction':[instruction]}
         images =  [model.model.preprocess_image(Image.fromarray(np.uint8(img))) for img in get_visual_obs(env)]
         step_input['images']   = torch.stack(images).unsqueeze(0).to(model.device)
         step_input['hand_pos'] = torch.tensor(np.concatenate((obs[0:4],obs[18:22]),axis =0)).to(torch.float32).unsqueeze(0).to(model.device)
-        a = model.model(step_input)
-        obs, reward, done, info = env.step(a.detach().cpu().numpy()[0]) 
+        step_input['timesteps'] = torch.tensor([i],dtype=torch.int).to(model.device)
+        step_input['action']    = a.unsqueeze(0).to(model.device)
+        with torch.no_grad():
+            a = model.model.eval_step(step_input)
+        print('action ',a)
+        obs, reward, done, info = env.step(a.detach().cpu().numpy()) 
+        i+=1
         print(instruction , reward)
         #print(np.concatenate((obs[0:4],obs[18:22]),axis =0))
         key = video_man.imshow_obs(env,instruction,main_task_pos=env.main_pos_index,tasks=env.current_task_variant)

@@ -106,6 +106,7 @@ class TL_model(pl.LightningModule):
 
     def run_epi(self,task,pos):
         env = self.env(task,pos,save_images=True,wandb_render = False,wandb_log = False,general_model=True)
+        self.model.reset_memory()
         obs , info = env.reset()
         instruction = random.choice(self.tasks_commands[task])
         #rendered_seq = []

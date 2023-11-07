@@ -274,14 +274,17 @@ class DL_model(arch):
             attn_pdrop=args.dt_dropout,
         )
         if args.model_eval:
-            self.states_embeddings   = deque([torch.zeros(1, args.imgs_emps+args.instuction_emps+args.pos_emp).to(self.dummy_param.device) for _ in range(args.seq_len)], maxlen=args.seq_len)  
-            #self.commands_embeddings = deque([torch.zeros(1, args.instuction_emps).to(self.dummy_param.device) for _ in range(args.seq_len)], maxlen=args.seq_len)  
-            #self.poses_embeddings    = deque([torch.zeros(1, args.pos_emp).to(self.dummy_param.device)    for _ in range(args.seq_len)], maxlen=args.seq_len)  
-            self.actions             = deque([torch.zeros(1, args.action_dim).to(self.dummy_param.device) for _ in range(args.seq_len)], maxlen=args.seq_len)  
-            self.timesteps           = deque([torch.zeros(1  ,dtype=torch.int).to(self.dummy_param.device)    for _ in range(args.seq_len)], maxlen=args.seq_len)  
-            self.rewards             = deque([torch.zeros(1  ,dtype=torch.float16).to(self.dummy_param.device)    for _ in range(args.seq_len)], maxlen=args.seq_len)  
-            self.attention_mask      = deque([torch.zeros(1  ,dtype=torch.int).to(self.dummy_param.device)    for _ in range(args.seq_len)], maxlen=args.seq_len)  
-
+            self.reset_memory()
+    def reset_memory(self):
+        args = self.args
+        self.states_embeddings   = deque([torch.zeros(1, args.imgs_emps+args.instuction_emps+args.pos_emp).to(self.dummy_param.device) for _ in range(args.seq_len)], maxlen=args.seq_len)  
+        #self.commands_embeddings = deque([torch.zeros(1, args.instuction_emps).to(self.dummy_param.device) for _ in range(args.seq_len)], maxlen=args.seq_len)  
+        #self.poses_embeddings    = deque([torch.zeros(1, args.pos_emp).to(self.dummy_param.device)    for _ in range(args.seq_len)], maxlen=args.seq_len)  
+        self.actions             = deque([torch.zeros(1, args.action_dim).to(self.dummy_param.device) for _ in range(args.seq_len)], maxlen=args.seq_len)  
+        self.timesteps           = deque([torch.zeros(1  ,dtype=torch.int).to(self.dummy_param.device)    for _ in range(args.seq_len)], maxlen=args.seq_len)  
+        self.rewards             = deque([torch.zeros(1  ,dtype=torch.float16).to(self.dummy_param.device)    for _ in range(args.seq_len)], maxlen=args.seq_len)  
+        self.attention_mask      = deque([torch.zeros(1  ,dtype=torch.int).to(self.dummy_param.device)    for _ in range(args.seq_len)], maxlen=args.seq_len)  
+    
     def forward(self,batch):
         states_embeddings ,commands_embeddings,poses_embeddings= [],[],[]
         for i in range(self.args.seq_len):
@@ -331,7 +334,6 @@ class DL_model(arch):
     
     def eval_step(self,input_step):
         batch_step = {k : v.to(self.dummy_param.device) if k != 'instruction' else v  for k,v in input_step.items()}
-            
         states= self.backbone(batch_step,cat=True)
         if self.neck:
             states = self.neck(states)
@@ -357,6 +359,8 @@ class DL_model(arch):
 
         action_preds = self.dl_model.forward(
         states_embeddings, actions,None,returns_to_go.unsqueeze(-1), timesteps, attention_mask=attention_mask)
+        
+       
         return action_preds[0,-1]
         
     def get_opt_params(self):

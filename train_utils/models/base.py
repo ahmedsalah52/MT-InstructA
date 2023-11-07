@@ -19,7 +19,8 @@ class arch(nn.Module):
 
     def eval_step(self,input_step):
         return self.forward(input_step)[0]
-
+    def reset_memory(self):
+        pass
 class base_model(arch):
     def __init__(self,args) -> None:
         super().__init__(args)
