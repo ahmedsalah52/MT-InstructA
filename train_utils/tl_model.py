@@ -134,13 +134,13 @@ class TL_model(pl.LightningModule):
     def configure_optimizers(self):
         #return self.opt
         #return self.model.get_optimizer(), [{"scheduler": self.my_scheduler,  'name': 'lr_scheduler'}]
-        opt = self.model.get_optimizer()
+        """opt = self.model.get_optimizer()
         scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
                 opt,
                 patience=1,
                 verbose=True
-            )
-        return {"optimizer":  opt,"lr_scheduler": scheduler}
+            )"""
+        return {"optimizer":  self.opt,"lr_scheduler": self.my_scheduler}
 
    
 def load_checkpoint(model,checkpoint_path):
