@@ -16,7 +16,7 @@ class TL_model(pl.LightningModule):
     def __init__(self,args,tasks_commands,env,wandb_logger,seed):
         super().__init__()
         self.model_name = args.model
-
+        self.cams_ids = args.cams
         self.tasks_commands = tasks_commands
         self.evaluate_every = args.evaluate_every
         self.evaluation_episodes = args.evaluation_episodes
@@ -115,7 +115,7 @@ class TL_model(pl.LightningModule):
         while 1:
             with torch.no_grad():
                 step_input = {'instruction':[instruction]}
-                images = [self.model.preprocess_image(Image.fromarray(np.uint8(img))) for img in info['images']]
+                images = [self.model.preprocess_image(Image.fromarray(np.uint8(img))) for i, img in enumerate(info['images']) if i in self.cams_ids]
                 step_input['images']   = torch.stack(images).unsqueeze(0).to(self.device)
                 step_input['hand_pos'] = torch.tensor(np.concatenate((obs[0:4],obs[18:22]),axis =0)).to(torch.float32).unsqueeze(0).to(self.device)
                 step_input['timesteps'] = torch.tensor([i],dtype=torch.int).to(self.device)

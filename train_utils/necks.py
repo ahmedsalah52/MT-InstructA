@@ -38,7 +38,6 @@ class transformer_encoder(nn.Module):
         embeddings = embeddings * math.sqrt(self.att_head_emp)
         embeddings = self.pos_encoder(embeddings)
         embeddings = self.encoder(embeddings)
-
         return embeddings.permute(1,0,2)
     
 

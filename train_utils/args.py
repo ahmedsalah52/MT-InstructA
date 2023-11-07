@@ -24,7 +24,10 @@ parser.add_argument('--tasks', type=list, default= ['button-press-topdown-v2', '
 parser.add_argument('--poses', type=list, default= [0,1,2])
 parser.add_argument('--agents_dict_dir', type=str, default='configs/general_model_configs/agents_dict.json')
 
-
+#data preprocessing args
+parser.add_argument('--cams',type=list,default=[2,4])
+parser.add_argument('--seq_len',type=int,default=1)
+parser.add_argument('--seq_overlap',type=int,default=2,help='overlap between sequences')
 
 
 
@@ -36,11 +39,9 @@ parser.add_argument('--neck', type=str, default=None,choices=[None,'transformer'
 parser.add_argument('--head', type=str, default='fc',choices=['fc'])
 parser.add_argument('--action_dim', type=int, default=4)
 parser.add_argument('--pos_emp', type=int, default=128)
-parser.add_argument('--imgs_emps', type=int, default=2560,help='the size of images embeddings ')
+parser.add_argument('--imgs_emps', type=int, default=512,help='the size of images embeddings ')
 parser.add_argument('--instuction_emps', type=int, default=512,help='the size of instruction embeddings')
 parser.add_argument('--freeze_modules', type=str, default=None)
-parser.add_argument('--seq_len',type=int,default=1)
-parser.add_argument('--seq_overlap',type=int,default=5,help='overlap between sequences, the actual overlap is overlap/2 + rand_int(0,overlap) so it should be by maximam half seq len')
 parser.add_argument('--max_ep_len',type=int,default=200)
 
 #GAN params
@@ -89,7 +90,7 @@ parser.add_argument('--n_heads'     , type=int, default=16)
 parser.add_argument('--att_head_emp', type=int, default=16)
 parser.add_argument('--neck_layers' , type=int, default=2)
 parser.add_argument('--neck_dropout', type=int, default=0.2)
-parser.add_argument('--neck_max_len', type=int, default=200)
+parser.add_argument('--neck_max_len', type=int, default=104)
 
 
 #head params

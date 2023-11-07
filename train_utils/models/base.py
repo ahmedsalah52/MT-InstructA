@@ -30,7 +30,7 @@ class base_model(arch):
         self.preprocess_image = self.backbone.preprocess_image
         if args.neck:
             self.neck = self.necks[args.neck](args)
-        self.head = self.heads[args.head](args.imgs_instuction_emps+args.pos_emp,args.action_dim)
+        self.head = self.heads[args.head](args.imgs_emps*len(args.cams)+args.instuction_emps+args.pos_emp,args.action_dim)
 
         
     def forward(self,batch):
