@@ -134,8 +134,7 @@ class TL_model(pl.LightningModule):
     def configure_optimizers(self):
         #return self.opt
         #return self.model.get_optimizer(), [{"scheduler": self.my_scheduler,  'name': 'lr_scheduler'}]
-        #return {"optimizer":  self.model.get_optimizer(),"scheduler": self.my_scheduler,  'name': 'lr_scheduler'}
-        return [self.model.get_optimizer()], [{"scheduler":self.my_scheduler, "interval": "step"}]
+        return {"optimizer":  self.model.get_optimizer(),"scheduler": self.my_scheduler}
 
 
 def load_checkpoint(model,checkpoint_path):
