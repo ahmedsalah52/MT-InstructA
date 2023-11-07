@@ -299,7 +299,6 @@ class DL_model(arch):
             states ,commands , poses = self.backbone(batch_step,cat=False)
             if self.neck:
                 states = self.neck(states)
-                states = self.flatten(states)
             states_embeddings.append(states)
             poses_embeddings.append(poses)
 
@@ -341,7 +340,6 @@ class DL_model(arch):
         states,commands,poses= self.backbone(batch_step,cat=False)
         if self.neck:
             states = self.neck(states)
-            states = self.flatten(states)
 
         self.states_embeddings.append(states)
         self.commands_embeddings.append(commands)

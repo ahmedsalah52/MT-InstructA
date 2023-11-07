@@ -32,13 +32,14 @@ class transformer_encoder(nn.Module):
         
 
     def forward(self, embeddings):
-        embeddings = embeddings.reshape(embeddings.shape[0],-1,self.att_head_emp)
+        shape = embeddings.shape
+        embeddings = embeddings.reshape(shape[0],-1,self.att_head_emp)
         embeddings = embeddings.permute(1,0,2)
         
         embeddings = embeddings * math.sqrt(self.att_head_emp)
         embeddings = self.pos_encoder(embeddings)
         embeddings = self.encoder(embeddings)
-        return embeddings.permute(1,0,2)
+        return embeddings.permute(1,0,2).reshape(*shape)
     
 
       
