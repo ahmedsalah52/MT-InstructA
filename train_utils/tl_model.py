@@ -11,7 +11,7 @@ from train_utils.models.base import base_model
 from train_utils.models.GAN import simple_GAN
 from train_utils.models.seq import seq_model
 from train_utils.models.decision_transformer import DL_model
-
+from tqdm import tqdm
 class TL_model(pl.LightningModule):
     def __init__(self,args,tasks_commands,env,wandb_logger,seed):
         super().__init__()
@@ -85,6 +85,8 @@ class TL_model(pl.LightningModule):
     def evaluate_model(self):
         total_success = []
         success_dict = {}
+        pbar = tqdm(total=len(self.tasks)*3*self.evaluation_episodes)  
+        pbar.set_description(f"Evaluation on GPU : {self.device}")
         for task in self.tasks:
             success_rate_row = []
             for pos in [0,1,2]:
@@ -92,11 +94,13 @@ class TL_model(pl.LightningModule):
                 for i in range(self.evaluation_episodes):
                     success = self.run_epi(task,pos)
                     pos_success+=success
+                    pbar.update(1)
+
                 success_rate_row.append(float(pos_success)/self.evaluation_episodes)
                 total_success+= success_rate_row
             
             success_dict[task]=success_rate_row[:]
-
+        pbar.close()
         for task , row in success_dict.items(): print(f'success rate in {task} with mean {np.mean(row)} and detailed {row}')
         success_rate =  np.mean(total_success)
         print('total success rate',success_rate)         
@@ -105,7 +109,7 @@ class TL_model(pl.LightningModule):
 
 
     def run_epi(self,task,pos):
-        env = self.env(task,pos,save_images=True,wandb_render = False,wandb_log = False,general_model=True)
+        env = self.env(task,pos,save_images=True,wandb_render = False,wandb_log = False,general_model=True,cams_ids=self.cams_ids)
         self.model.reset_memory()
         obs , info = env.reset()
         instruction = random.choice(self.tasks_commands[task])
@@ -115,7 +119,7 @@ class TL_model(pl.LightningModule):
         while 1:
             with torch.no_grad():
                 step_input = {'instruction':[instruction]}
-                images = [self.model.preprocess_image(Image.fromarray(np.uint8(img))) for i, img in enumerate(info['images']) if i in self.cams_ids]
+                images = [self.model.preprocess_image(Image.fromarray(np.uint8(img))) for  img in info['images']]
                 step_input['images']   = torch.stack(images).unsqueeze(0).to(self.device)
                 step_input['hand_pos'] = torch.tensor(np.concatenate((obs[0:4],obs[18:22]),axis =0)).to(torch.float32).unsqueeze(0).to(self.device)
                 step_input['timesteps'] = torch.tensor([i],dtype=torch.int).to(self.device)

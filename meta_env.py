@@ -80,7 +80,7 @@ class task_manager():
 
 
 class meta_env(Env):
-    def __init__(self,taskname,task_pos,save_images,variant=None,episode_length = 200,pos_emb_flag=False,wandb_render = False,multi = True,process='None',wandb_log = True,general_model = False) -> None:
+    def __init__(self,taskname,task_pos,save_images,variant=None,episode_length = 200,pos_emb_flag=False,wandb_render = False,multi = True,process='None',wandb_log = True,general_model = False,cams_ids=[0,1,2,3,4]) -> None:
         super().__init__()
         
         self.taskname = taskname
@@ -117,6 +117,7 @@ class meta_env(Env):
         self.multi = multi
         self.process = process
         self.wandb_log = wandb_log
+        self.cams_ids = cams_ids
     def reset(self,seed=None, options=None):
         super().reset(seed=seed)
         self.env = self.task_man.reset()
@@ -189,19 +190,10 @@ class meta_env(Env):
   
 
     def get_visual_obs(self):
-        corner         = self.env.render(offscreen= True,camera_name='corner') # corner,2,3, corner2, topview, gripperPOV, behindGripper'
-        corner2        = self.env.render(offscreen= True,camera_name='corner2')
-        behindGripper  = self.env.render(offscreen= True,camera_name='behindGripper')
-        corner3        = self.env.render(offscreen= True,camera_name='corner3')
-        topview        = self.env.render(offscreen= True,camera_name='topview')
-        
-        images = [cv2.resize(corner,(224,224)),       
-                cv2.resize(corner2,(224,224)),      
-                cv2.resize(behindGripper,(224,224)),
-                cv2.resize(corner3,(224,224)),      
-                cv2.resize(topview,(224,224))      
-        ]
+        cams = ['corner','corner2','behindGripper','corner3','topview']
 
+        renders = [self.env.render(offscreen= True,camera_name=cam) for i,cam in enumerate(cams) if i in self.cams_ids]
+        images = [cv2.resize(img,(224,224)) for img in renders]
         return np.array(images)
     
 
