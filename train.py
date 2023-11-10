@@ -31,7 +31,7 @@ def main():
         save_top_k=10,  # Save only the best model
         save_last=True,  # Save the last model as well
         every_n_epochs=args.evaluate_every,
-        save_on_train_epoch_end=True
+        #save_on_train_epoch_end=True
         )
     train_loss_checkpoint_callback = ModelCheckpoint(
         dirpath = checkpoints_dir,
