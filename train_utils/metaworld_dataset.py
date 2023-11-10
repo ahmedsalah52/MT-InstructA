@@ -112,10 +112,13 @@ class MW_dataset(Dataset):
             print('preparing task:',task)
             for epi in tqdm(range(len(self.data_dict[task]))):
                 episode = []
+                return_to_go = sum([self.data_dict[task][epi][s]['reward'] for s in range(len(self.data_dict[task][epi]))])
                 for s in range(len(self.data_dict[task][epi])):
                     step = self.data_dict[task][epi][s]
+                    step['return_to_go'] = return_to_go
                     step['task'] = task 
                     step['timesteps'] = s
+                    return_to_go -= step['reward']
                     #step['reward'] = float(self.data_dict[task][epi][-1]['success'])
                     episode.append(step)
                 self.data += self.get_seqs(episode[:])
@@ -225,7 +228,6 @@ class Generate_data():
         self.poses = poses
         self.agents_dict = json.load(open(agents_dict_dir))
         self.meta_env = meta_env
-        self.agents_levels_step = 10000
         self.with_imgs = with_imgs
 
     def generate_data(self):

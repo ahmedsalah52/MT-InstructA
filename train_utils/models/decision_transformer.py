@@ -351,8 +351,7 @@ class DL_model(arch):
             resid_pdrop=args.dt_dropout,
             attn_pdrop=args.dt_dropout,
         )
-        if args.model_eval:
-            self.reset_memory()
+       
     def reset_memory(self):
         args = self.args
         self.states_embeddings   = deque([torch.zeros(1, len(args.cams),args.imgs_emps).to(self.dummy_param.device) for _ in range(args.seq_len)], maxlen=args.seq_len)  
