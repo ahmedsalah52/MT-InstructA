@@ -151,13 +151,13 @@ class Open_AI_CLIP(nn.Module):
         image_features = torch.unflatten(image_features,dim = 0,sizes=(batch_size,cams))
         batch["images"] = torch.unflatten(batch["images"],dim = 0,sizes=(batch_size,cams))
 
+        pos_embeddings = self.pos_emp(batch['hand_pos'])
 
         text_features = None
-        if command and not cat:
+        if command:
             text = clip.tokenize(batch['instruction']).to(batch['images'].device)
             text_features  = self.model.encode_text(text)
         
-        pos_embeddings = self.pos_emp(batch['hand_pos'])
         
         if not cat: 
             return image_features,text_features,pos_embeddings

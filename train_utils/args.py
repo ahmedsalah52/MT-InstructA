@@ -45,6 +45,7 @@ parser.add_argument('--instuction_emps', type=int, default=512,help='the size of
 parser.add_argument('--freeze_modules', type=str, default=None)
 parser.add_argument('--freeze_except', type=str, default=None)
 parser.add_argument('--max_ep_len',type=int,default=200)
+parser.add_argument('--debugging_mode', action='store_true',help='by raising this flag, a smaller fake dataset will be used for debugging the pipline')
 
 #GAN params
 parser.add_argument('--action_emp', type=int, default=128)
