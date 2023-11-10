@@ -157,8 +157,8 @@ class DecisionTransformer(TrajectoryModel):
         self.embed_timestep = nn.Embedding(max_ep_len, hidden_size)
         self.embed_command = torch.nn.Linear(self.command_dim, hidden_size)
         self.embed_state = nn.ModuleList([torch.nn.Linear(self.state_dim, hidden_size) for _ in range(state_len)]) 
-        self.embed_action = torch.nn.Linear(self.act_dim, hidden_size)
-        self.embed_pos = torch.nn.Linear(self.pos_emp, hidden_size)
+        #self.embed_action = torch.nn.Linear(self.act_dim, hidden_size)
+        #self.embed_pos = torch.nn.Linear(self.pos_emp, hidden_size)
         self.embed_return = torch.nn.Linear(1, hidden_size)
 
         self.embed_ln = nn.LayerNorm(hidden_size)
@@ -196,6 +196,9 @@ class DecisionTransformer(TrajectoryModel):
         stacked_inputs = torch.stack(
             (returns_embeddings,pos_embeddings, *state_embeddings), dim=1
         ).permute(0, 2, 1, 3).reshape(batch_size, self.step_len*seq_length, self.hidden_size)
+        
+        #add command 
+        stacked_inputs = torch.cat((command_embeddings,stacked_inputs), dim=1)
         stacked_inputs = self.embed_ln(stacked_inputs)
 
         # to make the attention mask fit the stacked inputs, have to stack it as well
@@ -205,8 +208,7 @@ class DecisionTransformer(TrajectoryModel):
 
         # we feed in the input embeddings (not word indices as in NLP) to the model
         
-        #add command 
-        stacked_inputs = torch.cat((command_embeddings,stacked_inputs), dim=1)
+        #add command mask
         stacked_attention_mask = torch.cat((stacked_attention_mask, torch.ones((batch_size, 1), dtype=torch.long).to(stacked_attention_mask.device)), dim=1)
 
         transformer_outputs = self.transformer(
@@ -370,7 +372,7 @@ class DL_model(arch):
            
             batch_step = {k : v.to(self.dummy_param.device) if k != 'instruction' else v  for k,v in batch_step.items()}
             
-            states ,commands , poses = self.backbone(batch_step,cat=False)
+            states ,commands , poses = self.backbone(batch_step,cat=False,command= (i==self.args.seq_len-1))
             if self.neck:
                 states = self.neck(states)
             states_embeddings.append(states)

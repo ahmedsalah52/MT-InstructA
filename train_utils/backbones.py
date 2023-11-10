@@ -142,7 +142,7 @@ class Open_AI_CLIP(nn.Module):
         self.flatten = nn.Flatten()
         
         #self.grad_clip = nn.utils.clip_grad_norm_(self.parameters(), 0.5)
-    def forward(self,batch,cat=True):
+    def forward(self,batch,cat=True,command=True):
         batch_size,cams,ch,h,w  = batch['images'].shape
 
 
@@ -152,12 +152,16 @@ class Open_AI_CLIP(nn.Module):
         batch["images"] = torch.unflatten(batch["images"],dim = 0,sizes=(batch_size,cams))
 
 
-        text = clip.tokenize(batch['instruction']).to(batch['images'].device)
-        text_features  = self.model.encode_text(text)
+        text_features = None
+        if command and not cat:
+            text = clip.tokenize(batch['instruction']).to(batch['images'].device)
+            text_features  = self.model.encode_text(text)
+        
         pos_embeddings = self.pos_emp(batch['hand_pos'])
         
         if not cat: 
             return image_features,text_features,pos_embeddings
+        
         text_images_embeddings = torch.cat([image_features,text_features[:,None,:]],dim=1)
         text_images_embeddings = self.flatten(text_images_embeddings)
         return torch.cat([text_images_embeddings,pos_embeddings],dim=1)
