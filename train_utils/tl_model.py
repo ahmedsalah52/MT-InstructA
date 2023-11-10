@@ -193,7 +193,11 @@ def freeze_layers(model,args):
         frozen_modules = args.freeze_modules.split(',')
         for name, param in model.named_parameters():
             for layer_name in frozen_modules:
-                if layer_name in name and layer_name not in non_frozen_modules:
-                    param.requires_grad = False
-                    print('freeze layer ',name)
+                if layer_name in name :
+                    if len(set(name.split('.')) & set(non_frozen_modules))>0:
+                        param.requires_grad = True
+                        print('unfreeze layer ',name)
+                    else:
+                        param.requires_grad = False
+                        print('freeze layer ',name)
     return model
