@@ -38,10 +38,12 @@ parser.add_argument('--backbone', type=str, default='open_ai_clip',choices=['ope
 parser.add_argument('--neck', type=str, default=None,choices=[None,'transformer'])
 parser.add_argument('--head', type=str, default='fc',choices=['fc'])
 parser.add_argument('--action_dim', type=int, default=4)
+parser.add_argument('--pos_dim', type=int, default=8)
 parser.add_argument('--pos_emp', type=int, default=128)
 parser.add_argument('--imgs_emps', type=int, default=512,help='the size of images embeddings')
 parser.add_argument('--instuction_emps', type=int, default=512,help='the size of instruction embeddings')
 parser.add_argument('--freeze_modules', type=str, default=None)
+parser.add_argument('--freeze_except', type=str, default=None)
 parser.add_argument('--max_ep_len',type=int,default=200)
 
 #GAN params

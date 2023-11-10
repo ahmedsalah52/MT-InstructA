@@ -170,7 +170,7 @@ class DecisionTransformer(TrajectoryModel):
         )
         #self.command_preds = torch.nn.Linear(hidden_size, command_dim)
 
-    def forward(self, states, actions, poses, command,returns_to_go, timesteps, attention_mask=None):
+    def forward(self, states, actions, pos_embeddings, command,returns_to_go, timesteps, attention_mask=None):
 
         batch_size, seq_length = states.shape[0], states.shape[1]
         if attention_mask is None:
@@ -182,7 +182,7 @@ class DecisionTransformer(TrajectoryModel):
         #action_embeddings = self.embed_action(actions)
         command_embeddings = self.embed_command(command)
         time_embeddings = self.embed_timestep(timesteps)
-        pos_embeddings  = self.embed_pos(poses)
+        #pos_embeddings  = self.embed_pos(poses)
         returns_embeddings  = self.embed_return(returns_to_go)
 
         # time embeddings are treated similar to positional embeddings

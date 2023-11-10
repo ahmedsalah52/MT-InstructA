@@ -185,11 +185,15 @@ def load_checkpoint(model,checkpoint_path):
 
 
 def freeze_layers(model,args):
+    non_frozen_modules = []
+    if args.freeze_except:
+        non_frozen_modules = args.freeze_except.split(',')
+
     if args.freeze_modules:
         frozen_modules = args.freeze_modules.split(',')
         for name, param in model.named_parameters():
             for layer_name in frozen_modules:
-                if layer_name in name:
+                if layer_name in name and layer_name not in non_frozen_modules:
                     param.requires_grad = False
                     print('freeze layer ',name)
     return model
