@@ -116,6 +116,7 @@ class TL_model(pl.LightningModule):
         #rendered_seq = []
         i = 0
         a = torch.tensor([0,0,0,0],dtype=torch.float16)
+        reward = 0
         while 1:
             with torch.no_grad():
                 step_input = {'instruction':[instruction]}
@@ -124,6 +125,7 @@ class TL_model(pl.LightningModule):
                 step_input['hand_pos'] = torch.tensor(np.concatenate((obs[0:4],obs[18:22]),axis =0)).to(torch.float32).unsqueeze(0).to(self.device)
                 step_input['timesteps'] = torch.tensor([i],dtype=torch.int).to(self.device)
                 step_input['action']    = a.unsqueeze(0).to(self.device)
+                step_input['reward']    = reward
 
                 a = self.model.eval_step(step_input)
                 obs, reward, done,success, info = env.step(a.detach().cpu().numpy()) 

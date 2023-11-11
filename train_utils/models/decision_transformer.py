@@ -364,7 +364,7 @@ class DL_model(arch):
         self.timesteps           = deque([torch.zeros(1  ,dtype=torch.int).to(self.dummy_param.device)    for _ in range(args.seq_len)], maxlen=args.seq_len)  
         self.rewards             = deque([torch.zeros(1  ,dtype=torch.float16).to(self.dummy_param.device)    for _ in range(args.seq_len)], maxlen=args.seq_len)  
         self.attention_mask      = deque([torch.zeros(1  ,dtype=torch.int).to(self.dummy_param.device)    for _ in range(args.seq_len)], maxlen=args.seq_len)  
-    
+        self.eval_return_to_go   = 1.0
     def forward(self,batch):
         states_embeddings ,commands_embeddings,poses_embeddings= [],[],[]
         for i in range(self.args.seq_len):
@@ -420,14 +420,17 @@ class DL_model(arch):
         if self.neck:
             states = self.neck(states)
 
+        if self.prompt != 'reward':
+            self.eval_return_to_go -= input_step['reward']/self.prompt_norm
+        
         self.states_embeddings.append(states)
         self.commands_embeddings.append(commands)
         self.poses_embeddings.append(poses)
         self.actions.append(input_step['action'])
         self.timesteps.append(input_step['timesteps'])
-        self.rewards.append(torch.tensor([1.0],dtype=torch.float).to(self.dummy_param.device))
+        self.rewards.append(torch.tensor([self.eval_return_to_go],dtype=torch.float).to(self.dummy_param.device))
         self.attention_mask.append(torch.tensor([1]))
-
+        
         
 
         states_embeddings   = torch.stack([s.to(self.dummy_param.device) for s in self.states_embeddings],dim=0).transpose(1,0).to(self.dummy_param.device)
