@@ -125,7 +125,7 @@ class TL_model(pl.LightningModule):
                 step_input['hand_pos'] = torch.tensor(np.concatenate((obs[0:4],obs[18:22]),axis =0)).to(torch.float32).unsqueeze(0).to(self.device)
                 step_input['timesteps'] = torch.tensor([i],dtype=torch.int).to(self.device)
                 step_input['action']    = a.unsqueeze(0).to(self.device)
-                step_input['reward']    = reward
+                step_input['reward']    = torch.tensor([reward]).to(self.device)
 
                 a = self.model.eval_step(step_input)
                 obs, reward, done,success, info = env.step(a.detach().cpu().numpy()) 

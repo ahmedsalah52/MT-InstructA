@@ -59,7 +59,7 @@ parser.add_argument('--dt_n_head', type=int, default=1)
 parser.add_argument('--dt_activation_function', type=str, default='relu')
 parser.add_argument('--dt_dropout', type=float, default=0.1)
 parser.add_argument('--reward_max_value', type=float, default=10.0)
-parser.add_argument('--return_to_go_max_value', type=float, default=2000.0)
+parser.add_argument('--return_to_go_max_value', type=float, default=1646.723)
 parser.add_argument('--prompt', type=str, default='reward',choices=['reward','return_to_go'])
 
 #simple clip backbone params
