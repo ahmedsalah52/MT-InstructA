@@ -166,6 +166,7 @@ class MW_dataset(Dataset):
         ret['instruction'] = random.choice(self.tasks_commands[step_data['task']])
         ret['timesteps']   = step_data['timesteps']
         ret['reward']   = step_data['reward']
+        ret['return_to_go']   = step_data['return_to_go']
 
         return ret
 
