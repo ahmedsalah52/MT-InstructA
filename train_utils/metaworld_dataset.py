@@ -20,6 +20,7 @@ class temp_dataset(Dataset):
         self.seq_len = seq_len
         self.seq_overlap = seq_overlap 
         self.cams= cams
+        
     def __len__(self):
         return len(self.data)
     def __getitem__(self, index):
@@ -42,6 +43,7 @@ class temp_dataset(Dataset):
         ret['action']         = torch.zeros(4).to(torch.float32)
         ret['timesteps']      = 1
         ret['reward']         = 8.0
+        ret['return_to_go']   = 800.0
         ret['instruction']    = "empty instruction"
 
         return ret

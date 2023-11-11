@@ -334,7 +334,9 @@ class DL_model(arch):
         self.neck = self.necks[args.neck](args)
         self.flatten = nn.Flatten()
         self.preprocess_image = self.backbone.preprocess_image
-        self.reward_norm = args.reward_max_value
+        self.prompt = args.prompt
+        self.prompt_norm = args.reward_max_value if self.prompt == 'reward' else args.return_to_go_max_value
+
         self.dl_model = DecisionTransformer(
             state_dim=args.imgs_emps,
             state_len=len(args.cams),
@@ -386,8 +388,8 @@ class DL_model(arch):
         poses_embeddings    = torch.stack(poses_embeddings,dim=0).transpose(1,0).to(self.dummy_param.device)
         actions             = torch.stack(batch['action'],dim=0).transpose(1,0).to(self.dummy_param.device)
         timesteps           = torch.stack(batch['timesteps'],dim=0).transpose(1,0).to(self.dummy_param.device)
-        returns_to_go       = torch.stack(batch['reward'],dim=0).unsqueeze(-1).transpose(1,0).float().to(self.dummy_param.device)
-        returns_to_go/= self.reward_norm
+        returns_to_go       = torch.stack(batch[self.prompt],dim=0).unsqueeze(-1).transpose(1,0).float().to(self.dummy_param.device)
+        returns_to_go/= self.prompt_norm
         batch_size,seq_length,_ = actions.shape
         attention_mask = torch.ones((batch_size, self.args.seq_len), dtype=torch.long).to(self.dummy_param.device)
 
