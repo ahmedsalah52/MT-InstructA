@@ -81,6 +81,7 @@ class MW_dataset(Dataset):
         self.seq_len = seq_len
         self.seq_overlap = seq_overlap 
         self.cams = cams
+        self.max_return_to_go = 0
         self.load_data()
         print('seq' if self.sequence else 'single step'+' data preparation done with length',len(self.data))
 
@@ -91,10 +92,14 @@ class MW_dataset(Dataset):
             print('preparing task:',task)
             for epi in tqdm(range(len(self.data_dict[task]))):
                 episode = []
+                return_to_go = sum([self.data_dict[task][epi][s]['reward'] for s in range(len(self.data_dict[task][epi]))])
+                self.max_return_to_go = max(self.max_return_to_go,return_to_go)
                 for s in range(len(self.data_dict[task][epi])):
                     step = self.data_dict[task][epi][s]
                     step['task'] = task 
                     step['timesteps'] = s
+                    step['return_to_go'] = return_to_go
+                    return_to_go -= step['reward']
                     #step['reward'] = float(self.data_dict[task][epi][-1]['success'])
                     episode.append(step)
                 
@@ -105,25 +110,7 @@ class MW_dataset(Dataset):
         
         #random.shuffle(self.data)
         #self.data = self.data[0:self.total_data_len]
-    def load_data_sequence(self):
-        self.tasks = list(self.data_dict.keys())
-        self.data = []
-        for task in self.tasks:
-            print('preparing task:',task)
-            for epi in tqdm(range(len(self.data_dict[task]))):
-                episode = []
-                return_to_go = sum([self.data_dict[task][epi][s]['reward'] for s in range(len(self.data_dict[task][epi]))])
-                for s in range(len(self.data_dict[task][epi])):
-                    step = self.data_dict[task][epi][s]
-                    step['return_to_go'] = return_to_go
-                    step['task'] = task 
-                    step['timesteps'] = s
-                    return_to_go -= step['reward']
-                    #step['reward'] = float(self.data_dict[task][epi][-1]['success'])
-                    episode.append(step)
-                self.data += self.get_seqs(episode[:])
-
-        print('seq data preparation done with length',len(self.data))
+    
     def get_seqs(self,episode):
         seqs = []
         i  = 0
@@ -146,7 +133,10 @@ class MW_dataset(Dataset):
         return rand + self.seq_overlap//2
     
     def get_stats(self):
-        return get_stats(self.data_dict)
+        
+        table = get_stats(self.data_dict)
+        table.append(['max_return_to_go',self.max_return_to_go])
+        return table
     def __len__(self):
         return len(self.data)
     

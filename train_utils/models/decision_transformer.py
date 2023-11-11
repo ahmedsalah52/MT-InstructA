@@ -215,6 +215,7 @@ class DecisionTransformer(TrajectoryModel):
             inputs_embeds=stacked_inputs,
             attention_mask=stacked_attention_mask,
         )
+       
         x = transformer_outputs['last_hidden_state']
 
         # reshape x so that the second dimension corresponds to the original
