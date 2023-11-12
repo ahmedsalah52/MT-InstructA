@@ -85,7 +85,8 @@ class TL_model(pl.LightningModule):
     def evaluate_model(self):
         total_success = []
         success_dict = {}
-        pbar = tqdm(total=len(self.tasks)*3*self.evaluation_episodes)  
+        pbar = tqdm(total=len(self.tasks)*3*self.evaluation_episodes,desc=f"Evaluation on GPU : {self.device}",leave=True)  
+
         pbar.set_description(f"Evaluation on GPU : {self.device}")
         for task in self.tasks:
             success_rate_row = []
@@ -94,10 +95,11 @@ class TL_model(pl.LightningModule):
                 for i in range(self.evaluation_episodes):
                     success = self.run_epi(task,pos)
                     pos_success+=success
+                    total_success.append(success)
+                    pbar.set_description(f"success rate {round(np.mean(total_success),2)} on GPU : {self.device}")
                     pbar.update(1)
 
                 success_rate_row.append(float(pos_success)/self.evaluation_episodes)
-                total_success+= success_rate_row
             
             success_dict[task]=success_rate_row[:]
         pbar.close()

@@ -119,7 +119,7 @@ class DecisionTransformer_(TrajectoryModel):
 
     
 
-class DecisionTransformer(TrajectoryModel):
+class DecisionTransformer_2cams(TrajectoryModel):
 
     """
     This model uses GPT to model (Return_1, state_1, action_1, Return_2, state_2, ...)
@@ -232,7 +232,7 @@ class DecisionTransformer(TrajectoryModel):
     
 
 
-class DecisionTransformer2(TrajectoryModel):
+class DecisionTransformer(TrajectoryModel):
 
     """
     This model uses GPT to model (Return_1, state_1, action_1, Return_2, state_2, ...)
@@ -338,7 +338,7 @@ class DL_model(arch):
         self.prompt_norm = args.reward_max_value if self.prompt == 'reward' else args.return_to_go_max_value
 
         self.dl_model = DecisionTransformer(
-            state_dim=args.imgs_emps,
+            state_dim=len(args.cams)*args.imgs_emps+args.pos_emp+args.instuction_emps,
             state_len=len(args.cams),
             act_dim=args.action_dim,
             command_dim=args.instuction_emps,
@@ -357,9 +357,9 @@ class DL_model(arch):
        
     def reset_memory(self):
         args = self.args
-        self.states_embeddings   = deque([torch.zeros(1, len(args.cams),args.imgs_emps).to(self.dummy_param.device) for _ in range(args.seq_len)], maxlen=args.seq_len)  
-        self.commands_embeddings = deque([torch.zeros(1, args.instuction_emps).to(self.dummy_param.device) for _ in range(args.seq_len)], maxlen=1)  
-        self.poses_embeddings    = deque([torch.zeros(1, args.pos_emp).to(self.dummy_param.device)    for _ in range(args.seq_len)], maxlen=args.seq_len)  
+        self.states_embeddings   = deque([torch.zeros(1, len(args.cams)*args.imgs_emps+args.pos_emp+args.instuction_emps).to(self.dummy_param.device) for _ in range(args.seq_len)], maxlen=args.seq_len)  
+        #self.commands_embeddings = deque([torch.zeros(1, args.instuction_emps).to(self.dummy_param.device) for _ in range(args.seq_len)], maxlen=1)  
+        #self.poses_embeddings    = deque([torch.zeros(1, args.pos_emp).to(self.dummy_param.device)    for _ in range(args.seq_len)], maxlen=args.seq_len)  
         self.actions             = deque([torch.zeros(1, args.action_dim).to(self.dummy_param.device) for _ in range(args.seq_len)], maxlen=args.seq_len)  
         self.timesteps           = deque([torch.zeros(1  ,dtype=torch.int).to(self.dummy_param.device)    for _ in range(args.seq_len)], maxlen=args.seq_len)  
         self.rewards             = deque([torch.zeros(1  ,dtype=torch.float16).to(self.dummy_param.device)    for _ in range(args.seq_len)], maxlen=args.seq_len)  
@@ -374,18 +374,18 @@ class DL_model(arch):
            
             batch_step = {k : v.to(self.dummy_param.device) if k != 'instruction' else v  for k,v in batch_step.items()}
             
-            states ,commands , poses = self.backbone(batch_step,cat=False,command= (i==self.args.seq_len-1))
+            states= self.backbone(batch_step,cat=True)
             if self.neck:
                 states = self.neck(states)
             states_embeddings.append(states)
-            poses_embeddings.append(poses)
+            #poses_embeddings.append(poses)
 
-        commands_embeddings.append(commands)
+            #commands_embeddings.append(commands)
         
 
         states_embeddings   = torch.stack(states_embeddings,dim=0).transpose(1,0).to(self.dummy_param.device)
-        commands_embeddings = torch.stack(commands_embeddings,dim=0).transpose(1,0).to(self.dummy_param.device)
-        poses_embeddings    = torch.stack(poses_embeddings,dim=0).transpose(1,0).to(self.dummy_param.device)
+        #commands_embeddings = torch.stack(commands_embeddings,dim=0).transpose(1,0).to(self.dummy_param.device)
+        #poses_embeddings    = torch.stack(poses_embeddings,dim=0).transpose(1,0).to(self.dummy_param.device)
         actions             = torch.stack(batch['action'],dim=0).transpose(1,0).to(self.dummy_param.device)
         timesteps           = torch.stack(batch['timesteps'],dim=0).transpose(1,0).to(self.dummy_param.device)
         returns_to_go       = torch.stack(batch[self.prompt],dim=0).unsqueeze(-1).transpose(1,0).float().to(self.dummy_param.device)
@@ -397,7 +397,7 @@ class DL_model(arch):
 
                 
         action_preds = self.dl_model.forward(
-            states_embeddings,actions,poses_embeddings,commands_embeddings,returns_to_go, timesteps, attention_mask=attention_mask,
+            states_embeddings,actions,None,returns_to_go, timesteps, attention_mask=attention_mask,
         )
 
        
@@ -416,7 +416,7 @@ class DL_model(arch):
     
     def eval_step(self,input_step):
         batch_step = {k : v.to(self.dummy_param.device) if k != 'instruction' else v  for k,v in input_step.items()}
-        states,commands,poses= self.backbone(batch_step,cat=False)
+        states = self.backbone(batch_step,cat=True)
         if self.neck:
             states = self.neck(states)
 
@@ -424,8 +424,8 @@ class DL_model(arch):
             self.eval_return_to_go -= input_step['reward']/self.prompt_norm
         
         self.states_embeddings.append(states)
-        self.commands_embeddings.append(commands)
-        self.poses_embeddings.append(poses)
+        #self.commands_embeddings.append(commands)
+        #self.poses_embeddings.append(poses)
         self.actions.append(input_step['action'])
         self.timesteps.append(input_step['timesteps'])
         self.rewards.append(torch.tensor([self.eval_return_to_go],dtype=torch.float).to(self.dummy_param.device))
@@ -434,8 +434,8 @@ class DL_model(arch):
         
 
         states_embeddings   = torch.stack([s.to(self.dummy_param.device) for s in self.states_embeddings],dim=0).transpose(1,0).to(self.dummy_param.device)
-        commands_embeddings = torch.stack([s.to(self.dummy_param.device) for s in self.commands_embeddings],dim=0).transpose(1,0).to(self.dummy_param.device)
-        poses_embeddings    = torch.stack([s.to(self.dummy_param.device) for s in self.poses_embeddings],dim=0).transpose(1,0).to(self.dummy_param.device)
+        #commands_embeddings = torch.stack([s.to(self.dummy_param.device) for s in self.commands_embeddings],dim=0).transpose(1,0).to(self.dummy_param.device)
+        #poses_embeddings    = torch.stack([s.to(self.dummy_param.device) for s in self.poses_embeddings],dim=0).transpose(1,0).to(self.dummy_param.device)
         actions             = torch.stack([s.to(self.dummy_param.device) for s in self.actions],dim=0).transpose(1,0).to(self.dummy_param.device)
         timesteps           = torch.stack([s.to(self.dummy_param.device) for s in self.timesteps],dim=0).transpose(1,0).to(self.dummy_param.device)
         returns_to_go       = torch.stack([s.to(self.dummy_param.device) for s in self.rewards],dim=0).transpose(1,0).to(self.dummy_param.device)
@@ -444,8 +444,7 @@ class DL_model(arch):
         action_preds = self.dl_model.forward(
         states_embeddings,
         actions,
-        poses_embeddings,
-        commands_embeddings,
+        None,
         returns_to_go.unsqueeze(-1),
         timesteps, 
         attention_mask=attention_mask
