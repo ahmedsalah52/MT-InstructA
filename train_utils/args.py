@@ -25,7 +25,7 @@ parser.add_argument('--poses', type=list, default= [0,1,2])
 parser.add_argument('--agents_dict_dir', type=str, default='configs/general_model_configs/agents_dict.json')
 
 #data preprocessing args
-parser.add_argument('--cams',type=list,default=[2,4])
+parser.add_argument('--cams',type=str,default='2,4')
 parser.add_argument('--seq_len',type=int,default=1)
 parser.add_argument('--seq_overlap',type=int,default=2,help='overlap between sequences')
 
@@ -123,3 +123,5 @@ parser.add_argument('--save_video', action='store_true')
 parser.add_argument('--video_exp_name', type=str, default=None)
 parser.add_argument('--video_dir', type=str, default='video_results')
 parser.add_argument('--video_res', type=tuple, default=(1920,1080))
+
+

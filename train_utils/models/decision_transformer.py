@@ -400,8 +400,6 @@ class DL_model(arch):
             states_embeddings,actions,None,returns_to_go, timesteps, attention_mask=attention_mask,
         )
 
-       
-        
         action_preds = action_preds.transpose(1,0)
 
         return action_preds
