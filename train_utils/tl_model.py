@@ -16,7 +16,7 @@ class TL_model(pl.LightningModule):
     def __init__(self,args,tasks_commands,env,wandb_logger,seed):
         super().__init__()
         self.model_name = args.model
-        self.cams_ids =  [int(c) for c in args.cams.split(',')]
+        self.cams_ids =  args.cams
         self.tasks_commands = tasks_commands
         self.evaluate_every = args.evaluate_every
         self.evaluation_episodes = args.evaluation_episodes

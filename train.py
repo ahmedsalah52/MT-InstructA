@@ -8,9 +8,13 @@ import os
 from pytorch_lightning.callbacks import ModelCheckpoint ,LearningRateMonitor
 from train_utils.metaworld_dataset import MW_dataset,split_dict,temp_dataset
 import json
+def process_args(args):
+    args.cams = [int(c) for c in args.cams.split(',')]
 
+    return args
 def main():
     args = parser.parse_args()
+    args = process_args(args)
     data_dir = os.path.join(args.project_dir,'data',args.dataset)
     checkpoints_dir = os.path.join(args.project_dir,args.project_name,args.run_name,'checkpoints')
 
@@ -54,9 +58,9 @@ def main():
     model = freeze_layers(model , args)
 
     if args.debugging_mode:
-        train_dataset = temp_dataset(seq_len=args.seq_len,seq_overlap=args.seq_overlap,cams = [int(c) for c in args.cams.split(',')])
+        train_dataset = temp_dataset(seq_len=args.seq_len,seq_overlap=args.seq_overlap,cams = args.cams)
     else:
-        train_dataset = MW_dataset(model.preprocess,os.path.join(data_dir,'dataset_dict.json'),os.path.join(data_dir,'data'),train_tasks_commands,total_data_len=args.train_data_total_steps,seq_len=args.seq_len,seq_overlap=args.seq_overlap,cams = [int(c) for c in args.cams.split(',')])
+        train_dataset = MW_dataset(model.preprocess,os.path.join(data_dir,'dataset_dict.json'),os.path.join(data_dir,'data'),train_tasks_commands,total_data_len=args.train_data_total_steps,seq_len=args.seq_len,seq_overlap=args.seq_overlap,cams = args.cams)
         stats_table = train_dataset.get_stats()
         wandb_logger.log_table(key=f"Dataset Success Rate",  columns=['Task name','Success Rate'],data=stats_table)
         args.return_to_go_max_value = train_dataset.max_return_to_go
