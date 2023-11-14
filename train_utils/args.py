@@ -95,7 +95,7 @@ parser.add_argument('--n_heads'     , type=int, default=16)
 parser.add_argument('--att_head_emp', type=int, default=16)
 parser.add_argument('--neck_layers' , type=int, default=2)
 parser.add_argument('--neck_dropout', type=int, default=0.2)
-parser.add_argument('--neck_max_len', type=int, default=104)
+parser.add_argument('--neck_max_len', type=int, default=200)
 
 
 #head params
@@ -125,3 +125,7 @@ parser.add_argument('--video_dir', type=str, default='video_results')
 parser.add_argument('--video_res', type=tuple, default=(1920,1080))
 
 
+def process_args(args):
+    args.cams = [int(c) for c in args.cams.split(',')]
+
+    return args

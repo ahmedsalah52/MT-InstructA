@@ -1,6 +1,6 @@
 import torch
 from train_utils.tl_model import TL_model,load_checkpoint,freeze_layers
-from train_utils.args import  parser 
+from train_utils.args import  parser ,process_args
 from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning import Trainer
 from meta_env import meta_env
@@ -8,10 +8,7 @@ import os
 from pytorch_lightning.callbacks import ModelCheckpoint ,LearningRateMonitor
 from train_utils.metaworld_dataset import MW_dataset,split_dict,temp_dataset
 import json
-def process_args(args):
-    args.cams = [int(c) for c in args.cams.split(',')]
 
-    return args
 def main():
     args = parser.parse_args()
     args = process_args(args)

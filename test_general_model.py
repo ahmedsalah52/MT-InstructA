@@ -1,6 +1,6 @@
 import torch
 from train_utils.tl_model import TL_model
-from train_utils.args import  parser 
+from train_utils.args import  parser ,process_args
 
 from meta_env import meta_env,task_manager
 
@@ -75,6 +75,8 @@ def get_visual_obs(env):
     return np.array(images)
 def main():
     args = parser.parse_args()
+    args = process_args(args)
+
     save_video = args.video_exp_name != None
     print('save video ',save_video)
     
