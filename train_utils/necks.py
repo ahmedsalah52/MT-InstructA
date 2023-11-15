@@ -64,7 +64,7 @@ class CrossAttention(nn.Module):
         self.values  = nn.Linear(self.head_dim, self.head_dim, bias=False)
         self.keys    = nn.Linear(self.head_dim, self.head_dim, bias=False)
         self.queries = nn.Linear(self.head_dim, self.head_dim, bias=False)
-        self.fc_out  = nn.Linear(num_heads * self.head_dim, embed_size)
+        self.fc_out  = nn.Linear(embed_size, embed_size)
 
     def forward(self, values, keys, query, mask=None):
         N = query.shape[0]
@@ -77,6 +77,9 @@ class CrossAttention(nn.Module):
         values  = self.values(values)
         keys    = self.keys(keys)
         queries = self.queries(queries)
+
+
+        
 
         energy = torch.einsum("nqhd,nkhd->nhqk", [queries, keys])
 
@@ -156,7 +159,7 @@ class CrossAttentionNeck(nn.Module):
         super().__init__()
         self.emp_size = args.emp_size
        
-        self.encoder = CrossAttentionEncoder(embed_size=args.emp_size,num_layers=args.neck_layers, num_heads=args.n_heads, dropout=0.1,max_length=5)
+        self.encoder = CrossAttentionEncoder(embed_size=args.emp_size,num_layers=args.neck_layers, num_heads=args.n_heads, dropout=args.neck_dropout,max_length=len(args.cams))
         
                                                              
         self.flatten = nn.Flatten()
@@ -172,10 +175,6 @@ class CrossAttentionNeck(nn.Module):
 
         return torch.cat([text_images_embeddings,pos_emps],dim=1)
          
-         
-    
-
-      
     def get_opt_params(self):
         return  [
             {"params": self.encoder.parameters()}
