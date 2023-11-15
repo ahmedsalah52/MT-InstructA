@@ -148,11 +148,16 @@ class CrossAttentionEncoder(nn.Module):
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, src, conditional_src, mask=None):
-   
+        src = src.permute(1,0,2)
+        conditional_src = conditional_src.permute(1,0,2)
+
         src = self.pos_encoder(src)
 
         for layer in self.layers:
             src = layer(src, conditional_src, mask)
+        
+        
+        src = src.permute(1,0,2)
 
         return src
 
