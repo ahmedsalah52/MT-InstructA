@@ -9,7 +9,7 @@ class arch(nn.Module):
     def __init__(self,args):
         super().__init__()
         self.backbones = {'simple_clip':ClIP,'open_ai_clip':Open_AI_CLIP}
-        self.necks = {'transformer':transformer_encoder,None:ret_None}
+        self.necks = {'transformer':transformer_encoder,'cross_attention':CrossAttentionEncoder,None:ret_None}
         self.heads = {'fc':fc_head}
         self.loss_funs = {'cross_entropy':nn.CrossEntropyLoss,
                      'mse':nn.MSELoss}
@@ -32,9 +32,10 @@ class base_model(arch):
             self.neck = self.necks[args.neck](args)
         self.head = self.heads[args.head](args.imgs_emps*len(args.cams)+args.instuction_emps+args.pos_emp,args.action_dim)
 
+        self.cat_backbone_out = args.neck not in ['cross_attention']
         
     def forward(self,batch):
-        x = self.backbone(batch)
+        x = self.backbone(batch,cat=self.cat_backbone_out)
         if self.args.neck:
             x = self.neck(x)
         x = self.head(x)

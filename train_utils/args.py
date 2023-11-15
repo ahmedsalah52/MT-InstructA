@@ -31,12 +31,15 @@ parser.add_argument('--seq_overlap',type=int,default=2,help='overlap between seq
 
 
 
-#model                
+#model       
+#arch         
 parser.add_argument('--seed', type=int, default=42)
 parser.add_argument('--model', type=str, default='base',choices=['base','GAN','seq','dt'])
 parser.add_argument('--backbone', type=str, default='open_ai_clip',choices=['open_ai_clip','simple_clip'])
-parser.add_argument('--neck', type=str, default=None,choices=[None,'transformer'])
+parser.add_argument('--neck', type=str, default=None,choices=[None,'transformer','cross_attention'])
 parser.add_argument('--head', type=str, default='fc',choices=['fc'])
+
+#params
 parser.add_argument('--action_dim', type=int, default=4)
 parser.add_argument('--pos_dim', type=int, default=8)
 parser.add_argument('--pos_emp', type=int, default=128)
