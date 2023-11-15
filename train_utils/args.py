@@ -25,7 +25,7 @@ parser.add_argument('--poses', type=list, default= [0,1,2])
 parser.add_argument('--agents_dict_dir', type=str, default='configs/general_model_configs/agents_dict.json')
 
 #data preprocessing args
-parser.add_argument('--cams',type=str,default='2,4')
+parser.add_argument('--cams',type=str,default='0,1,2,3,4')
 parser.add_argument('--seq_len',type=int,default=1)
 parser.add_argument('--seq_overlap',type=int,default=2,help='overlap between sequences')
 
