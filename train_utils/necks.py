@@ -21,6 +21,7 @@ class PositionalEncoding(nn.Module):
         Arguments:
             x: Tensor, shape ``[seq_len, batch_size, embedding_dim]``
         """
+       
         x = x + self.pe[:x.size(0)].to(x.device)
         return self.dropout(x)
     
@@ -170,7 +171,7 @@ class CrossAttentionNeck(nn.Module):
                                                             num_layers=args.neck_layers, 
                                                             num_heads=args.n_heads, 
                                                             dropout=args.neck_dropout,
-                                                            max_length=len(args.cams))   for i in range(len(args.cams))])
+                                                            max_length=args.neck_max_len)   for i in range(len(args.cams))])
         
                                                              
         self.flatten = nn.Flatten()
