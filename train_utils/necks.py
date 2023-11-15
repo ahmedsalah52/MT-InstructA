@@ -113,6 +113,8 @@ class CrossAttentionEncoderLayer(nn.Module):
      
 
         cross_attended_src,attn_output_weights = self.cross_attention(src, conditional_src, src, src_mask)
+        
+       
         x = self.dropout(self.norm1(cross_attended_src + src))
         forward = self.feed_forward(x)
 
@@ -132,7 +134,7 @@ class CrossAttentionEncoder(nn.Module):
         super(CrossAttentionEncoder, self).__init__()
 
         self.embed_size = embed_size
-        self.position_embedding = nn.Embedding(max_length, embed_size)
+        self.pos_encoder  = PositionalEncoding(embed_size, dropout=dropout, max_len=max_length)
 
         self.layers = nn.ModuleList(
             [
@@ -146,10 +148,8 @@ class CrossAttentionEncoder(nn.Module):
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, src, conditional_src, mask=None):
-        N,seq_length,emps = src.shape
-        
-        positions = torch.arange(0, seq_length).expand(N, seq_length).to(src.device)
-        src = self.dropout(src + self.position_embedding(positions))
+   
+        src = self.pos_encoder(src)
 
         for layer in self.layers:
             src = layer(src, conditional_src, mask)
@@ -181,8 +181,7 @@ class CrossAttentionNeck(nn.Module):
 
         images_emps  = [self.encoder[i](images_emps[:,i],text_emps) for i in range(cams)]
         images_emps  = torch.stack(images_emps,dim=1)
-
-        text_images_embeddings = torch.cat([images_emps,text_emps],dim=1)
+        text_images_embeddings = torch.cat([images_emps,text_emps[:,None,:,:]],dim=1)
         text_images_embeddings = self.flatten(text_images_embeddings)
 
 
