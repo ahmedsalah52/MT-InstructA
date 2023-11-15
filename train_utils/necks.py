@@ -79,7 +79,6 @@ class CrossAttention(nn.Module):
         queries = self.queries(queries)
 
 
-        
 
         energy = torch.einsum("nqhd,nkhd->nhqk", [queries, keys])
 
@@ -99,7 +98,8 @@ class CrossAttention(nn.Module):
 class CrossAttentionEncoderLayer(nn.Module):
     def __init__(self, embed_size, num_heads, dropout):
         super(CrossAttentionEncoderLayer, self).__init__()
-        self.cross_attention = CrossAttention(embed_size, num_heads)
+        self.cross_attention = nn.MultiheadAttention(embed_size, num_heads, dropout=dropout,batch_first=True) 
+        #CrossAttention(embed_size, num_heads)
         self.norm1 = nn.LayerNorm(embed_size)
         self.feed_forward = nn.Sequential(
             nn.Linear(embed_size, embed_size),
@@ -110,8 +110,9 @@ class CrossAttentionEncoderLayer(nn.Module):
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, src, conditional_src , src_mask=None):
-        cross_attended_src = self.cross_attention(src, conditional_src, src, src_mask)
+     
 
+        cross_attended_src,attn_output_weights = self.cross_attention(src, conditional_src, src, src_mask)
         x = self.dropout(self.norm1(cross_attended_src + src))
         forward = self.feed_forward(x)
 
@@ -145,7 +146,8 @@ class CrossAttentionEncoder(nn.Module):
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, src, conditional_src, mask=None):
-        N, seq_length,emps = src.shape
+        N,seq_length,emps = src.shape
+        
         positions = torch.arange(0, seq_length).expand(N, seq_length).to(src.device)
         src = self.dropout(src + self.position_embedding(positions))
 
@@ -159,23 +161,27 @@ class CrossAttentionNeck(nn.Module):
         super().__init__()
         self.emp_size = args.emp_size
        
-        self.encoder = CrossAttentionEncoder(embed_size=args.emp_size,num_layers=args.neck_layers, num_heads=args.n_heads, dropout=args.neck_dropout,max_length=len(args.cams))
+        self.encoder = nn.ModuleList([CrossAttentionEncoder(embed_size=args.emp_size,
+                                                            num_layers=args.neck_layers, 
+                                                            num_heads=args.n_heads, 
+                                                            dropout=args.neck_dropout,
+                                                            max_length=len(args.cams))   for i in range(len(args.cams))])
         
                                                              
         self.flatten = nn.Flatten()
     def forward(self, input_x):
 
-       
-        
-
         images_emps,text_emps,pos_emps = input_x
         text_emps = text_emps[:,None,:]
-
-        images_emps = images_emps.reshape(images_emps.shape[0],-1,self.emp_size)
+        
+        images_emps = images_emps.reshape(images_emps.shape[0],images_emps.shape[1],-1,self.emp_size)
         text_emps   = text_emps.reshape(text_emps.shape[0],-1,self.emp_size)
 
-        images_emps  = self.encoder(images_emps,text_emps)
-        
+        batch_size , cams , seq_length, emps = images_emps.shape
+
+        images_emps  = [self.encoder[i](images_emps[:,i],text_emps) for i in range(cams)]
+        images_emps  = torch.stack(images_emps,dim=1)
+
         text_images_embeddings = torch.cat([images_emps,text_emps],dim=1)
         text_images_embeddings = self.flatten(text_images_embeddings)
 
