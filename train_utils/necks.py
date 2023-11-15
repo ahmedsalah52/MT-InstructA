@@ -27,18 +27,18 @@ class PositionalEncoding(nn.Module):
 class transformer_encoder(nn.Module):
     def __init__(self, args):
         super().__init__()
-        self.att_head_emp = args.att_head_emp
-        self.pos_encoder  = PositionalEncoding(args.att_head_emp, dropout=args.neck_dropout, max_len=args.neck_max_len)
-        encoder_layer     = nn.TransformerEncoderLayer(d_model=args.att_head_emp,dropout=args.neck_dropout, nhead=args.n_heads)
+        self.emp_size = args.emp_size
+        self.pos_encoder  = PositionalEncoding(args.emp_size, dropout=args.neck_dropout, max_len=args.neck_max_len)
+        encoder_layer     = nn.TransformerEncoderLayer(d_model=args.emp_size,dropout=args.neck_dropout, nhead=args.n_heads)
         self.encoder      = nn.TransformerEncoder(encoder_layer, num_layers=args.neck_layers)
         
 
     def forward(self, embeddings):
         shape = embeddings.shape
-        embeddings = embeddings.reshape(shape[0],-1,self.att_head_emp)
+        embeddings = embeddings.reshape(shape[0],-1,self.emp_size)
         embeddings = embeddings.permute(1,0,2)
         
-        embeddings = embeddings * math.sqrt(self.att_head_emp)
+        embeddings = embeddings * math.sqrt(self.emp_size)
         embeddings = self.pos_encoder(embeddings)
         embeddings = self.encoder(embeddings)
         return embeddings.permute(1,0,2).reshape(*shape)
@@ -50,93 +50,126 @@ class transformer_encoder(nn.Module):
             {"params": self.encoder.parameters()}
              ]
 
-
-
-class CrossAttentionLayer(nn.Module):
-    def __init__(self, q_dim,cross_attention_dim,embed_dim, num_heads=1,dropout=0.2):
-        super(CrossAttentionLayer, self).__init__()
-
+class CrossAttention(nn.Module):
+    def __init__(self, embed_size, num_heads):
+        super(CrossAttention, self).__init__()
+        self.embed_size = embed_size
         self.num_heads = num_heads
-        self.head_dim = embed_dim 
-        total_embed_dim = num_heads * embed_dim
-        # Linear transformations for queries, keys, and values
-        self.query_linear = nn.Linear(q_dim, total_embed_dim)
-        self.key_linear = nn.Linear(cross_attention_dim, total_embed_dim)
-        self.value_linear = nn.Linear(cross_attention_dim, total_embed_dim)
+        self.head_dim = embed_size // num_heads
+
+        assert (
+            self.head_dim * num_heads == embed_size
+        ), "Embedding size needs to be divisible by heads"
+
+        self.values  = nn.Linear(self.head_dim, self.head_dim, bias=False)
+        self.keys    = nn.Linear(self.head_dim, self.head_dim, bias=False)
+        self.queries = nn.Linear(self.head_dim, self.head_dim, bias=False)
+        self.fc_out  = nn.Linear(num_heads * self.head_dim, embed_size)
+
+    def forward(self, values, keys, query, mask=None):
+        N = query.shape[0]
+        value_len, key_len, query_len = values.shape[1], keys.shape[1], query.shape[1]
+        
+        values = values.reshape(N, value_len, self.num_heads, self.head_dim)
+        keys     = keys.reshape(N, key_len, self.num_heads, self.head_dim)
+        queries = query.reshape(N, query_len, self.num_heads, self.head_dim)
+
+        values  = self.values(values)
+        keys    = self.keys(keys)
+        queries = self.queries(queries)
+
+        energy = torch.einsum("nqhd,nkhd->nhqk", [queries, keys])
+
+        if mask is not None:
+            energy = energy.masked_fill(mask == 0, float("-1e20"))
+
+        attention = torch.softmax(energy / (self.embed_size ** (1 / 2)), dim=3)
+
+        out = torch.einsum("nhql,nlhd->nqhd", [attention, values]).reshape(
+            N, query_len, self.num_heads * self.head_dim
+        )
+
+        out = self.fc_out(out)
+        return out
+
+
+class CrossAttentionEncoderLayer(nn.Module):
+    def __init__(self, embed_size, num_heads, dropout):
+        super(CrossAttentionEncoderLayer, self).__init__()
+        self.cross_attention = CrossAttention(embed_size, num_heads)
+        self.norm1 = nn.LayerNorm(embed_size)
+        self.feed_forward = nn.Sequential(
+            nn.Linear(embed_size, embed_size),
+            nn.ReLU(),
+            nn.Linear(embed_size, embed_size),
+        )
+        self.norm2 = nn.LayerNorm(embed_size)
         self.dropout = nn.Dropout(dropout)
-        # Output linear layer
-        self.out_linear = nn.Linear(total_embed_dim,cross_attention_dim)
 
-    def forward(self, x, conditional_x):
-        batch_size, len_x, _     = x.size()
-        _, len_conditional_x, _ = conditional_x.size()
+    def forward(self, src, conditional_src , src_mask=None):
+        cross_attended_src = self.cross_attention(src, conditional_src, src, src_mask)
 
-        # Linear transformations
-        query = self.query_linear(x)
-        key   = self.key_linear(conditional_x)
-        value = self.value_linear(conditional_x)
+        x = self.dropout(self.norm1(cross_attended_src + src))
+        forward = self.feed_forward(x)
 
-        # Reshape for multi-head attention
-        query = query.view(batch_size, len_x            , self.num_heads, self.head_dim).transpose(1, 2)
-        key   =   key.view(batch_size, len_conditional_x, self.num_heads, self.head_dim).transpose(1, 2)
-        value = value.view(batch_size, len_conditional_x, self.num_heads, self.head_dim).transpose(1, 2)
+        out = self.dropout(self.norm2(forward + x))
+        return out
 
-        # Compute attention scores
-        scores = torch.matmul(query, key.transpose(-2, -1)) / (self.head_dim ** 0.5)
-
-        # Apply softmax to get attention weights
-        attention_weights = F.softmax(scores, dim=-1)
-
-        # Apply attention weights to values
-        attended_values = torch.matmul(attention_weights, value)
-
-        # Reshape and concatenate heads
-        attended_values = attended_values.transpose(1, 2).contiguous().view(batch_size, len_x, -1)
-
-        # Apply output linear layer
-        output = self.out_linear(attended_values)
-        output = self.dropout(output)
-        output = output + x
-        return output
-
-class CrossAttentionTransformerMultiLayer(nn.Module):
-    def __init__(self, num_layers,q_dim,cross_attention_dim,embed_dim, num_heads=1,dropout=0.2):
-        super(CrossAttentionTransformerMultiLayer, self).__init__()
-
-        self.layers = nn.ModuleList([
-            CrossAttentionLayer(q_dim=q_dim, cross_attention_dim=cross_attention_dim,embed_dim=embed_dim, num_heads=num_heads,dropout=dropout) for _ in range(num_layers)
-        ])
-
-    def forward(self,x, conditional_x):
-        for layer in self.layers:
-            x = layer(x, conditional_x)
-        return x
 
 class CrossAttentionEncoder(nn.Module):
+    def __init__(
+        self,
+        embed_size,
+        num_layers,
+        num_heads,
+        dropout,
+        max_length,
+    ):
+        super(CrossAttentionEncoder, self).__init__()
+
+        self.embed_size = embed_size
+        self.position_embedding = nn.Embedding(max_length, embed_size)
+
+        self.layers = nn.ModuleList(
+            [
+                CrossAttentionEncoderLayer(
+                    embed_size, num_heads, dropout
+                )
+                for _ in range(num_layers)
+            ]
+        )
+
+        self.dropout = nn.Dropout(dropout)
+
+    def forward(self, src, conditional_src, mask=None):
+        N, seq_length,emps = src.shape
+        positions = torch.arange(0, seq_length).expand(N, seq_length).to(src.device)
+        src = self.dropout(src + self.position_embedding(positions))
+
+        for layer in self.layers:
+            src = layer(src, conditional_src, mask)
+
+        return src
+
+class CrossAttentionNeck(nn.Module):
     def __init__(self, args):
         super().__init__()
-        self.att_head_emp = args.att_head_emp
+        self.emp_size = args.emp_size
        
-        self.encoder = CrossAttentionTransformerMultiLayer(num_layers=args.neck_layers,
-                                                                q_dim=args.att_head_emp,
-                                                                cross_attention_dim=args.att_head_emp,
-                                                                embed_dim=args.att_head_emp,
-                                                                num_heads=args.n_heads,
-                                                                dropout=args.neck_dropout)
+        self.encoder = CrossAttentionEncoder(embed_size=args.emp_size,num_layers=args.neck_layers, num_heads=args.n_heads, dropout=0.1,max_length=5)
         
+                                                             
         self.flatten = nn.Flatten()
     def forward(self, input_x):
         images_emps,text_emps,pos_emps = input_x
-        shape = images_emps.shape
-
-        images_emps = images_emps.reshape(shape[0],-1,self.att_head_emp)
-        text_emps   = text_emps.reshape(shape[0],-1,self.att_head_emp)
+        text_emps = text_emps[:,None,:]
+       
         images_emps  = self.encoder(images_emps,text_emps)
-        images_emps = images_emps
-        text_emps   = text_emps
-
+        
         text_images_embeddings = torch.cat([images_emps,text_emps],dim=1)
         text_images_embeddings = self.flatten(text_images_embeddings)
+
+
         return torch.cat([text_images_embeddings,pos_emps],dim=1)
          
          
