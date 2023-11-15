@@ -164,9 +164,16 @@ class CrossAttentionNeck(nn.Module):
                                                              
         self.flatten = nn.Flatten()
     def forward(self, input_x):
+
+       
+        
+
         images_emps,text_emps,pos_emps = input_x
         text_emps = text_emps[:,None,:]
-       
+
+        images_emps = images_emps.reshape(images_emps.shape[0],-1,self.emp_size)
+        text_emps   = text_emps.reshape(text_emps.shape[0],-1,self.emp_size)
+
         images_emps  = self.encoder(images_emps,text_emps)
         
         text_images_embeddings = torch.cat([images_emps,text_emps],dim=1)
