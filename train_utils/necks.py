@@ -167,11 +167,11 @@ class CrossAttentionNeck(nn.Module):
         super().__init__()
         self.emp_size = args.emp_size
        
-        self.encoder = nn.ModuleDict({cam:CrossAttentionEncoder(embed_size=args.emp_size,
+        self.encoder = nn.ModuleList([CrossAttentionEncoder(embed_size=args.emp_size,
                                                             num_layers=args.neck_layers, 
                                                             num_heads=args.n_heads, 
                                                             dropout=args.neck_dropout,
-                                                            max_length=args.neck_max_len)   for cam in args.cams})
+                                                            max_length=args.neck_max_len)   for i in range(len(args.cams))])
         
         self.norm = nn.LayerNorm((args.imgs_emps * len(args.cams))
                                  +args.pos_emp
@@ -188,7 +188,7 @@ class CrossAttentionNeck(nn.Module):
 
         batch_size , cams , seq_length, emps = images_emps.shape
 
-        images_emps  = [self.encoder[cam](images_emps[:,i],text_emps) for i ,cam in enumerate(cams)]
+        images_emps  = [self.encoder[i](images_emps[:,i],text_emps) for i in cams]
         images_emps  = torch.stack(images_emps,dim=1)
         text_images_embeddings = torch.cat([images_emps,text_emps[:,None,:,:]],dim=1)
         text_images_embeddings = self.flatten(text_images_embeddings)
