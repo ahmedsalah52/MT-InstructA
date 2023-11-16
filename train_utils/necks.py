@@ -188,7 +188,7 @@ class CrossAttentionNeck(nn.Module):
 
         batch_size , cams , seq_length, emps = images_emps.shape
 
-        images_emps  = [self.encoder[i](images_emps[:,i],text_emps) for i in cams]
+        images_emps  = [self.encoder[cam](images_emps[:,i],text_emps) for i,cam in enumerate(cams)]
         images_emps  = torch.stack(images_emps,dim=1)
         text_images_embeddings = torch.cat([images_emps,text_emps[:,None,:,:]],dim=1)
         text_images_embeddings = self.flatten(text_images_embeddings)
