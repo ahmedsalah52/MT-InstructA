@@ -32,7 +32,7 @@ class base_model(arch):
         self.head = self.heads[args.head](args.imgs_emps*len(args.cams)+args.instuction_emps+args.pos_emp,args.action_dim)
 
         self.cat_backbone_out = args.neck not in ['cross_attention']
-        
+        #self.dummy_param = nn.Parameter(torch.zeros(0))
     def forward(self,batch):
         x = self.backbone(batch,cat=self.cat_backbone_out)
         if self.args.neck:

@@ -113,7 +113,7 @@ class CrossAttentionEncoderLayer(nn.Module):
     def forward(self, src, conditional_src , src_mask=None):
      
 
-        cross_attended_src,attn_output_weights = self.cross_attention(src, conditional_src, src, src_mask)
+        cross_attended_src,attn_output_weights = self.cross_attention(query=src, key=conditional_src, value=conditional_src)
         
        
         x = self.dropout(self.norm1(cross_attended_src + src))
@@ -173,9 +173,9 @@ class CrossAttentionNeck(nn.Module):
                                                             dropout=args.neck_dropout,
                                                             max_length=args.neck_max_len)   for i in range(len(args.cams))])
         self.cams = args.cams
-        self.norm = nn.LayerNorm((args.imgs_emps * len(args.cams))
-                                 +args.pos_emp
-                                 +args.instuction_emps)
+        # self.norm = nn.LayerNorm((args.imgs_emps * len(args.cams))
+        #                          +args.pos_emp
+        #                          +args.instuction_emps)
                                                     
         self.flatten = nn.Flatten()
     def forward(self, input_x):
@@ -194,7 +194,7 @@ class CrossAttentionNeck(nn.Module):
         text_images_embeddings = self.flatten(text_images_embeddings)
 
 
-        return self.norm(torch.cat([text_images_embeddings,pos_emps],dim=1))
+        return (torch.cat([text_images_embeddings,pos_emps],dim=1))
          
     def get_opt_params(self):
         return  [
