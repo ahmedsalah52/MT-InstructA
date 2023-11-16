@@ -166,14 +166,18 @@ class CrossAttentionNeck(nn.Module):
     def __init__(self, args):
         super().__init__()
         self.emp_size = args.emp_size
-       
-        self.encoder = nn.ModuleList([CrossAttentionEncoder(embed_size=args.emp_size,
+        self.cams = args.cams
+
+        self.encoder = nn.ModuleDict({str(cam):CrossAttentionEncoder(embed_size=args.emp_size,
                                                             num_layers=args.neck_layers, 
                                                             num_heads=args.n_heads, 
                                                             dropout=args.neck_dropout,
-                                                            max_length=args.neck_max_len)   for i in range(len(args.cams))])
-        self.cams = args.cams
-        self.norm = nn.LayerNorm((args.imgs_emps * len(args.cams))
+                                                            max_length=args.neck_max_len)   
+                                                            
+                                                            for cam in self.cams})
+        
+
+        self.norm = nn.LayerNorm((args.imgs_emps * len(self.cams))
                                  +args.pos_emp
                                  +args.instuction_emps)
                                                     
@@ -186,9 +190,7 @@ class CrossAttentionNeck(nn.Module):
         images_emps = images_emps.reshape(images_emps.shape[0],images_emps.shape[1],-1,self.emp_size)
         text_emps   = text_emps.reshape(text_emps.shape[0],-1,self.emp_size)
 
-        batch_size , cams , seq_length, emps = images_emps.shape
-
-        images_emps  = [self.encoder[cam](images_emps[:,i],text_emps) for i,cam in enumerate(self.cams)]
+        images_emps  = [self.encoder[str(cam)](images_emps[:,i],text_emps) for i,cam in enumerate(self.cams)]
         images_emps  = torch.stack(images_emps,dim=1)
         text_images_embeddings = torch.cat([images_emps,text_emps[:,None,:,:]],dim=1)
         text_images_embeddings = self.flatten(text_images_embeddings)
