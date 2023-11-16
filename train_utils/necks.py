@@ -173,7 +173,10 @@ class CrossAttentionNeck(nn.Module):
                                                             dropout=args.neck_dropout,
                                                             max_length=args.neck_max_len)   for i in range(len(args.cams))])
         
-                                                             
+        self.norm = nn.LayerNorm((args.imgs_emps * len(args.cams))
+                                 +args.pos_emp
+                                 +args.instuction_emps)
+                                                    
         self.flatten = nn.Flatten()
     def forward(self, input_x):
 
@@ -191,7 +194,7 @@ class CrossAttentionNeck(nn.Module):
         text_images_embeddings = self.flatten(text_images_embeddings)
 
 
-        return torch.cat([text_images_embeddings,pos_emps],dim=1)
+        return self.norm(torch.cat([text_images_embeddings,pos_emps],dim=1))
          
     def get_opt_params(self):
         return  [
