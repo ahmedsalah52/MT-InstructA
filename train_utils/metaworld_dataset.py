@@ -76,6 +76,8 @@ class temp_dataset(Dataset):
    
 
     return table
+    wandb_logger.log_table(key=f"Dataset Success Rate",  columns=['Task name','Left SR','Middle SR','Right SR','Total SR','Left Len','Middle Len','Right Len','Total Len'],data=stats_table)
+
 """
 def get_stats(data_dict):
     table=[]
