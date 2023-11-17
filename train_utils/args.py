@@ -102,7 +102,7 @@ parser.add_argument('--neck_max_len', type=int, default=5)
 
 
 #head params
-
+parser.add_argument('--act_fun', type=str, default=None,choices=[None,'tanh'])
 
 
 

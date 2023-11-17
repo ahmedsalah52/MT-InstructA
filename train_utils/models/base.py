@@ -2,6 +2,7 @@ import torch.functional as F
 from train_utils.backbones import *
 from train_utils.necks import *
 from train_utils.heads import *
+from train_utils.loss_funs import RelativeMSELoss
 
 def ret_None(args):
     return None
@@ -12,7 +13,8 @@ class arch(nn.Module):
         self.necks = {'transformer':transformer_encoder,'cross_attention':CrossAttentionNeck,None:ret_None}
         self.heads = {'fc':fc_head}
         self.loss_funs = {'cross_entropy':nn.CrossEntropyLoss,
-                     'mse':nn.MSELoss}
+                     'mse':nn.MSELoss,
+                     'relative_mse':RelativeMSELoss}
         
         self.args = args
 
@@ -29,7 +31,7 @@ class base_model(arch):
         self.preprocess_image = self.backbone.preprocess_image
         if args.neck:
             self.neck = self.necks[args.neck](args)
-        self.head = self.heads[args.head](args.imgs_emps*len(args.cams)+args.instuction_emps+args.pos_emp,args.action_dim)
+        self.head = self.heads[args.head](args)
 
         self.cat_backbone_out = args.neck not in ['cross_attention']
         #self.dummy_param = nn.Parameter(torch.zeros(0))
