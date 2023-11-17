@@ -78,7 +78,6 @@ parser.add_argument('--txt_model_lr', type=float, default=1e-5)
 
 
 #open ai clip backbone params
-parser.add_argument('--loss_fun', type=str, default='mse')
 parser.add_argument('--clip_lr', type=float, default=1e-6)
 parser.add_argument('--head_lr', type=float, default=1e-4)
 parser.add_argument('--lr', type=float, default=1e-4)
@@ -104,6 +103,10 @@ parser.add_argument('--neck_max_len', type=int, default=5)
 #head params
 parser.add_argument('--act_fun', type=str, default=None,choices=[None,'tanh'])
 
+
+#loss funcitons
+parser.add_argument('--loss_fun', type=str, default='mse',choices=['mse','relative_mse'])
+parser.add_argument('--mag_weight', type=float, default=0.01,help='weight of the magnitude loss in the relative loss funtion')
 
 
 #training

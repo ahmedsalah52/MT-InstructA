@@ -22,6 +22,12 @@ def main():
     tasks_commands = {k:list(set(v)) for k,v in tasks_commands.items() if k in args.tasks}
     _,val_tasks_commands = split_dict(tasks_commands,args.commands_split_ratio,seed=args.seed)
     
+    #assign general seed
+    random.seed(args.seed)
+    np.random.seed(args.seed)
+    torch.manual_seed(args.seed)
+    torch.cuda.manual_seed_all(args.seed)
+
     model = TL_model.load_from_checkpoint(args.load_checkpoint_path,args=args,tasks_commands=val_tasks_commands,env=meta_env,wandb_logger=None,seed=None)
     model.eval()
     success_rate = model.evaluate_model()
