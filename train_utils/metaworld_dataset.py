@@ -48,6 +48,35 @@ class temp_dataset(Dataset):
 
         return ret
 
+"""def get_stats(data_dict):
+    table=[]
+ 
+    stats_dict = defaultdict(lambda:defaultdict(lambda:defaultdict(list)))
+    poses = ['Left','Mid','Right']
+    for task_name , episodes in data_dict.items():
+        for episode in episodes:
+            stats_dict[task_name][episode[-1]['pos']]['success'].append(episode[-1]['success']) 
+            
+            stats_dict[task_name][episode[-1]['pos']]['length'].append(len(episode)) 
+            
+        poses_sr = [np.mean(stats_dict[task_name][pos]['success']) for pos in poses]
+        poses_ln = [np.mean(stats_dict[task_name][pos]['length']) for pos in poses]
+           
+        table.append([task_name,*poses_sr,np.mean(poses_sr),*poses_ln,np.mean(poses_ln)])
+
+    total_sr_left   = np.mean([row[1] for row in table])
+    total_sr_mid    = np.mean([row[2] for row in table])
+    total_sr_right  = np.mean([row[3] for row in table])
+    total_sr        = np.mean([row[4] for row in table])
+    total_len_left  = np.mean([row[5] for row in table])
+    total_len_mid   = np.mean([row[6] for row in table])
+    total_len_right = np.mean([row[7] for row in table])
+    total_len       = np.mean([row[8] for row in table])
+    table.append(['total',total_sr_left,total_sr_mid,total_sr_right,total_sr,total_len_left,total_len_mid,total_len_right,total_len])
+   
+
+    return table
+"""
 def get_stats(data_dict):
     table=[]
     total_success_rate = 0
