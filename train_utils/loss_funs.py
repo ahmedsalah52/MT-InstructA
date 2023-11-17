@@ -8,8 +8,8 @@ class RelativeMSELoss(nn.Module):
         self.mag_weight = mag_weight
     def forward(self, predicted, ground_truth):
         # Normalize sequences
-        norm_predicted    = F.normalize(predicted, p=100, dim=-1)
-        norm_ground_truth = F.normalize(ground_truth, p=100,dim=-1)
+        norm_predicted    = F.normalize(predicted,  dim=-1)
+        norm_ground_truth = F.normalize(ground_truth,dim=-1)
 
         # Calculate MSE on normalized sequences
         mse_loss = F.mse_loss(norm_predicted, norm_ground_truth)
