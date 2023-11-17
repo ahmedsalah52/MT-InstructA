@@ -50,40 +50,31 @@ class temp_dataset(Dataset):
 
 def get_stats(data_dict):
     table=[]
- 
-    stats_dict = defaultdict(lambda:defaultdict(lambda:defaultdict(list)))
-    poses = ['Left','Mid','Right']
+    total_success_rate = 0
+    avg_length = 0
+    max_length = 0
+    min_length = np.inf
     for task_name , episodes in data_dict.items():
+        task_success = 0
         for episode in episodes:
-            stats_dict[task_name][episode[-1]['pos']]['success'].append(episode[-1]['success']) 
-            
-            stats_dict[task_name][episode[-1]['pos']]['length'].append(len(episode)) 
-            
-        poses_sr = [np.mean(stats_dict[task_name][pos]['success']) for pos in poses]
-        poses_ln = [np.mean(stats_dict[task_name][pos]['length']) for pos in poses]
-           
-        table.append([task_name,*poses_sr,np.mean(poses_sr),*poses_ln,np.mean(poses_ln)])
-
-    total_sr_left   = np.mean([row[1] for row in table])
-    total_sr_mid    = np.mean([row[2] for row in table])
-    total_sr_right  = np.mean([row[3] for row in table])
-    total_sr        = np.mean([row[4] for row in table])
-    total_len_left  = np.mean([row[5] for row in table])
-    total_len_mid   = np.mean([row[6] for row in table])
-    total_len_right = np.mean([row[7] for row in table])
-    total_len       = np.mean([row[8] for row in table])
-    table.append(['total',total_sr_left,total_sr_mid,total_sr_right,total_sr,total_len_left,total_len_mid,total_len_right,total_len])
-   
+            task_success += episode[-1]['success']
+            avg_length += len(episode)
+            max_length = max(max_length,len(episode))
+            min_length = min(min_length,len(episode))
+        avg_length = float(avg_length)/len(episodes)
+        task_success_rate = float(task_success) / len(episodes)
+        total_success_rate += task_success_rate
+        table.append([task_name,task_success_rate])
+    table.append(['total_success_rate',total_success_rate/len(data_dict.items())])
+    table.append(['avg_length',avg_length])
+    table.append(['max_length',max_length])
+    table.append(['min_length',min_length])
 
     return table
 
 class MW_dataset(Dataset):
     def __init__(self,preprocess,dataset_dict_dir,dataset_dir,tasks_commands,total_data_len,seq_len=1,seq_overlap=10,cams=[0,1,2,3,4]):
         self.data_dict = json.load(open(dataset_dict_dir))
-        for k,v in self.data_dict.items():
-            print(k)
-            for epi in v:
-                print(epi[0].keys())
         self.dataset_dir = dataset_dir
         self.tasks_commands = tasks_commands
         self.total_data_len = total_data_len
