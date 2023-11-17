@@ -59,7 +59,7 @@ def main():
     else:
         train_dataset = MW_dataset(model.preprocess,os.path.join(data_dir,'dataset_dict.json'),os.path.join(data_dir,'data'),train_tasks_commands,total_data_len=args.train_data_total_steps,seq_len=args.seq_len,seq_overlap=args.seq_overlap,cams = args.cams)
         stats_table = train_dataset.get_stats()
-        wandb_logger.log_table(key=f"Dataset Success Rate",  columns=['Task name','Success Rate'],data=stats_table)
+        wandb_logger.log_table(key=f"Dataset Success Rate",  columns=['Task name','Left SR','Middle SR','Right SR','Total SR','Left Len','Middle Len','Right Len','Total Len'],data=stats_table)
         args.return_to_go_max_value = train_dataset.max_return_to_go
     train_dataloader = torch.utils.data.DataLoader(train_dataset,batch_size=args.batch_size,shuffle=True,num_workers = args.num_workers,pin_memory=True)
 
