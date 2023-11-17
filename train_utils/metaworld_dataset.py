@@ -80,6 +80,10 @@ def get_stats(data_dict):
 class MW_dataset(Dataset):
     def __init__(self,preprocess,dataset_dict_dir,dataset_dir,tasks_commands,total_data_len,seq_len=1,seq_overlap=10,cams=[0,1,2,3,4]):
         self.data_dict = json.load(open(dataset_dict_dir))
+        for k,v in self.data_dict.items():
+            print(k)
+            for epi in v:
+                print(epi[0].keys())
         self.dataset_dir = dataset_dir
         self.tasks_commands = tasks_commands
         self.total_data_len = total_data_len
