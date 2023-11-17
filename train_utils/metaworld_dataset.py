@@ -59,8 +59,8 @@ def get_stats(data_dict):
             
             stats_dict[task_name][episode[-1]['pos']]['length'].append(len(episode)) 
             
-        poses_sr = [task_name,np.mean(stats_dict[task_name][pos]['success']) for pos in poses]
-        poses_ln = [task_name,np.mean(stats_dict[task_name][pos]['length']) for pos in poses]
+        poses_sr = [np.mean(stats_dict[task_name][pos]['success']) for pos in poses]
+        poses_ln = [np.mean(stats_dict[task_name][pos]['length']) for pos in poses]
            
         table.append([task_name,*poses_sr,np.mean(poses_sr),*poses_ln,np.mean(poses_ln)])
 
