@@ -139,10 +139,7 @@ class CrossAttentionEncoder(nn.Module):
 
         self.layers = nn.ModuleList(
             [
-                CrossAttentionEncoderLayer(
-                    embed_size, num_heads, dropout
-                )
-                for _ in range(num_layers)
+                CrossAttentionEncoderLayer(embed_size, num_heads, dropout) for _ in range(num_layers)
             ]
         )
 
@@ -200,6 +197,6 @@ class CrossAttentionNeck(nn.Module):
          
     def get_opt_params(self):
         return  [
-            {"params": self.encoder.parameters()}
+            {"params": self.parameters()}
              ]
 

@@ -14,5 +14,5 @@ class fc_head(nn.Module):
     
     def get_opt_params(self):
         return  [
-            {"params": self.head.parameters()}
+            {"params": self.parameters()}
              ]
