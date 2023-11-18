@@ -140,7 +140,7 @@ class Open_AI_CLIP(nn.Module):
         self.model = self.model.float()
         self.pos_emp = nn.Linear(8,args.pos_emp)
         self.flatten = nn.Flatten()
-        
+        self.normalize = nn.LayerNorm(args.pos_emp+(args.imgs_emps*len(args.cams))+args.instuction_emps)
         #self.grad_clip = nn.utils.clip_grad_norm_(self.parameters(), 0.5)
     def forward(self,batch,cat=True,command=True):
         batch_size,cams,ch,h,w  = batch['images'].shape
@@ -164,7 +164,7 @@ class Open_AI_CLIP(nn.Module):
         
         text_images_embeddings = torch.cat([image_features,text_features[:,None,:]],dim=1)
         text_images_embeddings = self.flatten(text_images_embeddings)
-        return torch.cat([text_images_embeddings,pos_embeddings],dim=1)
+        return self.normalize(torch.cat([text_images_embeddings,pos_embeddings],dim=1))
     
     def get_opt_params(self):
         return  [
