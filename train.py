@@ -24,7 +24,7 @@ def main():
     wandb_logger = WandbLogger( 
     project= args.project_name,
     name   = args.run_name)
-    wandb_logger.experiment.notes = "This is a note added from the script."
+    wandb_logger.experiment.notes = args.run_notes
 
     succ_rate_checkpoint_callback = ModelCheckpoint(
         dirpath = checkpoints_dir,
