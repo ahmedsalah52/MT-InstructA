@@ -34,7 +34,7 @@ class transformer_encoder(nn.Module):
         self.encoder      = nn.TransformerEncoder(encoder_layer, num_layers=args.neck_layers)
         
 
-    def forward(self, embeddings):
+    def forward(self, embeddings,cat=None):
         shape = embeddings.shape
         embeddings = embeddings.reshape(shape[0],-1,self.emp_size)
         embeddings = embeddings.permute(1,0,2)
@@ -181,7 +181,7 @@ class CrossAttentionNeck(nn.Module):
         self.instruct_dropout = nn.Dropout(args.instruct_dropout)
                                                     
         self.flatten = nn.Flatten()
-    def forward(self, input_x):
+    def forward(self, input_x,cat=True):
 
         images_emps,text_emps,pos_emps = input_x
         text_emps = text_emps[:,None,:]
@@ -192,12 +192,16 @@ class CrossAttentionNeck(nn.Module):
         images_emps  = [self.encoder[str(cam)](images_emps[:,i],text_emps) for i,cam in enumerate(self.cams)]
         images_emps  = torch.stack(images_emps,dim=1)
         
-        text_emps = self.instruct_dropout(text_emps)
+        if not cat:
+            return self.flatten(images_emps),self.flatten(text_emps),pos_emps
         
+        
+        text_emps = self.instruct_dropout(text_emps)
+
         text_images_embeddings = torch.cat([images_emps,text_emps[:,None,:,:]],dim=1)
         text_images_embeddings = self.flatten(text_images_embeddings)
 
-
+      
         return self.norm(torch.cat([text_images_embeddings,pos_emps],dim=1))
          
     def get_opt_params(self):

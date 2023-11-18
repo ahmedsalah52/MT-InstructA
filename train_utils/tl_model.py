@@ -95,7 +95,7 @@ class TL_model(pl.LightningModule):
                     success = self.run_epi(task,pos)
                     pos_success+=success
                     total_success.append(success)
-                    pbar.set_description(f"success rate {round(np.mean(total_success),2)} on GPU : {self.device}")
+                    pbar.set_description(f"success rate {round(np.mean(total_success),3)} on GPU : {self.device}")
                     pbar.update(1)
 
                 success_rate_row.append(float(pos_success)/self.evaluation_episodes)
