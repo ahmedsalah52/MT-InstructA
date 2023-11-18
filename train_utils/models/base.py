@@ -1,6 +1,8 @@
 import torch.functional as F
 from train_utils.backbones import *
-from train_utils.necks import *
+from train_utils.necks.transformer import *
+from train_utils.necks.cross_attention import *
+from train_utils.necks.film import *
 from train_utils.heads import *
 from train_utils.loss_funs import RelativeMSELoss,MSE
 
@@ -10,7 +12,10 @@ class arch(nn.Module):
     def __init__(self,args):
         super().__init__()
         self.backbones = {'simple_clip':ClIP,'open_ai_clip':Open_AI_CLIP}
-        self.necks = {'transformer':transformer_encoder,'cross_attention':CrossAttentionNeck,None:ret_None}
+        self.necks = {'transformer':transformer_encoder,
+                      'cross_attention':CrossAttentionNeck,
+                      'film':Film,
+                      None:ret_None}
         self.heads = {'fc':fc_head}
         self.loss_funs = {
                      'mse':MSE,
@@ -33,7 +38,7 @@ class base_model(arch):
             self.neck = self.necks[args.neck](args)
         self.head = self.heads[args.head](args)
 
-        self.cat_backbone_out = args.neck not in ['cross_attention']
+        self.cat_backbone_out = args.neck not in ['cross_attention','film']
         #self.dummy_param = nn.Parameter(torch.zeros(0))
     def forward(self,batch):
         x = self.backbone(batch,cat=self.cat_backbone_out)

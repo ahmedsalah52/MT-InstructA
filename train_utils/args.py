@@ -37,7 +37,7 @@ parser.add_argument('--seq_overlap',type=int,default=2,help='overlap between seq
 parser.add_argument('--seed', type=int, default=42)
 parser.add_argument('--model', type=str, default='base',choices=['base','GAN','seq','dt'])
 parser.add_argument('--backbone', type=str, default='open_ai_clip',choices=['open_ai_clip','simple_clip'])
-parser.add_argument('--neck', type=str, default=None,choices=[None,'transformer','cross_attention'])
+parser.add_argument('--neck', type=str, default=None,choices=[None,'transformer','cross_attention','film'])
 parser.add_argument('--head', type=str, default='fc',choices=['fc'])
 
 #params
@@ -99,8 +99,9 @@ parser.add_argument('--emp_size'    , type=int, default=16)
 parser.add_argument('--neck_layers' , type=int, default=2)
 parser.add_argument('--neck_dropout', type=int, default=0.2)
 parser.add_argument('--neck_max_len', type=int, default=32)
-parser.add_argument('--instruct_dropout', type=float, default=0.2)
 
+parser.add_argument('--instruct_dropout', type=float, default=0.2) #only for the cross attention
+parser.add_argument('--film_N_blocks', type=int, default=4)
 
 #head params
 parser.add_argument('--act_fun', type=str, default=None,choices=[None,'tanh'])

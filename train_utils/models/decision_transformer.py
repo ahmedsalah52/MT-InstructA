@@ -8,7 +8,7 @@ from decision_transformer.models.model import TrajectoryModel
 from decision_transformer.models.trajectory_gpt2 import GPT2Model
 import torch.functional as F
 from train_utils.backbones import *
-from train_utils.necks import *
+from train_utils.necks.transformer import *
 from train_utils.heads import *
 from train_utils.models.base import arch
 from collections import deque
