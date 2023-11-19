@@ -39,13 +39,13 @@ class DecisionTransformer_multi(TrajectoryModel):
         self.hidden_size = hidden_size
         self.pos_emp = pos_emp
         self.command_dim = command_dim
-        self.step_len = state_len + 4
+        self.step_len = state_len + 3
 
 
         config = transformers.GPT2Config(
             vocab_size=1,  # doesn't matter -- we don't use the vocab
             n_embd=hidden_size,
-            n_inner=self.step_len*hidden_size,
+            n_inner=self.step_len*hidden_size +1,
             **kwargs
         )
        
@@ -77,6 +77,7 @@ class DecisionTransformer_multi(TrajectoryModel):
         if attention_mask is None:
             # attention mask for GPT: 1 if can be attended to, 0 if not
             attention_mask = torch.ones((batch_size, seq_length), dtype=torch.long)
+        command = command[:,0:1] #only first command
 
         # embed each modality with a different head
         state_embeddings = [state_emp(states) for i,state_emp in enumerate(self.embed_state)]
@@ -95,14 +96,18 @@ class DecisionTransformer_multi(TrajectoryModel):
         # this makes the sequence look like (R_1, s_1, a_1, R_2, s_2, a_2, ...)
         # which works nice in an autoregressive sense since states predict actions
         stacked_inputs = torch.stack(
-            (returns_embeddings,pos_embeddings,command_embeddings, *state_embeddings,action_embeddings), dim=1
+            (returns_embeddings,pos_embeddings, *state_embeddings,action_embeddings), dim=1
         ).permute(0, 2, 1, 3).reshape(batch_size, self.step_len*seq_length, self.hidden_size)
+        
+        stacked_inputs = torch.cat((command_embeddings,stacked_inputs), dim=1)
+        
         stacked_inputs = self.embed_ln(stacked_inputs)
 
         # to make the attention mask fit the stacked inputs, have to stack it as well
         stacked_attention_mask = torch.stack(
             [attention_mask]*self.step_len, dim=1
         ).permute(0, 2, 1).reshape(batch_size, self.step_len*seq_length)
+        stacked_attention_mask = torch.cat((stacked_attention_mask, torch.ones((batch_size, 1), dtype=torch.long).to(stacked_attention_mask.device)), dim=1)
 
         # we feed in the input embeddings (not word indices as in NLP) to the model
         transformer_outputs = self.transformer(
@@ -113,7 +118,7 @@ class DecisionTransformer_multi(TrajectoryModel):
 
         # reshape x so that the second dimension corresponds to the original
         # returns (0) pos (1), command (2), state (3) , action (4); i.e. x[:,1,t] is the token for s_t
-        x = x.reshape(batch_size, seq_length, self.step_len, self.hidden_size).permute(0, 2, 1, 3)
+        x = x[:,1:].reshape(batch_size, seq_length, self.step_len, self.hidden_size).permute(0, 2, 1, 3)
 
         # get predictions
        
