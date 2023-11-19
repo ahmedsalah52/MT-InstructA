@@ -100,7 +100,7 @@ parser.add_argument('--neck_layers' , type=int, default=2)
 parser.add_argument('--neck_dropout', type=int, default=0.2)
 parser.add_argument('--neck_max_len', type=int, default=32)
 
-parser.add_argument('--instruct_dropout', type=float, default=0.2) #only for the cross attention
+parser.add_argument('--instruct_dropout', type=float, default=0) #only for the cross attention
 parser.add_argument('--film_N_blocks', type=int, default=4)
 
 #head params
@@ -132,6 +132,7 @@ parser.add_argument('--save_video', action='store_true')
 parser.add_argument('--video_exp_name', type=str, default=None)
 parser.add_argument('--video_dir', type=str, default='video_results')
 parser.add_argument('--video_res', type=tuple, default=(1920,1080))
+parser.add_argument('--vis_embeddings', action='store_true')
 
 
 def process_args(args):

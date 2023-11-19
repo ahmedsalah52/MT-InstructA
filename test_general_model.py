@@ -20,7 +20,7 @@ class video():
             os.mkdir(save_dir)
 
         
-    def imshow_obs(self,env,instruction=None,main_task_pos=None,tasks=None):
+    def imshow_obs(self,env,instruction=None,main_task_pos=None,tasks=None,plot=None):
 
         behindGripper  = env.render(offscreen= True,camera_name='behindGripper')
         topview        = env.render(offscreen= True,camera_name='topview')
@@ -41,6 +41,11 @@ class video():
                 color = (255, 0, 0)  if i == main_task_pos else  (0, 0, 255) 
                 cv2.putText(conc_image, task, (x, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
 
+
+        if plot is not None:
+            self.plot_embeddings(plot)
+
+            #conc_image = cv2.vconcat([conc_image,plot])
         final_frame = cv2.resize(cv2.cvtColor( conc_image, cv2.COLOR_RGB2BGR),self.res)
         if self.save_video:
             self.video.append(final_frame)
@@ -54,9 +59,33 @@ class video():
         for i in self.video:
             out.write(i)
         out.release()
-        
-        
+            
+    def plot_embeddings(self,embeddings):
+        all_plots = []
+        ks = ''
+        for k,v in embeddings.items():
+            v = v.reshape(-1,512)
+            plots = []
+            for vector in v:
+                plots.append(self.plot_vector_opencv(vector,self.res[0]))
+            all_plots.append(cv2.vconcat(plots))
+            ks+= ' - ' + k
+        cv2.imshow(ks,cv2.resize(cv2.hconcat(all_plots),self.res))
 
+            
+               
+    def plot_vector_opencv(self,input_array,img_width):
+        # Normalize the vector values for visualization
+        input_array = (input_array - np.min(input_array)) / (np.max(input_array) - np.min(input_array)) * 255
+        img_height  = int(max(input_array) - min(input_array))
+    
+        img = np.ones((img_height, img_width), dtype=np.uint8) * 255
+        step_size = img_width // len(input_array)
+        # Plot the vector as a line
+        for i in range(len(input_array) - 1):
+            cv2.line(img, (i * step_size, img_height - int(input_array[i])), ((i + 1) * step_size, img_height - int(input_array[i + 1])), 0, 2)
+        
+        return img
 
 def get_visual_obs(env):
     corner         = env.render(offscreen= True,camera_name='corner') # corner,2,3, corner2, topview, gripperPOV, behindGripper'
@@ -98,28 +127,37 @@ def main():
    
     obs = env.reset()  # Reset environment
     print(env.current_task_variant , env.main_pos_index)
-    key = video_man.imshow_obs(env,main_task_pos=env.main_pos_index,tasks=env.current_task_variant)
-    instruction = input('enter the instruction:')
+    instruction = None
     a = torch.tensor([0,0,0,0],dtype=torch.float16)
     i = 0
+    first_time = True
+    plot = None
     while 1:
-        step_input = {'instruction':[instruction]}
-        images =  [model.model.preprocess_image(Image.fromarray(np.uint8(img))) for img in get_visual_obs(env)]
-        step_input['images']   = torch.stack(images).unsqueeze(0).to(model.device)
-        step_input['hand_pos'] = torch.tensor(np.concatenate((obs[0:4],obs[18:22]),axis =0)).to(torch.float32).unsqueeze(0).to(model.device)
-        step_input['timesteps'] = torch.tensor([i],dtype=torch.int).to(model.device)
-        step_input['action']    = a.unsqueeze(0).to(model.device)
-        with torch.no_grad():
-            a = model.model.eval_step(step_input)
-        print('action ',a)
+        while 1:
+            key = video_man.imshow_obs(env,instruction=instruction,main_task_pos=env.main_pos_index,tasks=env.current_task_variant,plot=plot)
+            if first_time:
+                first_time = False
+                instruction = input('enter the instruction:')
+            step_input = {'instruction':[instruction]}
+            images =  [model.model.preprocess_image(Image.fromarray(np.uint8(img))) for img in get_visual_obs(env)]
+            step_input['images']   = torch.stack(images).unsqueeze(0).to(model.device)
+            step_input['hand_pos'] = torch.tensor(np.concatenate((obs[0:4],obs[18:22]),axis =0)).to(torch.float32).unsqueeze(0).to(model.device)
+            step_input['timesteps'] = torch.tensor([i],dtype=torch.int).to(model.device)
+            step_input['action']    = a.unsqueeze(0).to(model.device)
+            with torch.no_grad():
+                a = model.model.eval_step(step_input)
+            if args.vis_embeddings:
+                plot = model.model.vis_embeddings
+            print('action ',a)
+            if key & 0xFF == ord('n'): break
+            if key & 0xFF == ord('m'):instruction = input('enter the instruction:')
+            if key & 0xFF == ord('q'):break
         obs, reward, done, info = env.step(a.detach().cpu().numpy()) 
         i+=1
         print(instruction , reward)
         #print(np.concatenate((obs[0:4],obs[18:22]),axis =0))
-        key = video_man.imshow_obs(env,instruction,main_task_pos=env.main_pos_index,tasks=env.current_task_variant)
-        
-        if key & 0xFF == ord('m'):
-            instruction = input('enter the instruction:')
+        #key = video_man.imshow_obs(env,instruction,main_task_pos=env.main_pos_index,tasks=env.current_task_variant)
+    
         if key & 0xFF == ord('q'):
             break
     cv2.destroyAllWindows()

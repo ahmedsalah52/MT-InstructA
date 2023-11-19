@@ -12,6 +12,7 @@ from train_utils.models.GAN import simple_GAN
 from train_utils.models.seq import seq_model
 from train_utils.models.decision_transformer import DL_model
 from tqdm import tqdm
+from collections import defaultdict
 class TL_model(pl.LightningModule):
     def __init__(self,args,tasks_commands,env,wandb_logger,seed):
         super().__init__()
@@ -83,26 +84,22 @@ class TL_model(pl.LightningModule):
         return
     def evaluate_model(self):
         total_success = []
-        success_dict = {}
+        success_dict = defaultdict(lambda:defaultdict(lambda:0.0))
         pbar = tqdm(total=len(self.tasks)*3*self.evaluation_episodes,desc=f"Evaluation on GPU : {self.device}",leave=True)  
 
         pbar.set_description(f"Evaluation on GPU : {self.device}")
-        for task in self.tasks:
-            success_rate_row = []
-            for pos in [0,1,2]:
-                pos_success = 0
-                for i in range(self.evaluation_episodes):
+        for i in range(self.evaluation_episodes):
+            for task in self.tasks:
+                for pos in [0,1,2]:
                     success = self.run_epi(task,pos)
-                    pos_success+=success
                     total_success.append(success)
+                    success_dict[task][pos] += float(success)
                     pbar.set_description(f"success rate {round(np.mean(total_success),3)} on GPU : {self.device}")
                     pbar.update(1)
 
-                success_rate_row.append(float(pos_success)/self.evaluation_episodes)
             
-            success_dict[task]=success_rate_row[:]
         pbar.close()
-        for task , row in success_dict.items(): print(f'success rate in {task} with mean {np.mean(row)} and detailed {row}')
+        for task , row in success_dict.items(): print(f'success rate in {task} with mean {np.mean([c/self.evaluation_episodes for c in row.values()])} and detailed {[[k,c/self.evaluation_episodes] for k,c in row.items()]}')
         success_rate =  np.mean(total_success)
         print('total success rate',success_rate)         
             #self.log(task, np.mean(success_rate_row),sync_dist=True,batch_size=self.batch_size) # type: ignore
