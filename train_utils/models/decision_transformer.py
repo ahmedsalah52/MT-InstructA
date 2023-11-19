@@ -90,7 +90,7 @@ class DecisionTransformer_multi(TrajectoryModel):
         # time embeddings are treated similar to positional embeddings
         state_embeddings = [state + time_embeddings for state in state_embeddings]
         action_embeddings = action_embeddings + time_embeddings
-        command_embeddings = command_embeddings + time_embeddings
+        #command_embeddings = command_embeddings + time_embeddings
         pos_embeddings  = pos_embeddings + time_embeddings
         returns_embeddings = returns_embeddings + time_embeddings
         # this makes the sequence look like (R_1, s_1, a_1, R_2, s_2, a_2, ...)
@@ -98,7 +98,6 @@ class DecisionTransformer_multi(TrajectoryModel):
         stacked_inputs = torch.stack(
             (returns_embeddings,pos_embeddings, *state_embeddings,action_embeddings), dim=1
         ).permute(0, 2, 1, 3).reshape(batch_size, self.step_len*seq_length, self.hidden_size)
-        
         stacked_inputs = torch.cat((command_embeddings,stacked_inputs), dim=1)
         
         stacked_inputs = self.embed_ln(stacked_inputs)
