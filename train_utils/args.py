@@ -81,7 +81,6 @@ parser.add_argument('--txt_model_lr', type=float, default=1e-5)
 #open ai clip backbone params
 parser.add_argument('--clip_lr', type=float, default=1e-6)
 parser.add_argument('--head_lr', type=float, default=1e-4)
-parser.add_argument('--lr', type=float, default=1e-4)
 parser.add_argument('--op_image_model_name', type=str, default='ViT-B/32',choices=
 ['RN50',
  'RN101',
@@ -125,6 +124,8 @@ parser.add_argument('--load_checkpoint_path', type=str, default=None)
 parser.add_argument('--load_weights', type=str, default=None)
 parser.add_argument('--n_gpus', type=int, default=1)
 parser.add_argument('--schedular_step', type=int, default=5)
+parser.add_argument('--lr', type=float, default=1e-4)
+parser.add_argument('--weight_decay', type=float, default=1e-5)
 
 
 #testing
