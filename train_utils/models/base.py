@@ -71,6 +71,6 @@ class base_model(arch):
     def get_optimizer(self):
         params = self.get_opt_params()
         
-        return torch.optim.Adam(params,lr=self.args.lr,weight_decay=self.args.weight_decay)
+        return torch.optim.AdamW(params,lr=self.args.lr,weight_decay=self.args.weight_decay)
 
    
