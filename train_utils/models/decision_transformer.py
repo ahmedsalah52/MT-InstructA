@@ -374,8 +374,7 @@ class DL_model(arch):
         self.timesteps           = deque([torch.zeros(1  ,dtype=torch.int).to(self.dummy_param.device)    for _ in range(args.seq_len)], maxlen=args.seq_len)  
         self.rewards             = deque([torch.zeros(1  ,dtype=torch.float16).to(self.dummy_param.device)    for _ in range(args.seq_len)], maxlen=args.seq_len)  
         self.attention_mask      = deque([torch.zeros(1  ,dtype=torch.int).to(self.dummy_param.device)    for _ in range(args.seq_len)], maxlen=args.seq_len)  
-        self.eval_return_to_go   = 1.0
-        self.prev_reward         = [0.0]
+        self.eval_return_to_go   = self.args.target_rtg/self.prompt_scale
 
     def forward(self,batch):
         states_embeddings ,commands_embeddings,poses_embeddings= [],[],[]
