@@ -376,6 +376,8 @@ class DL_model(arch):
         self.rewards             = deque([torch.zeros(1  ,dtype=torch.float16).to(self.dummy_param.device)    for _ in range(args.seq_len)], maxlen=args.seq_len)  
         self.attention_mask      = deque([torch.zeros(1  ,dtype=torch.int).to(self.dummy_param.device)    for _ in range(args.seq_len)], maxlen=args.seq_len)  
         self.eval_return_to_go   = 1.0
+        self.prev_reward         = [0.0]
+
     def forward(self,batch):
         states_embeddings ,commands_embeddings,poses_embeddings= [],[],[]
         for i in range(self.args.seq_len):
@@ -439,19 +441,19 @@ class DL_model(arch):
             states,commands,poses = self.neck((states,commands,poses),cat=False)
         
         
-        if self.prompt != 'reward':
+        if self.prompt != 'reward':# and not self.args.use_predicted_reward:
             self.eval_return_to_go -= input_step['reward']/self.prompt_norm
         
         self.states_embeddings.append(states)
         self.commands_embeddings.append(commands)
         self.poses_embeddings.append(poses)
-        self.actions[-1] =input_step['action']
+        
+        self.actions[-1] = input_step['action']
         self.actions.append(torch.zeros_like(input_step['action']))
 
         self.timesteps.append(input_step['timesteps'])
-        self.rewards.append(torch.tensor([self.eval_return_to_go],dtype=torch.float).to(self.dummy_param.device))
+        self.rewards.append(torch.tensor([1.0],dtype=torch.float).to(self.dummy_param.device))
         self.attention_mask.append(torch.tensor([1]))
-        
         
 
         states_embeddings   = torch.stack([s.to(self.dummy_param.device) for s in self.states_embeddings],dim=0).transpose(1,0).to(self.dummy_param.device)
@@ -472,7 +474,9 @@ class DL_model(arch):
         attention_mask=attention_mask
         )
         
-       
+        
+        """if self.prompt != 'reward' and self.args.use_predicted_reward:
+            self.eval_return_to_go -= (rewards_preds[0,-2] * attention_mask[0,-2])"""
         return action_preds[0,-1]
         
     def get_opt_params(self):

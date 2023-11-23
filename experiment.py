@@ -56,11 +56,11 @@ def experiment(
     exp_prefix = f'{group_name}-{random.randint(int(1e5), int(1e6) - 1)}'
 
     max_ep_len = 200
-    env_targets = [7.0,10.0]  # evaluation conditioning targets
-    scale = 1.  # normalization for rewards/returns
+    env_targets = [1180]  # evaluation conditioning targets
+    scale = 100 # normalization for rewards/returns
     state_dim = 39
     act_dim   = 4
-    path = f'data/dataset_dict_{env_name}.json'
+    path = f'data/dataset_dict.json'
     
     
     
@@ -308,7 +308,7 @@ def experiment(
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--env', type=str, default='coffee-button')
+    parser.add_argument('--env', type=str, default='button-press-topdown')
     parser.add_argument('--dataset', type=str, default='medium-expert')  # medium, medium-replay, medium-expert, expert
     parser.add_argument('--mode', type=str, default='normal')  # normal for standard setting, delayed for sparse
     parser.add_argument('--K', type=int, default=20)
@@ -317,7 +317,7 @@ if __name__ == '__main__':
     parser.add_argument('--model_type', type=str, default='dt')  # dt for decision transformer, bc for behavior cloning
     parser.add_argument('--embed_dim', type=int, default=128)
     parser.add_argument('--n_layer', type=int, default=3)
-    parser.add_argument('--n_head', type=int, default=1)
+    parser.add_argument('--n_head', type=int, default=8)
     parser.add_argument('--activation_function', type=str, default='relu')
     parser.add_argument('--dropout', type=float, default=0.1)
     parser.add_argument('--learning_rate', '-lr', type=float, default=1e-4)
@@ -327,7 +327,7 @@ if __name__ == '__main__':
     parser.add_argument('--max_iters', type=int, default=100)
     parser.add_argument('--num_steps_per_iter', type=int, default=10000)
     parser.add_argument('--device', type=str, default='cuda')
-    parser.add_argument('--log_to_wandb', '-w', type=bool, default=True)
+    parser.add_argument('--log_to_wandb', '-w', type=bool, default=False)
     
     args = parser.parse_args()
 
