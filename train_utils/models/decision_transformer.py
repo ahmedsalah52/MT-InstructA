@@ -406,7 +406,6 @@ class DL_model(arch):
         batch_size,seq_length,_ = actions.shape
         attention_mask = torch.ones((batch_size, self.args.seq_len), dtype=torch.long).to(self.dummy_param.device)
 
-                
         action_preds,rewards_preds = self.dl_model.forward(
             states_embeddings,
             actions,
@@ -439,8 +438,8 @@ class DL_model(arch):
             states,commands,poses = self.neck((states,commands,poses),cat=False)
         
         
-        if self.prompt != 'reward':# and not self.args.use_predicted_reward:
-            self.eval_return_to_go -= input_step['reward']/self.prompt_scale
+        #if self.prompt != 'reward':# and not self.args.use_predicted_reward:
+        #    
         
         self.states_embeddings.append(states)
         self.commands_embeddings.append(commands)
@@ -472,9 +471,12 @@ class DL_model(arch):
         attention_mask=attention_mask
         )
         
-        
-        """if self.prompt != 'reward' and self.args.use_predicted_reward:
-            self.eval_return_to_go -= (rewards_preds[0,-2] * attention_mask[0,-2])"""
+
+        #if self.prompt != 'reward' and self.args.use_predicted_reward:
+
+        self.eval_return_to_go -= input_step['reward']/self.prompt_scale
+        #self.eval_return_to_go -= (rewards_preds[0,-2] * attention_mask[0,-2])
+        print(f'reward {input_step["reward"]} , predicted reward {rewards_preds[0,-2] * self.prompt_scale}')
         return action_preds[0,-1]
         
     def get_opt_params(self):

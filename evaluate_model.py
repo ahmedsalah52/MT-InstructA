@@ -31,7 +31,7 @@ def main():
     model = TL_model.load_from_checkpoint(args.load_checkpoint_path,args=args,tasks_commands=val_tasks_commands,env=meta_env,wandb_logger=None,seed=None)
     model.eval()
     success_rate = model.evaluate_model()
-    to_log = f'model {args.load_checkpoint_path} with success rate {success_rate}'
+    to_log = f'model {args.load_checkpoint_path} with success rate {success_rate} - {args.run_name}'
     print('-'*50)
     print(to_log)
     print('-'*50)

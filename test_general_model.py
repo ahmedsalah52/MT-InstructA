@@ -114,6 +114,7 @@ def main():
     model = TL_model(args=args,tasks_commands=None,env=None,wandb_logger=None,seed=None).to(device)
     model = TL_model.load_from_checkpoint(args.load_checkpoint_path,args=args,tasks_commands=None,env=None,wandb_logger=None,seed=None)
     model.eval()
+    model.model.reset_memory()
     taskname =  random.choice(args.tasks)
     #rand int from 0 to 2
     pos    = random.randint(0,2)
@@ -129,6 +130,8 @@ def main():
     print(env.current_task_variant , env.main_pos_index)
     instruction = None
     a = torch.tensor([0,0,0,0],dtype=torch.float16)
+    reward = 0
+
     i = 0
     first_time = True
     plot = None
@@ -144,6 +147,8 @@ def main():
             step_input['hand_pos'] = torch.tensor(np.concatenate((obs[0:4],obs[18:22]),axis =0)).to(torch.float32).unsqueeze(0).to(model.device)
             step_input['timesteps'] = torch.tensor([i],dtype=torch.int).to(model.device)
             step_input['action']    = a.unsqueeze(0).to(model.device)
+            step_input['reward']    = torch.tensor([reward]).to(model.device)
+
             with torch.no_grad():
                 a = model.model.eval_step(step_input)
             if args.vis_embeddings:

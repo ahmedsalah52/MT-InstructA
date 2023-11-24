@@ -130,7 +130,6 @@ parser.add_argument('--weight_decay', type=float, default=1e-2)
 
 
 #testing
-parser.add_argument('--save_video', action='store_true')
 parser.add_argument('--video_exp_name', type=str, default=None)
 parser.add_argument('--video_dir', type=str, default='video_results')
 parser.add_argument('--video_res', type=tuple, default=(1920,1080))
