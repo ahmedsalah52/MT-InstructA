@@ -437,10 +437,6 @@ class DL_model(arch):
         if self.neck:
             states,commands,poses = self.neck((states,commands,poses),cat=False)
         
-        
-        #if self.prompt != 'reward':# and not self.args.use_predicted_reward:
-        #    
-        
         self.states_embeddings.append(states)
         self.commands_embeddings.append(commands)
         self.poses_embeddings.append(poses)
@@ -472,10 +468,11 @@ class DL_model(arch):
         )
         
 
-        #if self.prompt != 'reward' and self.args.use_predicted_reward:
-
-        self.eval_return_to_go -= input_step['reward']/self.prompt_scale
-        #self.eval_return_to_go -= (rewards_preds[0,-2] * attention_mask[0,-2])
+        if self.prompt != 'reward':
+            if self.args.use_env_reward:
+                self.eval_return_to_go -= input_step['reward']/self.prompt_scale
+            else:
+                self.eval_return_to_go -= (rewards_preds[0,-2] * attention_mask[0,-2])
         print(f'reward {input_step["reward"]} , predicted reward {rewards_preds[0,-2] * self.prompt_scale}')
         return action_preds[0,-1]
         

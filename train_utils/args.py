@@ -63,9 +63,9 @@ parser.add_argument('--dt_n_head', type=int, default=1)
 parser.add_argument('--dt_activation_function', type=str, default='relu')
 parser.add_argument('--dt_dropout', type=float, default=0.1)
 parser.add_argument('--prompt_scale', type=float, default=164.6723)
-parser.add_argument('--prompt', type=str, default='reward',choices=['reward','return_to_go'])
+parser.add_argument('--prompt', type=str, default='return_to_go',choices=['reward','return_to_go'])
 parser.add_argument('--target_rtg', type=float, default=2000.0)
-parser.add_argument('--use_predicted_reward', action='store_true',help='by raising this flag, the reward will be predicted by the model instead of using the real reward to calculate the return to go')
+parser.add_argument('--use_env_reward', action='store_true',help='by raising this flag, the return to go will be calulated using the env reward instead of the model predicted reward')
 
 #simple clip backbone params
 parser.add_argument('--image_model_name', type=str, default='resnet50')
