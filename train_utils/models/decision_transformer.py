@@ -473,7 +473,6 @@ class DL_model(arch):
                 self.eval_return_to_go -= input_step['reward']/self.prompt_scale
             else:
                 self.eval_return_to_go -= (rewards_preds[0,-2] * attention_mask[0,-2])
-        print(f'reward {input_step["reward"]} , predicted reward {rewards_preds[0,-2] * self.prompt_scale}')
         return action_preds[0,-1]
         
     def get_opt_params(self):
