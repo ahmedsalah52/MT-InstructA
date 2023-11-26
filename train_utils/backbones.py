@@ -142,20 +142,22 @@ class Open_AI_CLIP(nn.Module):
         self.flatten = nn.Flatten()
         self.normalize = nn.LayerNorm(args.pos_emp+(args.imgs_emps*len(args.cams))+args.instuction_emps)
         #self.grad_clip = nn.utils.clip_grad_norm_(self.parameters(), 0.5)
-    def forward(self,batch,cat=True,command=True):
-        batch_size,cams,ch,h,w  = batch['images'].shape
+    def forward(self,batch,cat=True,vision=True,command=True,pos=True):
+        image_features , text_features,pos_embeddings = None,None ,None
+        if cat and not (vision and command and pos): 
+            raise ValueError('cat is True but one of vision,command,pos is False')
+        
+        if vision:
+            batch_size,cams,ch,h,w  = batch['images'].shape
+            batch["images"] = torch.flatten(batch["images"], start_dim=0, end_dim=1)
+            image_features = self.model.encode_image(batch['images'])
+            image_features = torch.unflatten(image_features,dim = 0,sizes=(batch_size,cams))
+            batch["images"] = torch.unflatten(batch["images"],dim = 0,sizes=(batch_size,cams))
+        if pos:
+            pos_embeddings = self.pos_emp(batch['hand_pos'])
 
-
-        batch["images"] = torch.flatten(batch["images"], start_dim=0, end_dim=1)
-        image_features = self.model.encode_image(batch['images'])
-        image_features = torch.unflatten(image_features,dim = 0,sizes=(batch_size,cams))
-        batch["images"] = torch.unflatten(batch["images"],dim = 0,sizes=(batch_size,cams))
-
-        pos_embeddings = self.pos_emp(batch['hand_pos'])
-
-        text_features = None
         if command:
-            text = clip.tokenize(batch['instruction']).to(batch['images'].device)
+            text = clip.tokenize(batch['instruction']).to(self.device)
             text_features  = self.model.encode_text(text)
         
         
@@ -166,6 +168,10 @@ class Open_AI_CLIP(nn.Module):
         text_images_embeddings = self.flatten(text_images_embeddings)
         return self.normalize(torch.cat([text_images_embeddings,pos_embeddings],dim=1))
     
+    @property
+    def device(self):
+        # Return the device of the first parameter of the model
+        return next(self.parameters()).device
     def get_opt_params(self):
         return  [
             {"params": self.model.parameters(),"lr": self.args.clip_lr},

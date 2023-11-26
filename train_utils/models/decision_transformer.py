@@ -69,6 +69,7 @@ class DecisionTransformer_multi(TrajectoryModel):
         )
 
         self.predict_reward = torch.nn.Linear(hidden_size, 1)
+        self.ReLU = nn.ReLU()
         #self.command_preds = torch.nn.Linear(hidden_size, command_dim)
 
     def forward(self, states, actions, poses, command,returns_to_go, timesteps, attention_mask=None):
@@ -125,7 +126,7 @@ class DecisionTransformer_multi(TrajectoryModel):
         #state_preds  = self.predict_state(x[:,2])    
         action_preds = self.predict_action(x[:,-2])   # predict next action given state
 
-        return action_preds,reward_preds
+        return action_preds,self.ReLU(reward_preds)
 
     
 

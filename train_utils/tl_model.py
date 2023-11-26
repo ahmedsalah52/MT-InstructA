@@ -11,11 +11,14 @@ from train_utils.models.base import base_model
 from train_utils.models.GAN import simple_GAN
 from train_utils.models.seq import seq_model
 from train_utils.models.decision_transformer import DL_model
+from train_utils.models.decision_transformer_obs import DL_model_obs
+
 from tqdm import tqdm
 from collections import defaultdict
 class TL_model(pl.LightningModule):
     def __init__(self,args,tasks_commands,env,wandb_logger,seed):
         super().__init__()
+        self.poses = args.poses
         self.model_name = args.model
         self.cams_ids =  args.cams
         self.tasks_commands = tasks_commands
@@ -25,7 +28,7 @@ class TL_model(pl.LightningModule):
         self.batch_size = args.batch_size
         self.env = env
         self.wandb_logger = wandb_logger
-        models = {'base':base_model,'GAN':simple_GAN,'seq':seq_model,'dt':DL_model}
+        models = {'base':base_model,'GAN':simple_GAN,'seq':seq_model,'dt':DL_model,'dt_obs':DL_model_obs}
         self.model = models[args.model](args)
         self.preprocess = self.model.preprocess_image
         
@@ -85,12 +88,12 @@ class TL_model(pl.LightningModule):
     def evaluate_model(self):
         total_success = []
         success_dict = defaultdict(lambda:defaultdict(lambda:0.0))
-        pbar = tqdm(total=len(self.tasks)*3*self.evaluation_episodes,desc=f"Evaluation on GPU : {self.device}",leave=True)  
+        pbar = tqdm(total=len(self.tasks)*len(self.poses)*self.evaluation_episodes,desc=f"Evaluation on GPU : {self.device}",leave=True)  
 
         pbar.set_description(f"Evaluation on GPU : {self.device}")
         for i in range(self.evaluation_episodes):
             for task in self.tasks:
-                for pos in [0,1,2]:
+                for pos in self.poses:
                     success = self.run_epi(task,pos)
                     total_success.append(success)
                     success_dict[task][pos] += float(success)
@@ -107,7 +110,7 @@ class TL_model(pl.LightningModule):
 
 
     def run_epi(self,task,pos):
-        env = self.env(task,pos,save_images=True,wandb_render = False,wandb_log = False,general_model=True,cams_ids=self.cams_ids)
+        env = self.env(task,pos,save_images='obs' not in self.model_name,wandb_render = False,wandb_log = False,general_model=True,cams_ids=self.cams_ids)
         self.model.reset_memory()
         obs , info = env.reset()
         instruction = random.choice(self.tasks_commands[task])
@@ -118,8 +121,12 @@ class TL_model(pl.LightningModule):
         while 1:
             with torch.no_grad():
                 step_input = {'instruction':[instruction]}
-                images = [self.model.preprocess_image(Image.fromarray(np.uint8(img))) for  img in info['images']]
-                step_input['images']   = torch.stack(images).unsqueeze(0).to(self.device)
+                if 'obs' in self.model_name:
+                    step_input['obs'] = torch.tensor(obs).to(torch.float32).unsqueeze(0).to(self.device)
+                else:
+                    images = [self.model.preprocess_image(Image.fromarray(np.uint8(img))) for  img in info['images']]
+                    step_input['images']   = torch.stack(images).unsqueeze(0).to(self.device)
+                    
                 step_input['hand_pos'] = torch.tensor(np.concatenate((obs[0:4],obs[18:22]),axis =0)).to(torch.float32).unsqueeze(0).to(self.device)
                 step_input['timesteps'] = torch.tensor([i],dtype=torch.int).to(self.device)
                 step_input['action']    = a.unsqueeze(0).to(self.device)

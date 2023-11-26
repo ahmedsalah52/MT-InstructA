@@ -12,7 +12,7 @@ from PIL import Image
 from collections import defaultdict
 from tqdm import tqdm
 class temp_dataset(Dataset):
-    def __init__(self,seq_len=1,seq_overlap=10,cams=[0,1,2,3,4]):
+    def __init__(self,seq_len=1,seq_overlap=10,cams=[0,1,2,3,4],with_imgs=True):
         self.data = []
         for i in range(100):
             self.data.append(i)
@@ -20,7 +20,7 @@ class temp_dataset(Dataset):
         self.seq_len = seq_len
         self.seq_overlap = seq_overlap 
         self.cams= cams
-        
+        self.with_imgs = with_imgs
     def __len__(self):
         return len(self.data)
     def __getitem__(self, index):
@@ -38,14 +38,15 @@ class temp_dataset(Dataset):
         return rets
     def prepare_step(self,step_data):
         ret = {}
-        ret['images']         = torch.zeros((len(self.cams),3,224,224)).to(torch.float32)
+        if self.with_imgs:
+            ret['images']         = torch.zeros((len(self.cams),3,224,224)).to(torch.float32)
         ret['hand_pos']       = torch.zeros(8).to(torch.float32)
         ret['action']         = torch.zeros(4).to(torch.float32)
         ret['timesteps']      = 1
         ret['reward']         = 8.0
         ret['return_to_go']   = 800.0
         ret['instruction']    = "empty instruction"
-
+        ret['obs'] = torch.zeros(39).to(torch.float32)
         return ret
 
 """def get_stats(data_dict):
@@ -104,7 +105,7 @@ def get_stats(data_dict):
     return table
 
 class MW_dataset(Dataset):
-    def __init__(self,preprocess,dataset_dict_dir,dataset_dir,tasks_commands,total_data_len,seq_len=1,seq_overlap=10,cams=[0,1,2,3,4]):
+    def __init__(self,preprocess,dataset_dict_dir,dataset_dir,tasks_commands,total_data_len,seq_len=1,seq_overlap=10,cams=[0,1,2,3,4],with_imgs=True):
         self.data_dict = json.load(open(dataset_dict_dir))
         self.dataset_dir = dataset_dir
         self.tasks_commands = tasks_commands
@@ -115,11 +116,12 @@ class MW_dataset(Dataset):
         self.seq_overlap = seq_overlap 
         self.cams = cams
         self.max_return_to_go = 0
+        self.with_imgs = with_imgs
         self.load_data()
         print('seq' if self.sequence else 'single step'+' data preparation done with length',len(self.data))
 
     def load_data(self):
-        self.tasks = list(self.data_dict.keys())
+        self.tasks = list(self.tasks_commands.keys())
         self.data = []
         for task in self.tasks:
             print('preparing task:',task)
@@ -133,7 +135,6 @@ class MW_dataset(Dataset):
                     step['timesteps'] = s
                     step['return_to_go'] = return_to_go
                     return_to_go -= step['reward']
-                    #step['reward'] = float(self.data_dict[task][epi][-1]['success'])
                     episode.append(step)
                 
                 if self.sequence:
@@ -188,11 +189,13 @@ class MW_dataset(Dataset):
 
         return rets
     def prepare_step(self,step_data):
-        images_dir = step_data['images_dir']
-        images = [self.preprocess(Image.open(os.path.join(self.dataset_dir,dir))) for dir in images_dir if int(dir.split('_')[-1].split('.')[0]) in self.cams]
         ret = {}
-        ret['images']   = torch.stack(images)
+        if self.with_imgs:
+            images_dir = step_data['images_dir']
+            images = [self.preprocess(Image.open(os.path.join(self.dataset_dir,dir))) for dir in images_dir if int(dir.split('_')[-1].split('.')[0]) in self.cams]
+            ret['images']   = torch.stack(images)
         ret['hand_pos'] = torch.tensor(np.concatenate((step_data['obs'][0:4],step_data['obs'][18:22]),axis =0)).to(torch.float32)
+        ret['obs']      = torch.tensor(step_data['obs']).to(torch.float32)
         ret['action']      = torch.tensor(step_data['action'])
         ret['instruction'] = random.choice(self.tasks_commands[step_data['task']])
         ret['timesteps']   = step_data['timesteps']
