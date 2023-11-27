@@ -27,6 +27,10 @@ class arch(nn.Module):
         return self.forward(input_step)[0]
     def reset_memory(self):
         pass
+    @property
+    def device(self):
+        # Return the device of the first parameter of the model
+        return next(self.parameters()).device
 class base_model(arch):
     def __init__(self,args) -> None:
         super().__init__(args)

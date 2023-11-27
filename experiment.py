@@ -60,12 +60,12 @@ def experiment(
     scale = 100 # normalization for rewards/returns
     state_dim = 39
     act_dim   = 4
-    path = f'data/dataset_dict.json'
+    path = f'/home/ahmed/Metaworld/out_dir/data/multi_levels/dataset_dict.json'
     
     
     
     env_name += '-v2'
-    task_man = task_manager(env_name,pos= 1,multi=True)
+    task_man = task_manager(env_name,multi=True)
     env = task_man.reset()
 
     
@@ -308,7 +308,7 @@ def experiment(
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--env', type=str, default='button-press-topdown')
+    parser.add_argument('--env', type=str, default='coffee-button')
     parser.add_argument('--dataset', type=str, default='medium-expert')  # medium, medium-replay, medium-expert, expert
     parser.add_argument('--mode', type=str, default='normal')  # normal for standard setting, delayed for sparse
     parser.add_argument('--K', type=int, default=20)
@@ -317,14 +317,14 @@ if __name__ == '__main__':
     parser.add_argument('--model_type', type=str, default='dt')  # dt for decision transformer, bc for behavior cloning
     parser.add_argument('--embed_dim', type=int, default=128)
     parser.add_argument('--n_layer', type=int, default=3)
-    parser.add_argument('--n_head', type=int, default=8)
+    parser.add_argument('--n_head', type=int, default=1)
     parser.add_argument('--activation_function', type=str, default='relu')
     parser.add_argument('--dropout', type=float, default=0.1)
     parser.add_argument('--learning_rate', '-lr', type=float, default=1e-4)
     parser.add_argument('--weight_decay', '-wd', type=float, default=1e-4)
     parser.add_argument('--warmup_steps', type=int, default=10000)
-    parser.add_argument('--num_eval_episodes', type=int, default=100)
-    parser.add_argument('--max_iters', type=int, default=100)
+    parser.add_argument('--num_eval_episodes', type=int, default=30)
+    parser.add_argument('--max_iters', type=int, default=500)
     parser.add_argument('--num_steps_per_iter', type=int, default=10000)
     parser.add_argument('--device', type=str, default='cuda')
     parser.add_argument('--log_to_wandb', '-w', type=bool, default=False)

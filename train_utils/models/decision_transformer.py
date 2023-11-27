@@ -446,7 +446,7 @@ class DL_model(arch):
         self.actions.append(torch.zeros_like(input_step['action']))
 
         self.timesteps.append(input_step['timesteps'])
-        self.rewards.append(torch.tensor([1.0],dtype=torch.float).to(self.dummy_param.device))
+        self.rewards.append(torch.tensor([self.eval_return_to_go],dtype=torch.float).to(self.dummy_param.device))
         self.attention_mask.append(torch.tensor([1]))
         
 

@@ -33,7 +33,11 @@ class TL_model(pl.LightningModule):
         self.preprocess = self.model.preprocess_image
         
         self.opt = self.model.get_optimizer()
-        
+        self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+                self.opt,
+                patience=args.opt_patience,
+                verbose=True
+            )
         self.automatic_optimization =  self.model_name != 'GAN'
         #self.my_scheduler = StepLR(self.opt, step_size=args.schedular_step, gamma=0.5)
     def base_training_step(self, batch, batch_idx):
@@ -145,12 +149,8 @@ class TL_model(pl.LightningModule):
     def configure_optimizers(self):
         #return self.opt
         #return self.model.get_optimizer(), [{"scheduler": self.my_scheduler,  'name': 'lr_scheduler'}]
-        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-                self.opt,
-                patience=1,
-                verbose=True
-            )
-        return {"optimizer":  self.opt,"lr_scheduler": scheduler,"monitor":"train_loss"}
+       
+        return {"optimizer":  self.opt,"lr_scheduler": self.scheduler,"monitor":"train_loss"}
 
    
 def load_checkpoint(model,checkpoint_path):

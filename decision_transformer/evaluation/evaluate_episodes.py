@@ -75,7 +75,6 @@ def evaluate_episode_rtg(
         target_return=None,
         mode='normal',
     ):
-
     model.eval()
     model.to(device=device)
 
@@ -95,7 +94,7 @@ def evaluate_episode_rtg(
     ep_return = target_return
     target_return = torch.tensor(ep_return, device=device, dtype=torch.float32).reshape(1, 1)
     timesteps = torch.tensor(0, device=device, dtype=torch.long).reshape(1, 1)
-
+    
     sim_states = []
 
     episode_return, episode_length = 0, 0
@@ -104,7 +103,7 @@ def evaluate_episode_rtg(
         # add padding
         actions = torch.cat([actions, torch.zeros((1, act_dim), device=device)], dim=0)
         rewards = torch.cat([rewards, torch.zeros(1, device=device)])
-
+   
         action = model.get_action(
             (states.to(dtype=torch.float32) - state_mean) / state_std,
             actions.to(dtype=torch.float32),

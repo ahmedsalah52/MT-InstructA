@@ -119,10 +119,11 @@ class MW_dataset(Dataset):
         self.with_imgs = with_imgs
         self.load_data()
         print('seq' if self.sequence else 'single step'+' data preparation done with length',len(self.data))
-
+        print('state mean:',np.mean(self.obs_state_mean), 'obs std:',np.mean(self.obs_state_std))
     def load_data(self):
         self.tasks = list(self.tasks_commands.keys())
         self.data = []
+        all_obs = []
         for task in self.tasks:
             print('preparing task:',task)
             for epi in tqdm(range(len(self.data_dict[task]))):
@@ -136,12 +137,15 @@ class MW_dataset(Dataset):
                     step['return_to_go'] = return_to_go
                     return_to_go -= step['reward']
                     episode.append(step)
-                
+                    all_obs.append(step['obs'])
                 if self.sequence:
                     self.data += self.get_seqs(episode[:])
                 else:
                     self.data += episode
         
+        states = np.concatenate(all_obs, axis=0)
+        self.obs_state_mean, self.obs_state_std = np.mean(states, axis=0), np.std(states, axis=0) + 1e-6
+
         #random.shuffle(self.data)
         #self.data = self.data[0:self.total_data_len]
     
