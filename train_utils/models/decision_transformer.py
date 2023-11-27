@@ -394,12 +394,7 @@ class DL_model(arch):
         states_embeddings ,commands_embeddings,poses_embeddings= [],[],[]
         commands_to_use = None
         for i in range(self.args.seq_len):
-            batch_step = {}
-            for k,vs in batch.items():
-                batch_step[k] = vs[i]
-           
-            batch_step = {k : v.to(self.device) if k != 'instruction' else v  for k,v in batch_step.items()}
-            
+            batch_step = {k: v[i].to(self.device) if k != 'instruction' else v[i] for k, v in batch.items()}
             states,commands,poses = self.backbone(batch_step,cat=False,vision=True,command=(i==0),pos=False)
             if i==0: commands_to_use = commands #update only the first command (to have one command per sequence)
             
