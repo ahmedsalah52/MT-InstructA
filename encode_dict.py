@@ -18,7 +18,7 @@ def main():
     
     dict_dir , images_dir = os.path.join(data_dir,'dataset_dict.json'),os.path.join(data_dir,'data')
     model = TL_model(args=args,tasks_commands=None,env=None,wandb_logger=None,seed=args.seed)
-    model = load_checkpoint(model,args.load_checkpoint_path)
+    model = load_checkpoint(model,args.load_weights)
     model.eval()
     
     data_dict = json.load(open(dict_dir))
