@@ -11,6 +11,22 @@ import meta_env
 from PIL import Image 
 from collections import defaultdict
 from tqdm import tqdm
+
+
+# Define a custom sampler with weighted sampling
+class WeightedRandomSampler(torch.utils.data.sampler.Sampler):
+    def __init__(self, weights, num_samples, replacement=True):
+        self.weights = weights
+        self.num_samples = num_samples
+        self.replacement = replacement
+
+    def __iter__(self):
+        return iter(torch.multinomial(self.weights, self.num_samples, self.replacement))
+
+    def __len__(self):
+        return self.num_samples
+
+
 class temp_dataset(Dataset):
     def __init__(self,seq_len=1,seq_overlap=10,cams=[0,1,2,3,4],with_imgs=True):
         self.data = []
@@ -117,19 +133,23 @@ class MW_dataset(Dataset):
         self.cams = cams
         self.max_return_to_go = 0
         self.with_imgs = with_imgs
+        self.data_specs = {}
         self.load_data()
         print('seq' if self.sequence else 'single step'+' data preparation done with length',len(self.data))
         print('state mean:',np.mean(self.obs_state_mean), 'obs std:',np.mean(self.obs_state_std))
+        
     def load_data(self):
         self.tasks = list(self.tasks_commands.keys())
         self.data = []
         all_obs = []
+        traj_lens = []
         for task in self.tasks:
             print('preparing task:',task)
             for epi in tqdm(range(len(self.data_dict[task]))):
                 episode = []
                 return_to_go = sum([self.data_dict[task][epi][s]['reward'] for s in range(len(self.data_dict[task][epi]))])
                 self.max_return_to_go = max(self.max_return_to_go,return_to_go)
+                traj_lens.append(len(self.data_dict[task][epi]))
                 for s in range(len(self.data_dict[task][epi])):
                     step = self.data_dict[task][epi][s]
                     step['task'] = task 
@@ -139,16 +159,21 @@ class MW_dataset(Dataset):
                     episode.append(step)
                     all_obs.append(step['obs'])
                 if self.sequence:
-                    self.data += self.get_seqs(episode[:])
+                    self.data.append(episode) 
+                    
                 else:
                     self.data += episode
         
+        
+        traj_lens = np.array(traj_lens)
+        p_sample = traj_lens / np.sum(traj_lens)
         states = np.concatenate(all_obs, axis=0)
         self.obs_state_mean, self.obs_state_std = np.mean(states, axis=0), np.std(states, axis=0) + 1e-6
-
-        #random.shuffle(self.data)
-        #self.data = self.data[0:self.total_data_len]
-    
+        self.data_specs['obs_state_mean'] = self.obs_state_mean
+        self.data_specs['obs_state_std']  = self.obs_state_std
+        self.data_specs['p_sample']       = p_sample
+        self.data_specs['max_return_to_go'] = self.max_return_to_go
+      
     def get_seqs(self,episode):
         seqs = []
         i  = 0
@@ -183,8 +208,12 @@ class MW_dataset(Dataset):
             return self.prepare_step(self.data[idx])
         
         sequence_steps = self.data[idx]
+        episode_length = len(sequence_steps)
+        start = random.randint(0, episode_length - self.seq_len)
+        end = start + self.seq_len
+
         rets = defaultdict(list)
-        for step in sequence_steps:
+        for step in sequence_steps[start:end]:
             step = self.prepare_step(step)
             for k,v in step.items():
                 rets[k].append(v)

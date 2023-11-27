@@ -6,7 +6,7 @@ from pytorch_lightning import Trainer
 from meta_env import meta_env
 import os
 from pytorch_lightning.callbacks import ModelCheckpoint ,LearningRateMonitor
-from train_utils.metaworld_dataset import MW_dataset,split_dict,temp_dataset
+from train_utils.metaworld_dataset import MW_dataset,split_dict,temp_dataset,WeightedRandomSampler
 import json
 
 def main():
@@ -56,14 +56,19 @@ def main():
     model = load_checkpoint(model,args.load_weights)
     model = freeze_layers(model , args)
 
+    sampler = None
+    shaffle = True
     if args.debugging_mode:
         train_dataset = temp_dataset(seq_len=args.seq_len,seq_overlap=args.seq_overlap,cams = args.cams,with_imgs='obs' not in args.model)
     else:
         train_dataset = MW_dataset(model.preprocess,os.path.join(data_dir,'dataset_dict.json'),os.path.join(data_dir,'data'),train_tasks_commands,total_data_len=args.train_data_total_steps,seq_len=args.seq_len,seq_overlap=args.seq_overlap,cams = args.cams,with_imgs='obs' not in args.model)
         stats_table = train_dataset.get_stats()
         wandb_logger.log_table(key=f"Dataset Success Rate",  columns=['Task name','Success Rate'],data=stats_table)
-        #args.return_to_go_max_value = train_dataset.max_return_to_go
-    train_dataloader = torch.utils.data.DataLoader(train_dataset,batch_size=args.batch_size,shuffle=True,num_workers = args.num_workers,pin_memory=True)
+        if args.seq_len>1:
+            p_sample = train_dataset.data_specs['p_sample']
+            sampler = WeightedRandomSampler(torch.Tensor(p_sample),len(p_sample),replacement=True)
+            shaffle = False
+    train_dataloader = torch.utils.data.DataLoader(train_dataset,batch_size=args.batch_size,shuffle=shaffle,num_workers = args.num_workers,pin_memory=True,sampler=sampler)
 
 
     trainer = Trainer(default_root_dir=checkpoints_dir,callbacks=[lr_logger_callback,succ_rate_checkpoint_callback],logger = wandb_logger,max_epochs=args.num_epochs,strategy='ddp_find_unused_parameters_true',devices=args.n_gpus)#,reload_dataloaders_every_n_epochs=args.generate_data_every,use_distributed_sampler=False)
