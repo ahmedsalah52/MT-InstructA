@@ -183,11 +183,11 @@ class DL_model_obs(arch):
         args = self.args
         #self.commands_embeddings = deque([torch.zeros(1, args.instuction_emps).to(self.dummy_param.device) for _ in range(args.seq_len)], maxlen=1)  
         #self.poses_embeddings    = deque([torch.zeros(1, args.pos_emp).to(self.dummy_param.device)    for _ in range(args.seq_len)], maxlen=args.seq_len)  
-        self.states_embeddings   = []#deque([torch.zeros(1, self.state_dim).to(self.dummy_param.device) for _ in range(args.seq_len)], maxlen=args.seq_len)  
-        self.actions             = []#deque([torch.zeros(1, args.action_dim).to(self.dummy_param.device) for _ in range(args.seq_len)], maxlen=args.seq_len)  
-        self.timesteps           = []#deque([torch.zeros(1  ,dtype=torch.int).to(self.dummy_param.device)    for _ in range(args.seq_len)], maxlen=args.seq_len)  
-        self.rewards             = []#deque([torch.zeros(1  ,dtype=torch.float16).to(self.dummy_param.device)    for _ in range(args.seq_len)], maxlen=args.seq_len)  
-        self.attention_mask      = []#deque([torch.zeros(1  ,dtype=torch.int).to(self.dummy_param.device)    for _ in range(args.seq_len)], maxlen=args.seq_len)  
+        self.states_embeddings   = deque([torch.zeros(1, self.state_dim).to(self.dummy_param.device) for _ in range(args.seq_len)], maxlen=args.seq_len)  
+        self.actions             = deque([torch.zeros(1, args.action_dim).to(self.dummy_param.device) for _ in range(args.seq_len)], maxlen=args.seq_len)  
+        self.timesteps           = deque([torch.zeros(1  ,dtype=torch.int).to(self.dummy_param.device)    for _ in range(args.seq_len)], maxlen=args.seq_len)  
+        self.rewards             = deque([torch.zeros(1  ,dtype=torch.float16).to(self.dummy_param.device)    for _ in range(args.seq_len)], maxlen=args.seq_len)  
+        self.attention_mask      = deque([torch.zeros(1  ,dtype=torch.int).to(self.dummy_param.device)    for _ in range(args.seq_len)], maxlen=args.seq_len)  
         self.eval_return_to_go   = self.args.target_rtg/self.prompt_scale
 
     def forward(self,batch):
@@ -271,11 +271,8 @@ class DL_model_obs(arch):
 
         states_embeddings = (states_embeddings - self.states_mean) / self.states_std
 
-        action =  self.dl_model.get_action(states_embeddings.squeeze(0),actions.squeeze(0),None,returns_to_go.squeeze(0),timesteps)
-        self.actions[-1] = action.unsqueeze(0)
+        #action =  self.dl_model.get_action(states_embeddings.squeeze(0),actions.squeeze(0),None,returns_to_go.squeeze(0),timesteps)
 
-        self.eval_return_to_go -= input_step['reward']/self.prompt_scale
-        return action
         action_preds,rewards_preds = self.dl_model.forward(
         states_embeddings,
         actions,
@@ -291,6 +288,8 @@ class DL_model_obs(arch):
                 self.eval_return_to_go -= input_step['reward']/self.prompt_scale
             else:
                 self.eval_return_to_go -= (rewards_preds[0,-2] * attention_mask[0,-2])
+
+        self.actions[-1] = action_preds[:,-1]
 
         return action_preds[0,-1]
         

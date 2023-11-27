@@ -90,6 +90,7 @@ class TL_model(pl.LightningModule):
         #torch.cuda.empty_cache()
         return
     def evaluate_model(self):
+        self.eval()
         total_success = []
         success_dict = defaultdict(lambda:defaultdict(lambda:0.0))
         pbar = tqdm(total=len(self.tasks)*len(self.poses)*self.evaluation_episodes,desc=f"Evaluation on GPU : {self.device}",leave=True)  
@@ -110,6 +111,7 @@ class TL_model(pl.LightningModule):
         success_rate =  np.mean(total_success)
         print('total success rate',success_rate)         
             #self.log(task, np.mean(success_rate_row),sync_dist=True,batch_size=self.batch_size) # type: ignore
+        self.train()
         return success_rate
 
 
