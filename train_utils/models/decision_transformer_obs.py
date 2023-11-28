@@ -183,11 +183,11 @@ class DL_model_obs(arch):
         args = self.args
         #self.commands_embeddings = deque([torch.zeros(1, args.instuction_emps).to(self.dummy_param.device) for _ in range(args.seq_len)], maxlen=1)  
         #self.poses_embeddings    = deque([torch.zeros(1, args.pos_emp).to(self.dummy_param.device)    for _ in range(args.seq_len)], maxlen=args.seq_len)  
-        self.states_embeddings   = []#deque([torch.zeros(1, self.state_dim).to(self.dummy_param.device) for _ in range(args.seq_len)], maxlen=args.seq_len)  
-        self.actions             = []#deque([torch.zeros(1, args.action_dim).to(self.dummy_param.device) for _ in range(args.seq_len)], maxlen=args.seq_len)  
-        self.timesteps           = []#deque([torch.zeros(1  ,dtype=torch.int).to(self.dummy_param.device)    for _ in range(args.seq_len)], maxlen=args.seq_len)  
-        self.rewards             = []#deque([torch.zeros(1  ,dtype=torch.float16).to(self.dummy_param.device)    for _ in range(args.seq_len)], maxlen=args.seq_len)  
-        self.attention_mask      = []#deque([torch.zeros(1  ,dtype=torch.int).to(self.dummy_param.device)    for _ in range(args.seq_len)], maxlen=args.seq_len)  
+        self.states_embeddings   = deque([torch.zeros(1, self.state_dim,dtype=torch.float32).to(self.dummy_param.device) for _ in range(args.seq_len)], maxlen=args.seq_len)  
+        self.actions             = deque([torch.zeros(1, args.action_dim,dtype=torch.float32).to(self.dummy_param.device) for _ in range(args.seq_len)], maxlen=args.seq_len)  
+        self.timesteps           = deque([torch.zeros(1  ,dtype=torch.long).to(self.dummy_param.device)    for _ in range(args.seq_len)], maxlen=args.seq_len)  
+        self.rewards             = deque([torch.zeros(1  ,dtype=torch.float32).to(self.dummy_param.device)    for _ in range(args.seq_len)], maxlen=args.seq_len)  
+        self.attention_mask      = deque([torch.zeros(1  ,dtype=torch.long).to(self.dummy_param.device)    for _ in range(args.seq_len)], maxlen=args.seq_len)  
         self.eval_return_to_go   = self.args.target_rtg/self.prompt_scale
 
     def forward(self,batch):
@@ -249,15 +249,15 @@ class DL_model_obs(arch):
         
         states = batch_step['obs']
         
-        self.states_embeddings.append(states)
+        self.states_embeddings.append(torch.tensor(states,dtype=torch.float32))
         #self.commands_embeddings.append(commands)
         #self.poses_embeddings.append(poses)
         
-        self.actions.append(torch.zeros_like(input_step['action']))
+        self.actions.append(torch.zeros_like(input_step['action'],dtype=torch.float32))
         #self.actions.append(input_step['action'])
-        self.timesteps.append(input_step['timesteps'])
-        self.rewards.append(torch.tensor([self.eval_return_to_go],dtype=torch.float).to(self.dummy_param.device))
-        self.attention_mask.append(torch.tensor([1]))
+        self.timesteps.append(input_step['timesteps'].to(torch.long))
+        self.rewards.append(torch.tensor([self.eval_return_to_go],dtype=torch.float32).to(self.dummy_param.device))
+        self.attention_mask.append(torch.tensor([1],dtype=torch.long))
         
 
 
@@ -291,7 +291,7 @@ class DL_model_obs(arch):
                 self.eval_return_to_go -= input_step['reward']/self.prompt_scale
             else:
                 self.eval_return_to_go -= (rewards_preds[0,-2] * attention_mask[0,-2])
-
+        self.actions[-1] = action_preds[:,-1]
         return action_preds[0,-1]
         
     def get_opt_params(self):
