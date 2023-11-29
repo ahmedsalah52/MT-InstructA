@@ -140,6 +140,6 @@ parser.add_argument('--vis_embeddings', action='store_true')
 
 def process_args(args):
     args.cams = [int(c) for c in args.cams.split(',')]
-    args.tasks = [int(c) for c in args.tasks.split(',')]
+    args.tasks = [c for c in args.tasks.split(',')]
 
     return args
