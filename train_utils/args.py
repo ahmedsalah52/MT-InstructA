@@ -21,7 +21,7 @@ parser.add_argument('--with_imgs', action='store_true',help='to render and save 
 
 #shared args
 parser.add_argument('--dataset', type=str, default='generated_data')
-parser.add_argument('--tasks', type=list, default= ['button-press-topdown-v2', 'button-press-v2', 'door-lock-v2', 'door-open-v2',  'drawer-open-v2', 'window-open-v2', 'faucet-open-v2', 'faucet-close-v2', 'handle-press-v2', 'coffee-button-v2'])
+parser.add_argument('--tasks', type=str, default= "button-press-topdown-v2,button-press-v2,door-lock-v2,door-open-v2,drawer-open-v2,window-open-v2,faucet-open-v2,faucet-close-v2,handle-press-v2,coffee-button-v2")
 parser.add_argument('--poses', type=list, default= [0,1,2])
 parser.add_argument('--agents_dict_dir', type=str, default='configs/general_model_configs/agents_dict.json')
 
@@ -140,5 +140,6 @@ parser.add_argument('--vis_embeddings', action='store_true')
 
 def process_args(args):
     args.cams = [int(c) for c in args.cams.split(',')]
+    args.tasks = [int(c) for c in args.tasks.split(',')]
 
     return args

@@ -126,7 +126,7 @@ class TL_model(pl.LightningModule):
         reward = 0
         while 1:
             with torch.no_grad():
-                step_input = {'instruction':[instruction]}
+                step_input = {'instruction':[instruction],'task_id':torch.tensor([self.tasks.index(task)],dtype=torch.int)}
                 if 'obs' in self.model_name:
                     step_input['obs'] = torch.tensor(obs).to(torch.float32).unsqueeze(0).to(self.device)
                 else:

@@ -466,13 +466,13 @@ class DL_model(arch):
         returns_to_go       = torch.stack(list(self.rewards)       ,dim=0).transpose(1,0).to(self.device)
         attention_mask      = torch.stack(list(self.attention_mask),dim=0).transpose(1,0).to(self.device)
 
-        if states_embeddings.shape[1]<self.args.seq_len:
-            delta_seq_len = self.args.seq_len - states_embeddings.shape[1]
-            states_embeddings = torch.cat([torch.zeros((1 ,delta_seq_len,states_embeddings.shape[2]),dtype=torch.float32).to(self.device),states_embeddings],dim=1)
-            actions           = torch.cat([torch.zeros((1 ,delta_seq_len,actions.shape[2]),dtype=torch.float32).to(self.device)          ,actions          ],dim=1)
-            timesteps         = torch.cat([torch.zeros((1 ,delta_seq_len),dtype=torch.long).to(self.device)                              ,timesteps        ],dim=1)
-            returns_to_go     = torch.cat([torch.zeros((1 ,delta_seq_len),dtype=torch.float32).to(self.device)                           ,returns_to_go    ],dim=1)
-            attention_mask    = torch.cat([torch.zeros((1 ,delta_seq_len),dtype=torch.long).to(self.device)                              ,attention_mask   ],dim=1)
+        #if states_embeddings.shape[1]<self.args.seq_len:
+        #    delta_seq_len = self.args.seq_len - states_embeddings.shape[1]
+        #    states_embeddings = torch.cat([torch.zeros((1 ,delta_seq_len,states_embeddings.shape[2]),dtype=torch.float32).to(self.device),states_embeddings],dim=1)
+        #    actions           = torch.cat([torch.zeros((1 ,delta_seq_len,actions.shape[2]),dtype=torch.float32).to(self.device)          ,actions          ],dim=1)
+        #    timesteps         = torch.cat([torch.zeros((1 ,delta_seq_len),dtype=torch.long).to(self.device)                              ,timesteps        ],dim=1)
+        #    returns_to_go     = torch.cat([torch.zeros((1 ,delta_seq_len),dtype=torch.float32).to(self.device)                           ,returns_to_go    ],dim=1)
+        #    attention_mask    = torch.cat([torch.zeros((1 ,delta_seq_len),dtype=torch.long).to(self.device)                              ,attention_mask   ],dim=1)
         
         
 

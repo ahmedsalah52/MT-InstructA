@@ -143,7 +143,7 @@ class MW_dataset(Dataset):
         self.data = []
         all_obs = []
         traj_lens = []
-        for task in self.tasks:
+        for i,task in enumerate(self.tasks):
             print('preparing task:',task)
             for epi in tqdm(range(len(self.data_dict[task]))):
                 episode = []
@@ -152,7 +152,7 @@ class MW_dataset(Dataset):
                 traj_lens.append(len(self.data_dict[task][epi]))
                 for s in range(len(self.data_dict[task][epi])):
                     step = self.data_dict[task][epi][s]
-                    step['task'] = task 
+                    step['task_id'] = i 
                     step['timesteps'] = s
                     step['return_to_go'] = return_to_go
                     return_to_go -= step['reward']
@@ -227,13 +227,15 @@ class MW_dataset(Dataset):
             images_dir = step_data['images_dir']
             images = [self.preprocess(Image.open(os.path.join(self.dataset_dir,dir))) for dir in images_dir if int(dir.split('_')[-1].split('.')[0]) in self.cams]
             ret['images']   = torch.stack(images)
-        ret['hand_pos'] = torch.tensor(np.concatenate((step_data['obs'][0:4],step_data['obs'][18:22]),axis =0)).to(torch.float32)
-        ret['obs']      = torch.tensor(step_data['obs']).to(torch.float32)
-        ret['action']      = torch.tensor(step_data['action'])
-        ret['instruction'] = random.choice(self.tasks_commands[step_data['task']])
-        ret['timesteps']   = step_data['timesteps']
-        ret['reward']   = step_data['reward']
-        ret['return_to_go']   = step_data['return_to_go']
+        
+        ret['hand_pos']     = torch.tensor(np.concatenate((step_data['obs'][0:4],step_data['obs'][18:22]),axis =0)).to(torch.float32)
+        ret['obs']          = torch.tensor(step_data['obs']).to(torch.float32)
+        ret['action']       = torch.tensor(step_data['action'])
+        ret['instruction']  = random.choice(self.tasks_commands[self.tasks[step_data['task_id']]])
+        ret['task_id']      = torch.tensor([step_data['task_id']],dtype=torch.int)
+        ret['timesteps']    = step_data['timesteps']
+        ret['reward']       = step_data['reward']
+        ret['return_to_go'] = step_data['return_to_go']
 
         return ret
 

@@ -48,6 +48,7 @@ class DecisionTransformer(TrajectoryModel):
         self.embed_return = torch.nn.Linear(1, hidden_size)
         self.embed_state = torch.nn.Linear(self.state_dim, hidden_size)
         self.embed_action = torch.nn.Linear(self.act_dim, hidden_size)
+        self.embed_tasks = torch.nn.Linear(hidden_size, hidden_size)
 
         self.embed_ln = nn.LayerNorm(hidden_size)
 
@@ -57,7 +58,7 @@ class DecisionTransformer(TrajectoryModel):
         )
         self.predict_return = torch.nn.Linear(hidden_size, 1)
 
-    def forward(self, states, actions, rewards, returns_to_go, timesteps, attention_mask=None):
+    def forward(self, states, actions, tasks, returns_to_go, timesteps, attention_mask=None):
         batch_size, seq_length = states.shape[0], states.shape[1]
 
         if attention_mask is None:
@@ -69,7 +70,7 @@ class DecisionTransformer(TrajectoryModel):
         action_embeddings = self.embed_action(actions)
         returns_embeddings = self.embed_return(returns_to_go)
         time_embeddings = self.embed_timestep(timesteps)
-
+        tasks_embeddings = self.embed_tasks(tasks)
         # time embeddings are treated similar to positional embeddings
         state_embeddings = state_embeddings + time_embeddings
         action_embeddings = action_embeddings + time_embeddings
@@ -87,6 +88,9 @@ class DecisionTransformer(TrajectoryModel):
             (attention_mask, attention_mask, attention_mask), dim=1
         ).permute(0, 2, 1).reshape(batch_size, 3*seq_length)
 
+
+        stacked_inputs         = torch.cat([tasks_embeddings,stacked_inputs],dim=1)
+        stacked_attention_mask = torch.cat([torch.ones(batch_size,1).to(attention_mask.device),stacked_attention_mask],dim=1)
         # we feed in the input embeddings (not word indices as in NLP) to the model
         transformer_outputs = self.transformer(
             inputs_embeds=stacked_inputs,
@@ -96,7 +100,7 @@ class DecisionTransformer(TrajectoryModel):
 
         # reshape x so that the second dimension corresponds to the original
         # returns (0), states (1), or actions (2); i.e. x[:,1,t] is the token for s_t
-        x = x.reshape(batch_size, seq_length, 3, self.hidden_size).permute(0, 2, 1, 3)
+        x = x[:,1:,:].reshape(batch_size, seq_length, 3, self.hidden_size).permute(0, 2, 1, 3)
 
         # get predictions
         return_preds = self.predict_return(x[:,2])  # predict next return given state and action
@@ -180,7 +184,7 @@ class DL_model_obs(arch):
        
     def reset_memory(self):
         args = self.args
-        #self.commands_embeddings = deque([torch.zeros(1, args.instuction_emps).to(self.dummy_param.device) for _ in range(args.seq_len)], maxlen=1)  
+        self.commands_embeddings = deque([torch.zeros(1, args.instuction_emps).to(self.dummy_param.device) for _ in range(args.seq_len)], maxlen=1)  
         #self.poses_embeddings    = deque([torch.zeros(1, args.pos_emp).to(self.dummy_param.device)    for _ in range(args.seq_len)], maxlen=args.seq_len)  
         self.states_embeddings   = deque([], maxlen=args.seq_len)  
         self.actions             = deque([], maxlen=args.seq_len)  
@@ -207,8 +211,13 @@ class DL_model_obs(arch):
 
             commands_embeddings.append(commands)
         """
+        
+        #tasks_id = self.task_embeddings(batch['task_id'][:,0,:]) # use only the first task id from each sequence, (it doesn't change throught the sequence)
+        
         states_embeddings   = torch.stack(batch['obs'],dim=0).transpose(1,0).to(self.dummy_param.device)
-        commands_embeddings = torch.stack(batch['task'],dim=0).transpose(1,0).to(self.dummy_param.device)
+        #commands_embeddings = torch.stack(batch['task_id'][0],dim=0).to(self.dummy_param.device)
+        commands_embeddings = self.task_embeddings(batch['task_id'][0].to(self.device))#.transpose(1,0)
+
         #poses_embeddings    = torch.stack(poses_embeddings,dim=0).transpose(1,0).to(self.dummy_param.device)
         actions             = torch.stack(batch['action'],dim=0).transpose(1,0).to(self.dummy_param.device)
         timesteps           = torch.stack(batch['timesteps'],dim=0).transpose(1,0).to(self.dummy_param.device)
@@ -218,11 +227,12 @@ class DL_model_obs(arch):
         
         batch_size,seq_length,_ = actions.shape
         attention_mask = torch.ones((batch_size, self.args.seq_len), dtype=torch.long).to(self.dummy_param.device)
-
+        #print(commands_embeddings.shape)
+        #print(actions.shape)
         action_preds,rewards_preds = self.dl_model.forward(
             states_embeddings,
             actions,
-            None,
+            commands_embeddings,
             returns_to_go,
             timesteps,
             attention_mask=attention_mask,
@@ -250,7 +260,7 @@ class DL_model_obs(arch):
         
         states = batch_step['obs']
         
-        self.commands_embeddings.append(commands)
+        self.commands_embeddings.append(self.task_embeddings(batch_step['task_id']))
         #self.poses_embeddings.append(poses)
         self.states_embeddings.append(states.to(torch.float32))
         self.actions.append(torch.zeros_like(input_step['action'],dtype=torch.float32))
@@ -261,7 +271,7 @@ class DL_model_obs(arch):
        
 
         states_embeddings   = torch.stack(list(self.states_embeddings),dim=0).transpose(1,0).to(self.device)
-        commands_embeddings = torch.stack(list(self.commands_embeddings),dim=0).transpose(1,0).to(self.device)
+        ids_embeddings      = torch.stack(list(self.commands_embeddings),dim=0).transpose(1,0).to(self.device)
         #poses_embeddings    = torch.stack([s.to(self.dummy_param.device) for s in self.poses_embeddings],dim=0).transpose(1,0).to(self.dummy_param.device)
         actions             = torch.stack(list(self.actions)       ,dim=0).transpose(1,0).to(self.device)
         timesteps           = torch.stack(list(self.timesteps)     ,dim=0).transpose(1,0).to(self.device)
@@ -274,19 +284,21 @@ class DL_model_obs(arch):
         #self.actions[-1] = action.unsqueeze(0)
         #self.eval_return_to_go -= input_step['reward']/self.prompt_scale
         #return action
-        if states_embeddings.shape[1]<self.args.seq_len:
-            delta_seq_len = self.args.seq_len - states_embeddings.shape[1]
+        if False and states_embeddings.shape[1]<self.args.seq_len:
+            delta_seq_len     = self.args.seq_len - states_embeddings.shape[1]
             states_embeddings = torch.cat([torch.zeros((1 ,delta_seq_len,states_embeddings.shape[2]),dtype=torch.float32).to(self.device),states_embeddings],dim=1)
             actions           = torch.cat([torch.zeros((1 ,delta_seq_len,actions.shape[2]),dtype=torch.float32).to(self.device)          ,actions          ],dim=1)
             timesteps         = torch.cat([torch.zeros((1 ,delta_seq_len),dtype=torch.long).to(self.device)                              ,timesteps        ],dim=1)
+            ids_embeddings    = torch.cat([torch.zeros((1 ,delta_seq_len),dtype=torch.long).to(self.device)                              ,ids_embeddings   ],dim=1)
             returns_to_go     = torch.cat([torch.zeros((1 ,delta_seq_len),dtype=torch.float32).to(self.device)                           ,returns_to_go    ],dim=1)
             attention_mask    = torch.cat([torch.zeros((1 ,delta_seq_len),dtype=torch.long).to(self.device)                              ,attention_mask   ],dim=1)
         
-        
+        #print(ids_embeddings.shape)
+        #print(actions.shape)
         action_preds,rewards_preds = self.dl_model.forward(
         states_embeddings,
         actions,
-        None,
+        ids_embeddings,
         returns_to_go.unsqueeze(-1),
         timesteps, 
         attention_mask=attention_mask
