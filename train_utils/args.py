@@ -21,7 +21,7 @@ parser.add_argument('--with_imgs', action='store_true',help='to render and save 
 
 #shared args
 parser.add_argument('--dataset', type=str, default='generated_data')
-parser.add_argument('--tasks', type=list, default= ['button-press-topdown-v2', 'button-press-v2', 'door-lock-v2', 'door-open-v2',  'drawer-open-v2', 'window-open-v2', 'faucet-open-v2', 'faucet-close-v2', 'handle-press-v2', 'coffee-button-v2'])
+parser.add_argument('--tasks', type=list, default= ['coffee-button-v2'])#['button-press-topdown-v2', 'button-press-v2', 'door-lock-v2', 'door-open-v2',  'drawer-open-v2', 'window-open-v2', 'faucet-open-v2', 'faucet-close-v2', 'handle-press-v2', 'coffee-button-v2'])
 parser.add_argument('--poses', type=list, default= [0,1,2])
 parser.add_argument('--agents_dict_dir', type=str, default='configs/general_model_configs/agents_dict.json')
 
@@ -128,6 +128,8 @@ parser.add_argument('--schedular_step', type=int, default=5)
 parser.add_argument('--lr', type=float, default=1e-4)
 parser.add_argument('--weight_decay', type=float, default=1e-2)
 parser.add_argument('--opt_patience', type=int, default=1)
+parser.add_argument('--trainloss_checkpoint',action='store_true')
+
 
 #testing
 parser.add_argument('--video_exp_name', type=str, default=None)
