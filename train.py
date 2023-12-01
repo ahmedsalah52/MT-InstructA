@@ -33,7 +33,7 @@ def main():
         mode="max",  # "min" if you want to save the lowest validation loss
         save_top_k=10,  # Save only the best model
         save_last=True,  # Save the last model as well
-        every_n_epochs=args.evaluate_every,
+        every_n_epochs=args.checkpoint_every,
         #save_on_train_epoch_end=True
         )
     train_loss_checkpoint_callback = ModelCheckpoint(
@@ -43,7 +43,7 @@ def main():
         mode="min",  # "min" if you want to save the lowest validation loss
         save_top_k=10,  # Save only the best model
         save_last=True,  # Save the last model as well
-        every_n_epochs=args.evaluate_every,
+        every_n_epochs=args.checkpoint_every,
         save_on_train_epoch_end=True
         )
     checkpoint_callback = train_loss_checkpoint_callback if args.trainloss_checkpoint else succ_rate_checkpoint_callback

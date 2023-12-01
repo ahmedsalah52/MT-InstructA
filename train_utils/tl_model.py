@@ -22,8 +22,9 @@ class TL_model(pl.LightningModule):
         self.model_name = args.model
         self.cams_ids =  args.cams
         self.tasks_commands = tasks_commands
-        self.evaluate_every = args.evaluate_every
+        self.evaluate_every = args.checkpoint_every
         self.evaluation_episodes = args.evaluation_episodes
+        self.eval_checkpoint = not args.trainloss_checkpoint
         self.tasks = args.tasks
         self.batch_size = args.batch_size
         self.env = env
@@ -82,7 +83,7 @@ class TL_model(pl.LightningModule):
             return self.base_training_step(batch,batch_idx)
         
     def on_train_epoch_end(self):
-        if (self.current_epoch % self.evaluate_every == 0) and self.current_epoch > 0:
+        if self.eval_checkpoint and ((self.current_epoch % self.evaluate_every == 0) and self.current_epoch > 0):
             print(f"\n epoch {self.current_epoch}  evaluation on device {self.device}")
             success_rate = self.evaluate_model()
             self.log("success_rate", success_rate,sync_dist=True,batch_size=self.batch_size,prog_bar=True) # type: ignore
