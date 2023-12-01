@@ -70,7 +70,7 @@ def main():
             p_sample = train_dataset.data_specs['p_sample']
             sampler = WeightedRandomSampler(torch.Tensor(p_sample),len(p_sample),replacement=True)
             shaffle = False
-    train_dataloader = torch.utils.data.DataLoader(train_dataset,batch_size=args.batch_size,shuffle=shaffle,num_workers = args.num_workers,pin_memory=True,sampler=sampler)
+    train_dataloader = torch.utils.data.DataLoader(train_dataset,batch_size=args.batch_size,shuffle=shaffle,num_workers = args.num_workers,pin_memory=True,sampler=sampler,drop_last=True)
 
 
     trainer = Trainer(default_root_dir=checkpoints_dir,callbacks=[lr_logger_callback,checkpoint_callback],logger = wandb_logger,max_epochs=args.num_epochs,strategy='ddp_find_unused_parameters_true',devices=args.n_gpus)#,reload_dataloaders_every_n_epochs=args.generate_data_every,use_distributed_sampler=False)
