@@ -63,6 +63,7 @@ class temp_dataset(Dataset):
         ret['return_to_go']   = 800.0
         ret['instruction']    = "empty instruction"
         ret['obs'] = torch.zeros(39).to(torch.float32)
+        ret['attention_mask'] = 1
         return ret
 
 """def get_stats(data_dict):
@@ -174,26 +175,6 @@ class MW_dataset(Dataset):
         self.data_specs['p_sample']       = p_sample
         self.data_specs['max_return_to_go'] = self.max_return_to_go
       
-    def get_seqs(self,episode):
-        seqs = []
-        i  = 0
-        done = False
-        while not done:
-            start = i
-            end = i + self.seq_len
-            if end >= len(episode)-1:
-                done = True
-                sublist = episode[-self.seq_len:]
-            else:
-                sublist = episode[start:end]
-                i = end - self.seq_overlap
-
-            seqs.append(sublist)
-        return seqs
-    def get_overlap(self):
-
-        rand = random.randint(0,self.seq_overlap)
-        return rand + self.seq_overlap//2
     
     def get_stats(self):
         
@@ -209,16 +190,20 @@ class MW_dataset(Dataset):
         
         sequence_steps = self.data[idx]
         episode_length = len(sequence_steps)
-        start = random.randint(0, episode_length - self.seq_len)
-        end = start + self.seq_len
-
+        #get the sequence with length from 1 to self.seq_len
+        start = random.randint(0, episode_length - 1)
+        end = min(start + self.seq_len , episode_length)
+        actual_seq_len = end - start
         rets = defaultdict(list)
+        for i in range(self.seq_len - actual_seq_len):
+            step = self.prepare_padding_step(None)
+            for k,v in step.items():
+                rets[k].append(v)
+        
         for step in sequence_steps[start:end]:
             step = self.prepare_step(step)
             for k,v in step.items():
                 rets[k].append(v)
-        
-        #rets = {k : torch.tensor(v) if k != 'instruction' else v  for k,v in rets.items()}
 
         return rets
     def prepare_step(self,step_data):
@@ -236,9 +221,22 @@ class MW_dataset(Dataset):
         ret['timesteps']    = step_data['timesteps']
         ret['reward']       = step_data['reward']
         ret['return_to_go'] = step_data['return_to_go']
+        ret['attention_mask'] = 1
 
         return ret
-
+    def prepare_padding_step(self,step_data):
+        ret = {}
+        if self.with_imgs:
+            ret['images']         = torch.zeros((len(self.cams),3,224,224)).to(torch.float32)
+        ret['hand_pos']       = torch.zeros(8).to(torch.float32)
+        ret['action']         = torch.zeros(4).to(torch.float32)
+        ret['timesteps']      = 0
+        ret['reward']         = 0
+        ret['return_to_go']   = 0
+        ret['instruction']    = ""
+        ret['obs'] = torch.zeros(39).to(torch.float32)
+        ret['attention_mask'] = 0
+        return ret
 def split_dict(dict_of_lists, split_ratio=0.8,seed=42):
     """
     Split a dictionary of lists into training and validation dictionaries with the same keys.

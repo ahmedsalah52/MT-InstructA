@@ -60,7 +60,7 @@ class base_model(arch):
         return x
     
     def train_step(self,batch,device,opts=None):
-        batch = {k : v.to(device) if k != 'instruction' else v  for k,v in batch.items()}
+        batch = {k : v.to(device) if type(v) == torch.tensor else v  for k,v in batch.items()}
         
         logits = self.forward(batch)
 

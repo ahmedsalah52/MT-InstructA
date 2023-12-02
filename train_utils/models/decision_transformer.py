@@ -390,10 +390,10 @@ class DL_model(arch):
         self.eval_return_to_go   = np.float32(self.args.target_rtg)/np.float32(self.prompt_scale)
 
     def forward(self,batch):
-        states_embeddings ,commands_embeddings,poses_embeddings= [],[],[]
+        states_embeddings ,attention_mask,poses_embeddings= [],[],[]
         commands_to_use = None
         for i in range(self.args.seq_len):
-            batch_step = {k: v[i].to(self.device) if k != 'instruction' else v[i] for k, v in batch.items()}
+            batch_step = {k: v[i].to(self.device) if type(v[i]) == torch.tensor else v[i] for k, v in batch.items()}
             states,commands,poses = self.backbone(batch_step,cat=False,vision=True,command=(i==0),pos=False)
             if i==0: commands_to_use = commands #update only the first command (to have one command per sequence)
             
@@ -401,15 +401,15 @@ class DL_model(arch):
                 states,_,_ = self.neck((states,commands_to_use,poses),cat=False) 
             states_embeddings.append(states)
             poses_embeddings.append(batch_step['hand_pos'].to(torch.float32))
-            #commands_embeddings.append(commands_to_use)
-        
-
+            attention_mask.append(batch_step['attention_mask'].to(torch.long))        
+        #attention_mask = torch.tensor(batch['attention_mask'],dtype=torch.long).to(self.device)
         states_embeddings   = torch.stack(states_embeddings,dim=0).transpose(1,0).to(self.device)
         commands_embeddings = commands_to_use.unsqueeze(1)#torch.stack(commands_embeddings,dim=0).transpose(1,0).to(self.device)
         poses_embeddings    = torch.stack(poses_embeddings,dim=0).transpose(1,0).to(self.device)
         actions             = torch.stack(batch['action'],dim=0).transpose(1,0).to(self.device)
         timesteps           = torch.stack(batch['timesteps'],dim=0).transpose(1,0).to(self.device)
         returns_to_go       = torch.stack(batch[self.prompt],dim=0).unsqueeze(-1).transpose(1,0).float().to(self.device)
+        attention_mask      = torch.stack(attention_mask,dim=0).transpose(1,0).to(self.device)
         returns_to_go/= self.prompt_scale
 
         
@@ -422,7 +422,7 @@ class DL_model(arch):
             commands_embeddings,
             returns_to_go,
             timesteps,
-            attention_mask=None,
+            attention_mask=attention_mask,
         )
 
         action_preds = action_preds.transpose(1,0)
@@ -441,7 +441,7 @@ class DL_model(arch):
         return actions_loss + rewards_loss
     
     def eval_step(self,input_step):
-        batch_step = {k : v.to(self.device) if k != 'instruction' else v  for k,v in input_step.items()}
+        batch_step = {k : v.to(self.device) if type(v) == torch.tensor else v  for k,v in input_step.items()}
         states,commands,_ = self.backbone(batch_step,cat=False,vision=True,command=True,pos=False)
         if self.neck:
             states,commands,_ = self.neck((states,commands,None),cat=False)
