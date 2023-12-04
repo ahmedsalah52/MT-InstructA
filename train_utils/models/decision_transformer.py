@@ -501,12 +501,15 @@ class DL_model(arch):
         return action_preds[0,-1]
         
     def get_opt_params(self):
-        params = self.backbone.get_opt_params() + [{"params": self.dl_model.parameters()}]
+        params = self.backbone.get_opt_params() + [{"params": self.dt_model.parameters()}] 
+        if self.neck:
+            params += self.neck.get_opt_params()
        
         return params
     def get_optimizer(self):
         params = self.get_opt_params()
 
         return torch.optim.AdamW(params,lr=self.args.lr)
+
 
    

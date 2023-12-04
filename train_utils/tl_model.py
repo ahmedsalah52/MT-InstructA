@@ -10,7 +10,7 @@ from torch.optim.lr_scheduler import StepLR
 from train_utils.models.base import base_model
 from train_utils.models.GAN import simple_GAN
 from train_utils.models.seq import seq_model
-from train_utils.models.decision_transformer import DL_model
+from train_utils.models.decision_transformer2 import DT_model
 from train_utils.models.decision_transformer_obs2 import DL_model_obs
 
 from tqdm import tqdm
@@ -29,7 +29,7 @@ class TL_model(pl.LightningModule):
         self.batch_size = args.batch_size
         self.env = env
         self.wandb_logger = wandb_logger
-        models = {'base':base_model,'GAN':simple_GAN,'seq':seq_model,'dt':DL_model,'dt_obs':DL_model_obs}
+        models = {'base':base_model,'GAN':simple_GAN,'seq':seq_model,'dt':DT_model,'dt_obs':DL_model_obs}
         print('TL model device is ',str(self.device))
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
