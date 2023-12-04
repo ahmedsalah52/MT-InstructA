@@ -507,6 +507,6 @@ class DL_model(arch):
     def get_optimizer(self):
         params = self.get_opt_params()
 
-        return torch.optim.Adam(params,lr=self.args.lr)
+        return torch.optim.AdamW(params,lr=self.args.lr)
 
    

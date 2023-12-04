@@ -195,16 +195,17 @@ class MW_dataset(Dataset):
         end = min(start + self.seq_len , episode_length)
         actual_seq_len = end - start
         rets = defaultdict(list)
-        for i in range(self.seq_len - actual_seq_len):
-            step = self.prepare_padding_step(None)
-            for k,v in step.items():
-                rets[k].append(v)
-        
+          
         for step in sequence_steps[start:end]:
             step = self.prepare_step(step)
             for k,v in step.items():
                 rets[k].append(v)
 
+        for i in range(self.seq_len - actual_seq_len):
+            step = self.prepare_padding_step(None)
+            for k,v in step.items():
+                rets[k].append(v)
+      
         return rets
     def prepare_step(self,step_data):
         ret = {}
@@ -233,10 +234,13 @@ class MW_dataset(Dataset):
         ret['timesteps']      = 0
         ret['reward']         = 0
         ret['return_to_go']   = 0
-        ret['instruction']    = ""
+        ret['instruction']    = "empty instruct"
         ret['obs'] = torch.zeros(39).to(torch.float32)
         ret['attention_mask'] = 0
+        ret['task_id'] = torch.tensor([0],dtype=torch.int)
         return ret
+    
+    
 def split_dict(dict_of_lists, split_ratio=0.8,seed=42):
     """
     Split a dictionary of lists into training and validation dictionaries with the same keys.

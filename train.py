@@ -57,7 +57,7 @@ def main():
     model = TL_model(args=args,tasks_commands=val_tasks_commands,env=meta_env,wandb_logger=wandb_logger,seed=args.seed)
     model = load_checkpoint(model,args.load_weights)
     model = freeze_layers(model , args)
-
+   
     sampler = None
     shaffle = True
     if args.debugging_mode:
