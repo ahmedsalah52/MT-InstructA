@@ -30,7 +30,7 @@ class TL_model(pl.LightningModule):
         self.env = env
         self.wandb_logger = wandb_logger
         models = {'base':base_model,'GAN':simple_GAN,'seq':seq_model,'dt':DT_model,'dt_obs':DL_model_obs}
-        print('TL model device is ',str(self.device))
+        #print('TL model device is ',str(self.device))
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
         self.model = models[args.model](args).to(device)

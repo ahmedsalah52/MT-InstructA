@@ -429,7 +429,7 @@ class DT_model(arch):
         current_ts = input_step['timesteps'].item()
         current_ts = min(current_ts,self.args.seq_len-1)
        
-       
+
         if self.prompt != 'reward':
             if self.args.use_env_reward:
                 self.eval_return_to_go -= input_step['reward']/self.prompt_scale
@@ -446,6 +446,7 @@ class DT_model(arch):
         return params
     def get_optimizer(self):
         params = self.get_opt_params()
+        return self.dt_model.configure_optimizers(learning_rate=self.args.lr,weight_decay=self.args.weight_decay,cuda_device= 'cuda' in str(self.device))
 
         return torch.optim.AdamW(params,lr=self.args.lr,weight_decay=self.args.weight_decay)
 
