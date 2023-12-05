@@ -309,7 +309,7 @@ class DT_model(arch):
         poses_embeddings    = torch.stack(poses_embeddings,dim=0).transpose(1,0).to(self.device)
         actions             = torch.stack(batch['action'],dim=0).transpose(1,0).to(self.device)
         timesteps           = torch.stack(batch['timesteps'],dim=0).transpose(1,0).to(self.device)
-        returns_to_go       = torch.stack(batch[self.prompt],dim=0).unsqueeze(-1).transpose(1,0).float().to(self.device)
+        returns_to_go       = torch.stack(batch[self.prompt],dim=0).unsqueeze(-1).transpose(1,0).to(torch.float32).to(self.device)
         attention_mask      = torch.stack(attention_mask,dim=0).transpose(1,0).to(self.device)
         returns_to_go/= self.prompt_scale
         

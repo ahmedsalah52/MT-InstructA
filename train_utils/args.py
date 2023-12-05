@@ -82,7 +82,6 @@ parser.add_argument('--txt_model_lr', type=float, default=1e-5)
 
 #open ai clip backbone params
 parser.add_argument('--clip_lr', type=float, default=1e-6)
-parser.add_argument('--head_lr', type=float, default=1e-4)
 parser.add_argument('--op_image_model_name', type=str, default='ViT-B/32',choices=
 ['RN50',
  'RN101',
@@ -94,7 +93,7 @@ parser.add_argument('--op_image_model_name', type=str, default='ViT-B/32',choice
  'ViT-L/14',
  'ViT-L/14@336px'])
 
-#neck params  --n_heads 16 --att_head_emp 16 --neck_layers 2 --neck_max_len 200
+#neck transformer params  --n_heads 16 --att_head_emp 16 --neck_layers 2 --neck_max_len 200
 parser.add_argument('--n_heads'     , type=int, default=16)
 parser.add_argument('--emp_size'    , type=int, default=16)
 parser.add_argument('--neck_layers' , type=int, default=2)
@@ -102,14 +101,17 @@ parser.add_argument('--neck_dropout', type=int, default=0.2)
 parser.add_argument('--neck_max_len', type=int, default=32)
 
 parser.add_argument('--instruct_dropout', type=float, default=0) #only for the cross attention
+
+# film neck params
 parser.add_argument('--film_N_blocks', type=int, default=4)
 
 #head params
 parser.add_argument('--act_fun', type=str, default=None,choices=[None,'tanh'])
+parser.add_argument('--head_lr', type=float, default=1e-4)
 
 
 #loss funcitons
-parser.add_argument('--loss_fun', type=str, default='mse',choices=['mse','relative_mse'])
+parser.add_argument('--loss_fun', type=str, default='mse',choices=['mse','relative_mse']) #note: dt has its own masked mse loss function
 parser.add_argument('--mag_weight', type=float, default=0.01,help='weight of the magnitude loss in the relative loss funtion')
 
 

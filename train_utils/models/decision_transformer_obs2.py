@@ -470,7 +470,7 @@ class DL_model_obs(arch):
         params = self.get_opt_params()
         #print('device is ',str(self.device))
         #return self.dl_model.configure_optimizers(learning_rate=self.args.lr,weight_decay=self.args.weight_decay,cuda_device= 'cuda' in str(self.device))
-        return torch.optim.AdamW(params,lr=self.args.lr,weight_decay=self.args.weight_decay)
-        #return torch.optim.Adam(params,lr=self.args.lr)
+        #return torch.optim.AdamW(params,lr=self.args.lr,weight_decay=self.args.weight_decay)
+        return torch.optim.Adam(params,lr=self.args.lr)
 
    
