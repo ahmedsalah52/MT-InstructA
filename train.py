@@ -65,6 +65,10 @@ def main():
     else:
         train_dataset = MW_dataset(model.preprocess,os.path.join(data_dir,'dataset_dict.json'),os.path.join(data_dir,'data'),train_tasks_commands,total_data_len=args.train_data_total_steps,seq_len=args.seq_len,seq_overlap=args.seq_overlap,cams = args.cams,with_imgs='obs' not in args.model)
         stats_table = train_dataset.get_stats()
+        #test dataset class
+        print('dataset length ',len(train_dataset))
+        train_dataset[len(train_dataset)-1]
+
         wandb_logger.log_table(key=f"Dataset Success Rate",  columns=['Task name','Success Rate'],data=stats_table)
         if args.seq_len>1:
             p_sample = train_dataset.data_specs['p_sample']
