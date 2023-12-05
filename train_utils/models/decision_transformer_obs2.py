@@ -457,6 +457,7 @@ class DL_model_obs(arch):
             else:
                 self.eval_return_to_go -= (rewards_preds[0,-2] * attention_mask[0,-2] * (self.reward_norm/self.prompt_scale)).item()
                 print(self.eval_return_to_go)"""
+        
         self.eval_return_to_go -= input_step['reward']/self.prompt_scale
         self.actions[-1] = action_preds[:,current_ts]
         return action_preds[0,current_ts]
