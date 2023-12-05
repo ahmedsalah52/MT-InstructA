@@ -258,6 +258,7 @@ class DT_model(arch):
         self.preprocess_image = self.backbone.preprocess_image
         self.prompt = args.prompt
         self.prompt_scale = args.prompt_scale 
+        self.reward_norm = args.reward_norm
 
         @dataclass
         class GPTConfig:
