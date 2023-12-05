@@ -234,7 +234,7 @@ class MW_dataset(Dataset):
         ret['timesteps']      = 0
         ret['reward']         = 0
         ret['return_to_go']   = 0
-        ret['instruction']    = "empty instruct"
+        ret['instruction']    = ""
         ret['obs'] = torch.zeros(39).to(torch.float32)
         ret['attention_mask'] = 0
         ret['task_id'] = torch.tensor([0],dtype=torch.int)
