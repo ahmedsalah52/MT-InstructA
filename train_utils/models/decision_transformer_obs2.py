@@ -298,6 +298,7 @@ class DL_model_obs(arch):
         self.preprocess_image = None #self.backbone.preprocess_image
         self.prompt = args.prompt
         self.prompt_scale = args.prompt_scale 
+        self.reward_norm = args.reward_norm
         self.dummy_param = nn.Parameter(torch.zeros(0))
         self.state_dim = 39
      
@@ -363,7 +364,7 @@ class DL_model_obs(arch):
         #poses_embeddings    = torch.stack(poses_embeddings,dim=0).transpose(1,0).to(self.dummy_param.device)
         actions             = torch.stack(batch['action'],dim=0).transpose(1,0).to(self.dummy_param.device)
         timesteps           = torch.stack(batch['timesteps'],dim=0).transpose(1,0).to(self.dummy_param.device)
-        returns_to_go       = torch.stack(batch[self.prompt],dim=0).unsqueeze(-1).transpose(1,0).float().to(self.dummy_param.device)
+        returns_to_go       = torch.stack(batch[self.prompt],dim=0).unsqueeze(-1).transpose(1,0).to(torch.float32).to(self.dummy_param.device)
         returns_to_go/= self.prompt_scale
         states_embeddings = (states_embeddings - self.states_mean) / self.states_std
         
@@ -385,7 +386,7 @@ class DL_model_obs(arch):
     
     def train_step(self,batch,device,opts=None):
         y_actions = torch.stack(batch['action'],dim=0).to(device)
-        y_rewards = torch.stack(batch['reward'],dim=0).unsqueeze(-1).float().to(device)/self.prompt_scale
+        y_rewards = torch.stack(batch['reward'],dim=0).unsqueeze(-1).to(torch.float32).to(device)/self.reward_norm
         attention_mask = torch.stack(batch['attention_mask'],dim=0).unsqueeze(-1).to(torch.long).to(self.dummy_param.device)
 
         pred_actions,pred_rewards = self.forward(batch)
@@ -428,10 +429,7 @@ class DL_model_obs(arch):
         ids_embeddings      = self.dl_model.task_embeddings(batch_step['task_id']).unsqueeze(0)
         states_embeddings = (states_embeddings - self.states_mean) / self.states_std
 
-        #action =  self.dl_model.get_action(states_embeddings.squeeze(0),actions.squeeze(0),None,returns_to_go.squeeze(0),timesteps)
-        #self.actions[-1] = action.unsqueeze(0)
-        #self.eval_return_to_go -= input_step['reward']/self.prompt_scale
-        #return action
+       
         if states_embeddings.shape[1]<self.args.seq_len:
             delta_seq_len     = self.args.seq_len - states_embeddings.shape[1]
             states_embeddings = torch.cat([states_embeddings, torch.zeros((1 ,delta_seq_len,states_embeddings.shape[2]),dtype=torch.float32).to(self.device)],dim=1)
@@ -453,12 +451,13 @@ class DL_model_obs(arch):
         
         current_ts = input_step['timesteps'].item()
         current_ts = min(current_ts,self.args.seq_len-1)
-       
-        if self.prompt != 'reward':
+        """if self.prompt != 'reward':
             if self.args.use_env_reward:
                 self.eval_return_to_go -= input_step['reward']/self.prompt_scale
             else:
-                self.eval_return_to_go -= (rewards_preds[0,-2] * attention_mask[0,-2])
+                self.eval_return_to_go -= (rewards_preds[0,-2] * attention_mask[0,-2] * (self.reward_norm/self.prompt_scale)).item()
+                print(self.eval_return_to_go)"""
+        self.eval_return_to_go -= input_step['reward']/self.prompt_scale
         self.actions[-1] = action_preds[:,current_ts]
         return action_preds[0,current_ts]
         
@@ -469,7 +468,8 @@ class DL_model_obs(arch):
     def get_optimizer(self):
         params = self.get_opt_params()
         #print('device is ',str(self.device))
-        return self.dl_model.configure_optimizers(learning_rate=self.args.lr,weight_decay=self.args.weight_decay,cuda_device= 'cuda' in str(self.device))
+        #return self.dl_model.configure_optimizers(learning_rate=self.args.lr,weight_decay=self.args.weight_decay,cuda_device= 'cuda' in str(self.device))
         return torch.optim.AdamW(params,lr=self.args.lr,weight_decay=self.args.weight_decay)
+        #return torch.optim.Adam(params,lr=self.args.lr)
 
    

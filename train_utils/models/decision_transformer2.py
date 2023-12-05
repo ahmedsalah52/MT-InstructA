@@ -123,10 +123,16 @@ class GPT(nn.Module):
 
         self.transformer = nn.ModuleDict(dict(
             time_encoder     = nn.Embedding(config.max_episode_len, config.n_embd),
-            state_encoder    = nn.Linear(config.state_size,config.n_embd),
-            returns_encoder  = nn.Linear(1                ,config.n_embd),
-            actions_encoder  = nn.Linear(config.action_size,config.n_embd),
-            commands_encoder = nn.Linear(config.command_size,config.n_embd),
+            #state_encoder    = nn.Linear(config.state_size   ,config.n_embd),
+            state_encoder    = nn.Sequential(
+                               nn.Linear(config.state_size, config.n_embd),
+                               nn.LayerNorm(config.n_embd),
+                               nn.ReLU(),
+                               nn.Linear(config.n_embd,config.n_embd)
+                                                                           ),
+            returns_encoder  = nn.Linear(1                   ,config.n_embd),
+            actions_encoder  = nn.Linear(config.action_size  ,config.n_embd),
+            commands_encoder = nn.Linear(config.command_size ,config.n_embd),
             hand_pos_encoder = nn.Linear(config.hand_pos_size,config.n_embd),
             drop = nn.Dropout(config.dropout),
             h = nn.ModuleList([Block(config) for _ in range(config.n_layer)]),
@@ -193,6 +199,7 @@ class GPT(nn.Module):
         stacked_sequence = torch.stack([returns_to_go, states, hand_poses, actions],dim=1).transpose(1,2)
         stacked_sequence = torch.flatten(stacked_sequence,start_dim=1,end_dim=2)
         stacked_sequence = torch.cat([commands,stacked_sequence],dim=1)
+        
         stacked_sequence = self.transformer.ln_f(stacked_sequence)
 
         for block in self.transformer.h:
@@ -234,48 +241,7 @@ class GPT(nn.Module):
 
         return optimizer
 
-    def estimate_mfu(self, fwdbwd_per_iter, dt):
-        """ estimate model flops utilization (MFU) in units of A100 bfloat16 peak FLOPS """
-        # first estimate the number of flops we do per iteration.
-        # see PaLM paper Appendix B as ref: https://arxiv.org/abs/2204.02311
-        N = self.get_num_params()
-        cfg = self.config
-        L, H, Q, T = cfg.n_layer, cfg.n_head, cfg.n_embd//cfg.n_head, cfg.block_size
-        flops_per_token = 6*N + 12*L*H*Q*T
-        flops_per_fwdbwd = flops_per_token * T
-        flops_per_iter = flops_per_fwdbwd * fwdbwd_per_iter
-        # express our flops throughput as ratio of A100 bfloat16 peak flops
-        flops_achieved = flops_per_iter * (1.0/dt) # per second
-        flops_promised = 312e12 # A100 GPU bfloat16 peak flops is 312 TFLOPS
-        mfu = flops_achieved / flops_promised
-        return mfu
 
-    @torch.no_grad()
-    def generate(self, idx, max_new_tokens, temperature=1.0, top_k=None):
-        """
-        Take a conditioning sequence of indices idx (LongTensor of shape (b,t)) and complete
-        the sequence max_new_tokens times, feeding the predictions back into the model each time.
-        Most likely you'll want to make sure to be in model.eval() mode of operation for this.
-        """
-        for _ in range(max_new_tokens):
-            # if the sequence context is growing too long we must crop it at block_size
-            idx_cond = idx if idx.size(1) <= self.config.block_size else idx[:, -self.config.block_size:]
-            # forward the model to get the logits for the index in the sequence
-            logits, _ = self(idx_cond)
-            # pluck the logits at the final step and scale by desired temperature
-            logits = logits[:, -1, :] / temperature
-            # optionally crop the logits to only the top k options
-            if top_k is not None:
-                v, _ = torch.topk(logits, min(top_k, logits.size(-1)))
-                logits[logits < v[:, [-1]]] = -float('Inf')
-            # apply softmax to convert logits to (normalized) probabilities
-            probs = F.softmax(logits, dim=-1)
-            # sample from the distribution
-            idx_next = torch.multinomial(probs, num_samples=1)
-            # append sampled index to the running sequence and continue
-            idx = torch.cat((idx, idx_next), dim=1)
-
-        return idx
     @property
     def device(self):
         return next(self.parameters())
@@ -345,8 +311,6 @@ class DT_model(arch):
         returns_to_go       = torch.stack(batch[self.prompt],dim=0).unsqueeze(-1).transpose(1,0).float().to(self.device)
         attention_mask      = torch.stack(attention_mask,dim=0).transpose(1,0).to(self.device)
         returns_to_go/= self.prompt_scale
-
-        
         
 
         action_preds,rewards_preds = self.dt_model(
@@ -364,7 +328,7 @@ class DT_model(arch):
     
     def train_step(self,batch,device,opts=None):
         y_actions = torch.stack(batch['action'],dim=0).to(device)
-        y_rewards = torch.stack(batch['reward'],dim=0).unsqueeze(-1).float().to(device)/self.prompt_scale
+        y_rewards = torch.stack(batch['reward'],dim=0).unsqueeze(-1).to(torch.float32).to(device)/self.reward_norm
         attention_mask = torch.stack(batch['attention_mask'],dim=0).unsqueeze(-1).to(torch.long).to(self.device)
 
         pred_actions,pred_rewards = self.forward(batch)
@@ -378,9 +342,9 @@ class DT_model(arch):
         # Apply the mask to ignore padded steps
         masked_loss = loss * mask
         # Calculate the average loss over the non-padded steps
-
         average_loss = torch.sum(masked_loss) / torch.sum(mask)
         return average_loss
+    
     def eval_step(self,input_step):
         batch_step = {k : v.to(self.device) if type(v) == torch.tensor else v  for k,v in input_step.items()}
         states,commands,_ = self.backbone(batch_step,cat=False,vision=True,command=True,pos=False)
@@ -406,13 +370,13 @@ class DT_model(arch):
         attention_mask      = torch.stack(list(self.attention_mask)     ,dim=0).transpose(1,0).to(self.device)
 
         if states_embeddings.shape[1]<self.args.seq_len:
-            delta_seq_len = self.args.seq_len - states_embeddings.shape[1]
-            states_embeddings = torch.cat([states_embeddings ,torch.zeros((1 ,delta_seq_len,states_embeddings.shape[2]),dtype=torch.float32).to(self.device)],dim=1)
-            poses_embeddings  = torch.cat([poses_embeddings  ,torch.zeros((1 ,delta_seq_len,poses_embeddings.shape[2]),dtype=torch.float32).to(self.device) ],dim=1)
-            actions           = torch.cat([actions           ,torch.zeros((1 ,delta_seq_len,actions.shape[2]),dtype=torch.float32).to(self.device)          ],dim=1)
-            timesteps         = torch.cat([timesteps         ,torch.zeros((1 ,delta_seq_len),dtype=torch.long).to(self.device)                              ],dim=1)
-            returns_to_go     = torch.cat([returns_to_go     ,torch.zeros((1 ,delta_seq_len),dtype=torch.float32).to(self.device)                           ],dim=1)
-            attention_mask    = torch.cat([attention_mask    ,torch.zeros((1 ,delta_seq_len),dtype=torch.long).to(self.device)                              ],dim=1)
+            delta_seq_len     = self.args.seq_len - states_embeddings.shape[1]
+            states_embeddings = torch.cat([states_embeddings ,torch.zeros((1 ,delta_seq_len, states_embeddings.shape[2]),dtype=torch.float32).to(self.device)],dim=1)
+            poses_embeddings  = torch.cat([poses_embeddings  ,torch.zeros((1 ,delta_seq_len, poses_embeddings.shape[2]) ,dtype=torch.float32).to(self.device)],dim=1)
+            actions           = torch.cat([actions           ,torch.zeros((1 ,delta_seq_len, actions.shape[2])          ,dtype=torch.float32).to(self.device)],dim=1)
+            timesteps         = torch.cat([timesteps         ,torch.zeros((1 ,delta_seq_len)                            ,dtype=torch.long   ).to(self.device)],dim=1)
+            returns_to_go     = torch.cat([returns_to_go     ,torch.zeros((1 ,delta_seq_len)                            ,dtype=torch.float32).to(self.device)],dim=1)
+            attention_mask    = torch.cat([attention_mask    ,torch.zeros((1 ,delta_seq_len)                            ,dtype=torch.long   ).to(self.device)],dim=1)
         
         
         
@@ -427,14 +391,14 @@ class DT_model(arch):
         
 
         current_ts = input_step['timesteps'].item()
-        current_ts = min(current_ts,self.args.seq_len-1)
+        current_ts = min(current_ts , self.args.seq_len-1)
        
 
-        if self.prompt != 'reward':
-            if self.args.use_env_reward:
-                self.eval_return_to_go -= input_step['reward']/self.prompt_scale
-            else:
-                self.eval_return_to_go -= (rewards_preds[0,-2] * attention_mask[0,-2])
+        #if self.prompt != 'reward':
+        #    if self.args.use_env_reward:
+        self.eval_return_to_go -= input_step['reward']/self.prompt_scale
+        #    else:
+        #        self.eval_return_to_go -= (rewards_preds[0,-2] * attention_mask[0,-2])
         self.actions[-1] = action_preds[:,current_ts]
         return action_preds[0,current_ts]
         
@@ -446,7 +410,8 @@ class DT_model(arch):
         return params
     def get_optimizer(self):
         params = self.get_opt_params()
-        return self.dt_model.configure_optimizers(learning_rate=self.args.lr,weight_decay=self.args.weight_decay,cuda_device= 'cuda' in str(self.device))
+        #return self.dt_model.configure_optimizers(learning_rate=self.args.lr,weight_decay=self.args.weight_decay,cuda_device= 'cuda' in str(self.device))
+        #return torch.optim.Adam(params,lr=self.args.lr)
 
         return torch.optim.AdamW(params,lr=self.args.lr,weight_decay=self.args.weight_decay)
 
