@@ -311,7 +311,7 @@ class DT_model(arch):
         timesteps           = torch.stack(batch['timesteps'],dim=0).transpose(1,0).to(self.device)
         returns_to_go       = torch.stack(batch[self.prompt],dim=0).unsqueeze(-1).transpose(1,0).to(torch.float32).to(self.device)
         attention_mask      = torch.stack(attention_mask,dim=0).transpose(1,0).to(self.device)
-        returns_to_go/= self.prompt_scale
+        #returns_to_go/= self.prompt_scale
         
 
         action_preds,rewards_preds = self.dt_model(

@@ -365,7 +365,7 @@ class DL_model_obs(arch):
         actions             = torch.stack(batch['action'],dim=0).transpose(1,0).to(self.dummy_param.device)
         timesteps           = torch.stack(batch['timesteps'],dim=0).transpose(1,0).to(self.dummy_param.device)
         returns_to_go       = torch.stack(batch[self.prompt],dim=0).unsqueeze(-1).transpose(1,0).to(torch.float32).to(self.dummy_param.device)
-        returns_to_go/= self.prompt_scale
+        #returns_to_go/= self.prompt_scale
         states_embeddings = (states_embeddings - self.dataset_specs['obs_state_mean']) / self.dataset_specs['obs_state_std']
         
         #batch_size,seq_length,_ = actions.shape
