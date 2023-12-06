@@ -132,7 +132,7 @@ class DecisionTransformer(TrajectoryModel):
             ).to(dtype=torch.long)
         else:
             attention_mask = None
-
+        print(returns_to_go)
         _, action_preds, return_preds = self.forward(
             states, actions, None, returns_to_go, timesteps, attention_mask=attention_mask, **kwargs)
 

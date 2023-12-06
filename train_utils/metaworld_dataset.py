@@ -187,7 +187,9 @@ class MW_dataset(Dataset):
     def __getitem__(self,idx):
         if not self.sequence:
             return self.prepare_step(self.data[idx])
-        
+        if idx > len(self.data) - 1:
+            print(f'{idx} idx not found')
+            idx = random.randint(0, len(self.data) - 1)
         sequence_steps = self.data[idx]
         episode_length = len(sequence_steps)
         #get the sequence with length from 1 to self.seq_len

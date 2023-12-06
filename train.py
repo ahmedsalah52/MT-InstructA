@@ -74,6 +74,8 @@ def main():
             p_sample = train_dataset.data_specs['p_sample']
             sampler = WeightedRandomSampler(torch.Tensor(p_sample),len(p_sample),replacement=True)
             shaffle = False
+            print('samples length ',len(sampler))
+
     train_dataloader = torch.utils.data.DataLoader(train_dataset,batch_size=args.batch_size,shuffle=shaffle,num_workers = args.num_workers,pin_memory=True,sampler=sampler,drop_last=True)
 
 
