@@ -323,8 +323,8 @@ class DL_model_obs(arch):
 
 
         self.dl_model = GPT(GPTConfig())
-        self.states_mean = self.dataset_specs['obs_state_mean']#0.18576333177347915
-        self.states_std  = self.dataset_specs['obs_state_std']#0.3379336491547313
+        #self.states_mean = #0.18576333177347915
+        #self.states_std  = #0.3379336491547313
        
     def reset_memory(self):
         args = self.args
@@ -366,7 +366,7 @@ class DL_model_obs(arch):
         timesteps           = torch.stack(batch['timesteps'],dim=0).transpose(1,0).to(self.dummy_param.device)
         returns_to_go       = torch.stack(batch[self.prompt],dim=0).unsqueeze(-1).transpose(1,0).to(torch.float32).to(self.dummy_param.device)
         returns_to_go/= self.prompt_scale
-        states_embeddings = (states_embeddings - self.states_mean) / self.states_std
+        states_embeddings = (states_embeddings - self.dataset_specs['obs_state_mean']) / self.dataset_specs['obs_state_std']
         
         #batch_size,seq_length,_ = actions.shape
         #print(commands_embeddings.shape)
@@ -427,7 +427,7 @@ class DL_model_obs(arch):
         returns_to_go       = torch.stack(list(self.rewards)       ,dim=0).transpose(1,0).to(self.device)
         attention_mask      = torch.stack(list(self.attention_mask),dim=0).transpose(1,0).to(self.device)
         ids_embeddings      = self.dl_model.task_embeddings(batch_step['task_id']).unsqueeze(0)
-        states_embeddings = (states_embeddings - self.states_mean) / self.states_std
+        states_embeddings = (states_embeddings - self.dataset_specs['obs_state_mean']) / self.dataset_specs['obs_state_std']
 
        
         if states_embeddings.shape[1]<self.args.seq_len:

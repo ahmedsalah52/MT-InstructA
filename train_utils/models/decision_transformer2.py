@@ -288,7 +288,7 @@ class DT_model(arch):
         self.rewards             = deque([], maxlen=args.seq_len)  
         self.timesteps           = deque([], maxlen=args.seq_len)  
         self.attention_mask      = deque([], maxlen=args.seq_len)   
-        self.eval_return_to_go   = np.float32(self.args.target_rtg)/np.float32(self.prompt_scale)
+        self.eval_return_to_go   = 1.0
 
     def forward(self,batch):
         states_embeddings ,attention_mask,poses_embeddings= [],[],[]
@@ -329,7 +329,7 @@ class DT_model(arch):
     
     def train_step(self,batch,device,opts=None):
         y_actions = torch.stack(batch['action'],dim=0).to(device)
-        y_rewards = torch.stack(batch['reward'],dim=0).unsqueeze(-1).to(torch.float32).to(device)/self.reward_norm
+        y_rewards = torch.stack(batch['reward'],dim=0).unsqueeze(-1).to(torch.float32).to(device)
         attention_mask = torch.stack(batch['attention_mask'],dim=0).unsqueeze(-1).to(torch.long).to(self.device)
 
         pred_actions,pred_rewards = self.forward(batch)
@@ -394,10 +394,13 @@ class DT_model(arch):
         current_ts = input_step['timesteps'].item()
         current_ts = min(current_ts , self.args.seq_len-1)
        
+        task_name = self.tasks[input_step['task_id'].item()]
 
         #if self.prompt != 'reward':
         #    if self.args.use_env_reward:
-        self.eval_return_to_go -= input_step['reward']/self.prompt_scale
+        #self.eval_return_to_go -= input_step['reward']/self.prompt_scale
+        self.eval_return_to_go -= input_step['reward']/self.dataset_specs['max_return_to_go'][task_name]
+
         #    else:
         #        self.eval_return_to_go -= (rewards_preds[0,-2] * attention_mask[0,-2])
         self.actions[-1] = action_preds[:,current_ts]
