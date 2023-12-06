@@ -1,20 +1,19 @@
-from typing import Tuple
+from typing import Dict, List, Tuple, Type, Union
 import torch
 import torch as th
 import torch.nn as nn
 from stable_baselines3.common.policies import ActorCriticPolicy,BasePolicy,BaseModel
-from stable_baselines3.common.distributions import CategoricalDistribution, DiagGaussianDistribution
 from stable_baselines3 import PPO
 import gymnasium as gym
 
 from stable_baselines3 import PPO
 from stable_baselines3.common.env_util import make_vec_env
-from torch import Tensor
+from torch import Tensor, nn
 import torch.nn as nn
 import torch as th
 from stable_baselines3.common.distributions import Distribution
 from stable_baselines3.common.policies import ActorCriticPolicy
-
+from stable_baselines3.common.torch_layers import MlpExtractor
 
 class CustomActorCriticPolicy(ActorCriticPolicy):
     def __init__(self, custom_actor_kwargs, custom_critic_kwargs, **kwargs):
@@ -89,16 +88,47 @@ class CustomActorCriticPolicy(ActorCriticPolicy):
         actions = actions.reshape((-1, *self.action_space.shape))
         return actions, values, log_prob
 
+class fc(nn.Module):
+    def __init__(self, in_dim, out_dim):
+        super().__init__()
+        self.fc = nn.Linear(in_dim, out_dim)
+    def forward(self, x):
+        print('fc',x.shape)
+        return self.fc(x)
+class My_MlpExtractor(MlpExtractor):
+    def __init__(self, feature_dim: int,
+        net_arch: Union[List[int], Dict[str, List[int]]],
+        activation_fn: Type[nn.Module],
+        device: Union[th.device, str] = "auto",
+        action_dim: int = 1) -> None:
+        super().__init__(feature_dim, net_arch, activation_fn, device)
+        self.value_net  = fc(feature_dim,1)
+        self.policy_net = fc(feature_dim,action_dim)
+
+    def forward(self, features: th.Tensor) -> Tuple[th.Tensor, th.Tensor]:
+        print('Custom_MlpExtractor',features.shape)
+        latent_pi, latent_vf = super().forward(features)
+        return latent_pi, latent_vf
+    
 class CustomPolicy(ActorCriticPolicy):
     def __init__(self, *args, **kwargs):
-        super(ActorCriticPolicy, self).__init__(*args, **kwargs)
+        super().__init__( *args, **kwargs)
+    def forward(self, obs: th.Tensor, deterministic: bool = False) -> Tuple[th.Tensor, th.Tensor, th.Tensor]:
+        print('CustomPolicy',obs.shape)
+        return super().forward(obs, deterministic=deterministic)
+    
+
+    def _build_mlp_extractor(self):
+        """
+        Create the policy and value networks.
+        Part of the layers can be shared.
+        """
+        self.mlp_extractor = My_MlpExtractor(feature_dim=self.features_dim,net_arch=[64, 64],activation_fn=nn.ReLU,action_dim=self.action_space.n)
        
-    def forward(self, obs: Tensor, deterministic: bool = False) -> Tuple[Tensor, Tensor, Tensor]:
-        return super().forward(obs, deterministic)
 
 # Create a vectorized environment
 vec_env = make_vec_env("CartPole-v1", n_envs=4)
-
+print(vec_env.action_space.n)
 # Instantiate your custom policy
 
 # Create the PPO model with the custom policy
