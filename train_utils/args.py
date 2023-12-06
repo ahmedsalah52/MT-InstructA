@@ -68,6 +68,7 @@ parser.add_argument('--prompt', type=str, default='return_to_go',choices=['rewar
 parser.add_argument('--target_rtg', type=float, default=2000.0)
 parser.add_argument('--use_env_reward', action='store_true',help='by raising this flag, the return to go will be calulated using the env reward instead of the model predicted reward')
 
+
 #simple clip backbone params
 parser.add_argument('--image_model_name', type=str, default='resnet50')
 parser.add_argument('--text_model_name', type=str, default='distilbert-base-uncased')

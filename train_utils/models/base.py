@@ -22,7 +22,7 @@ class arch(nn.Module):
                      'relative_mse':RelativeMSELoss}
         
         self.args = args
-
+        self.dataset_specs = None
     def eval_step(self,input_step):
         return self.forward(input_step)[0]
     def reset_memory(self):
@@ -31,6 +31,8 @@ class arch(nn.Module):
     def device(self):
         # Return the device of the first parameter of the model
         return next(self.parameters()).device
+    def set_dataset_specs(self,dataset_specs):
+        self.dataset_specs = dataset_specs
 class base_model(arch):
     def __init__(self,args) -> None:
         super().__init__(args)

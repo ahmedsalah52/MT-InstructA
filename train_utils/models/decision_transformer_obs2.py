@@ -301,6 +301,7 @@ class DL_model_obs(arch):
         self.reward_norm = args.reward_norm
         self.dummy_param = nn.Parameter(torch.zeros(0))
         self.state_dim = 39
+        self.tasks = args.tasks
      
         @dataclass
         class GPTConfig:
@@ -322,8 +323,8 @@ class DL_model_obs(arch):
 
 
         self.dl_model = GPT(GPTConfig())
-        self.states_mean = 0.18576333177347915
-        self.states_std = 0.3379336491547313
+        self.states_mean = self.dataset_specs['obs_state_mean']#0.18576333177347915
+        self.states_std  = self.dataset_specs['obs_state_std']#0.3379336491547313
        
     def reset_memory(self):
         args = self.args
@@ -334,8 +335,7 @@ class DL_model_obs(arch):
         self.rewards             = deque([], maxlen=args.seq_len)  
         self.timesteps           = deque([], maxlen=args.seq_len)  
         self.attention_mask      = deque([], maxlen=args.seq_len)  
-        self.eval_return_to_go   = self.args.target_rtg/self.prompt_scale
-        
+        self.eval_return_to_go   = 1.0
         
          
     def forward(self,batch):
@@ -386,7 +386,7 @@ class DL_model_obs(arch):
     
     def train_step(self,batch,device,opts=None):
         y_actions = torch.stack(batch['action'],dim=0).to(device)
-        y_rewards = torch.stack(batch['reward'],dim=0).unsqueeze(-1).to(torch.float32).to(device)/self.reward_norm
+        y_rewards = torch.stack(batch['reward'],dim=0).unsqueeze(-1).to(torch.float32).to(device)
         attention_mask = torch.stack(batch['attention_mask'],dim=0).unsqueeze(-1).to(torch.long).to(self.dummy_param.device)
 
         pred_actions,pred_rewards = self.forward(batch)
@@ -406,7 +406,7 @@ class DL_model_obs(arch):
     def eval_step(self,input_step):
         batch_step = {k : v.to(self.dummy_param.device) if k != 'instruction' else v  for k,v in input_step.items()}
         #_,commands,_ = self.backbone(batch_step,cat=False,vision=False,command=True,pos=False)
-       
+        task_name = self.tasks[input_step['task_id'].item()]
         
         states = batch_step['obs']
         
@@ -458,7 +458,7 @@ class DL_model_obs(arch):
                 self.eval_return_to_go -= (rewards_preds[0,-2] * attention_mask[0,-2] * (self.reward_norm/self.prompt_scale)).item()
                 print(self.eval_return_to_go)"""
         
-        self.eval_return_to_go -= input_step['reward']/self.prompt_scale
+        self.eval_return_to_go -= input_step['reward']/self.dataset_specs['max_return_to_go'][task_name]
         self.actions[-1] = action_preds[:,current_ts]
         return action_preds[0,current_ts]
         
@@ -470,7 +470,7 @@ class DL_model_obs(arch):
         params = self.get_opt_params()
         #print('device is ',str(self.device))
         #return self.dl_model.configure_optimizers(learning_rate=self.args.lr,weight_decay=self.args.weight_decay,cuda_device= 'cuda' in str(self.device))
-        #return torch.optim.AdamW(params,lr=self.args.lr,weight_decay=self.args.weight_decay)
-        return torch.optim.Adam(params,lr=self.args.lr)
+        return torch.optim.AdamW(params,lr=self.args.lr,weight_decay=self.args.weight_decay)
+        #return torch.optim.Adam(params,lr=self.args.lr)
 
    

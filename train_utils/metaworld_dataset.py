@@ -132,7 +132,7 @@ class MW_dataset(Dataset):
         self.seq_len = seq_len
         self.seq_overlap = seq_overlap 
         self.cams = cams
-        self.max_return_to_go = 0
+        self.max_return_to_go = defaultdict(lambda:0)
         self.with_imgs = with_imgs
         self.data_specs = {}
         self.load_data()
@@ -149,7 +149,7 @@ class MW_dataset(Dataset):
             for epi in tqdm(range(len(self.data_dict[task]))):
                 episode = []
                 return_to_go = sum([self.data_dict[task][epi][s]['reward'] for s in range(len(self.data_dict[task][epi]))])
-                self.max_return_to_go = max(self.max_return_to_go,return_to_go)
+                self.max_return_to_go[task] = max(self.max_return_to_go[task],return_to_go)
                 traj_lens.append(len(self.data_dict[task][epi]))
                 for s in range(len(self.data_dict[task][epi])):
                     step = self.data_dict[task][epi][s]
@@ -165,8 +165,8 @@ class MW_dataset(Dataset):
                 else:
                     self.data += episode
         
-        
-        traj_lens = np.array(traj_lens)
+     
+        traj_lens = np.array(traj_lens,dtype=np.float32)
         p_sample = traj_lens / np.sum(traj_lens)
         states = np.concatenate(all_obs, axis=0)
         self.obs_state_mean, self.obs_state_std = np.mean(states, axis=0), np.std(states, axis=0) + 1e-6
@@ -179,7 +179,7 @@ class MW_dataset(Dataset):
     def get_stats(self):
         
         table = get_stats(self.data_dict)
-        table.append(['max_return_to_go',self.max_return_to_go])
+        #table.append(['max_return_to_go',self.max_return_to_go])
         return table
     def __len__(self):
         return len(self.data)
@@ -215,17 +215,16 @@ class MW_dataset(Dataset):
             images_dir = step_data['images_dir']
             images = [self.preprocess(Image.open(os.path.join(self.dataset_dir,dir))) for dir in images_dir if int(dir.split('_')[-1].split('.')[0]) in self.cams]
             ret['images']   = torch.stack(images)
-        
+        task_name           = self.tasks[step_data['task_id']]
         ret['hand_pos']     = torch.tensor(np.concatenate((step_data['obs'][0:4],step_data['obs'][18:22]),axis =0)).to(torch.float32)
         ret['obs']          = torch.tensor(step_data['obs']).to(torch.float32)
         ret['action']       = torch.tensor(step_data['action'])
-        ret['instruction']  = random.choice(self.tasks_commands[self.tasks[step_data['task_id']]])
+        ret['instruction']  = random.choice(self.tasks_commands[task_name])
         ret['task_id']      = torch.tensor([step_data['task_id']],dtype=torch.int)
         ret['timesteps']    = step_data['timesteps']
-        ret['reward']       = step_data['reward']
-        ret['return_to_go'] = step_data['return_to_go']
+        ret['reward']       = step_data['reward'] / self.max_return_to_go[task_name]
+        ret['return_to_go'] = step_data['return_to_go'] / self.max_return_to_go[task_name]
         ret['attention_mask'] = 1
-
         return ret
     def prepare_padding_step(self,step_data):
         ret = {}
