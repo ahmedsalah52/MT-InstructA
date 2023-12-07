@@ -259,7 +259,7 @@ class DT_model(arch):
         self.prompt = args.prompt
         self.prompt_scale = args.prompt_scale 
         self.reward_norm = args.reward_norm
-
+        self.tasks = args.tasks
         @dataclass
         class GPTConfig:
             seq_len: int = args.seq_len
