@@ -141,7 +141,9 @@ class GPT(nn.Module):
         
         self.reward_head = nn.Sequential(nn.Linear(config.n_embd, 1, bias=True),
                                          nn.Sigmoid())
-        self.task_embeddings = nn.Embedding(config.tasks_len, config.n_embd)
+        self.task_embeddings = nn.Embedding(config.num_tasks, config.n_embd)
+        self.task_head       = nn.Linear(config.n_embd, config.num_tasks, bias=True)
+
 
         # with weight tying when using torch.compile() some warnings get generated:
         # "UserWarning: functional_call was passed multiple values for tied weights.
@@ -205,13 +207,14 @@ class GPT(nn.Module):
         for block in self.transformer.h:
             stacked_sequence = block(stacked_sequence)
 
-        #stacked_sequence[:,0] # out after the command
+        task_pred = self.task_head(stacked_sequence[:,0].reshape(b,-1)) # stacked_sequence[:,0] # out after the command
+
         stacked_sequence = stacked_sequence[:,1:].reshape(b,t,self.step_len,-1) # b , t , step_len , emb_dim
         stacked_sequence = stacked_sequence.transpose(1,2) # b , step_len , t , emb_dim
 
         actions_pred = self.action_head(stacked_sequence[:,-2]) # step  -> return, state , hand_pos, actions # we predict the actions after the hand_pos 
         rewards_pred = self.reward_head(stacked_sequence[:,-1]) # we predict the rewards after the actions
-        return actions_pred,rewards_pred
+        return actions_pred,rewards_pred,task_pred
 
 
     def configure_optimizers(self, weight_decay, learning_rate, cuda_device):
@@ -302,14 +305,14 @@ class DL_model_obs(arch):
         self.dummy_param = nn.Parameter(torch.zeros(0))
         self.state_dim = 39
         self.tasks = args.tasks
-     
+        self.cat_loss = nn.CrossEntropyLoss()
         @dataclass
         class GPTConfig:
             seq_len: int = args.seq_len
             step_len: int = 3
             block_size: int = (seq_len*step_len) + 1
             #vocab_size: int = None # GPT-2 vocab_size of 50257, padded up to nearest multiple of 64 for efficiency
-            tasks_len: int = len(args.tasks)
+            num_tasks: int = len(args.tasks)
             max_episode_len: int = 200
             state_size: int = self.state_dim#args.imgs_emps * len(args.cams)
             action_size: int = 4
@@ -371,7 +374,7 @@ class DL_model_obs(arch):
         #batch_size,seq_length,_ = actions.shape
         #print(commands_embeddings.shape)
         #print(actions.shape)
-        action_preds,rewards_preds = self.dl_model(
+        action_preds,rewards_preds,task_pred = self.dl_model(
             commands= commands_embeddings,
             returns_to_go= returns_to_go,
             states=states_embeddings,
@@ -382,19 +385,19 @@ class DL_model_obs(arch):
 
         action_preds  = action_preds.transpose(1,0)
         rewards_preds = rewards_preds.transpose(1,0)
-        return action_preds,rewards_preds
+        return action_preds,rewards_preds,task_pred
     
     def train_step(self,batch,device,opts=None):
         y_actions = torch.stack(batch['action'],dim=0).to(device)
         y_rewards = torch.stack(batch['reward'],dim=0).unsqueeze(-1).to(torch.float32).to(device)
         attention_mask = torch.stack(batch['attention_mask'],dim=0).unsqueeze(-1).to(torch.long).to(self.dummy_param.device)
 
-        pred_actions,pred_rewards = self.forward(batch)
+        pred_actions,pred_rewards,task_pred = self.forward(batch)
         
-        actions_loss = self.masked_loss_fun(y_actions, pred_actions, attention_mask.repeat(1,1,4)) #self.loss_fun(pred_actions, y_actions)
-        rewards_loss = self.masked_loss_fun(y_rewards, pred_rewards, attention_mask)               #self.loss_fun(pred_rewards, y_rewards)
-
-        return actions_loss + rewards_loss
+        actions_loss = self.masked_loss_fun(y_actions, pred_actions, attention_mask.repeat(1,1,4)) 
+        rewards_loss = self.masked_loss_fun(y_rewards, pred_rewards, attention_mask)  
+        task_loss    = self.cat_loss(task_pred, batch['task_id'][0].squeeze(-1).to(torch.long)) #batch['task_id'] is a repeated task id for each step (the task stays the same along the sequence)
+        return actions_loss + rewards_loss + task_loss
     def masked_loss_fun(self,y_gt, y,mask):
         loss = (y_gt-y)**2
         # Apply the mask to ignore padded steps
@@ -440,7 +443,7 @@ class DL_model_obs(arch):
             attention_mask    = torch.cat([attention_mask   ,torch.zeros((1 ,delta_seq_len),dtype=torch.long).to(self.device)                                 ],dim=1)
         
         
-        action_preds,rewards_preds = self.dl_model(
+        action_preds,rewards_preds,task_pred = self.dl_model(
             commands= ids_embeddings,
             returns_to_go= returns_to_go.unsqueeze(-1),
             states=states_embeddings,

@@ -66,7 +66,7 @@ class CustomPolicy(ActorCriticPolicy):
         Create the policy and value networks.
         Part of the layers can be shared.
         """
-        self.mlp_extractor = My_MlpExtractor(feature_dim=120,net_arch=[],activation_fn=nn.ReLU)
+        self.mlp_extractor = My_MlpExtractor(feature_dim=64,net_arch=[],activation_fn=nn.ReLU)
        
 # Create a vectorized environment
 vec_env = make_vec_env("CartPole-v1", n_envs=4)
