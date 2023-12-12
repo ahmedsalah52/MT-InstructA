@@ -123,7 +123,7 @@ class GPT(nn.Module):
         #assert config.vocab_size is not None
         assert config.block_size is not None
         self.config = config
-
+        self.ret_hidden = config.ret_hidden
         self.transformer = nn.ModuleDict(dict(
             time_encoder     = nn.Embedding(config.max_episode_len, config.n_embd),
             state_encoder    = nn.Linear(config.state_size,config.n_embd),
@@ -207,6 +207,8 @@ class GPT(nn.Module):
         for block in self.transformer.h:
             stacked_sequence = block(stacked_sequence)
 
+        if self.ret_hidden:
+            return stacked_sequence
         task_pred = self.task_head(stacked_sequence[:,0].reshape(b,-1)) # stacked_sequence[:,0] # out after the command
 
         stacked_sequence = stacked_sequence[:,1:].reshape(b,t,self.step_len,-1) # b , t , step_len , emb_dim
@@ -323,7 +325,7 @@ class DL_model_obs(arch):
             n_embd: int = args.dt_embed_dim
             dropout: float = args.dt_dropout
             bias: bool = False # True: bias in Linears and LayerNorms, like GPT-2. False: a bit better and faster
-
+            ret_hidden = args.train_ppo
 
         self.dl_model = GPT(GPTConfig())
         #self.states_mean = #0.18576333177347915
@@ -374,7 +376,8 @@ class DL_model_obs(arch):
         #batch_size,seq_length,_ = actions.shape
         #print(commands_embeddings.shape)
         #print(actions.shape)
-        action_preds,rewards_preds,task_pred = self.dl_model(
+
+        ret = self.dl_model(
             commands= commands_embeddings,
             returns_to_go= returns_to_go,
             states=states_embeddings,
@@ -382,7 +385,10 @@ class DL_model_obs(arch):
             actions=actions,
             time_steps=timesteps
         )
-
+        if self.args.train_ppo:
+            return ret
+        
+        action_preds,rewards_preds,task_pred = ret
         action_preds  = action_preds.transpose(1,0)
         rewards_preds = rewards_preds.transpose(1,0)
         return action_preds,rewards_preds,task_pred
