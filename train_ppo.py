@@ -3,10 +3,9 @@ import torch
 import torch as th
 import torch.nn as nn
 from stable_baselines3.common.policies import ActorCriticPolicy,BasePolicy,BaseModel
-from stable_baselines3 import PPO
 import gymnasium as gym
 
-from stable_baselines3 import PPO
+from stable_baselines3 import PPO,SAC
 from stable_baselines3.common.env_util import make_vec_env
 from torch import Tensor, nn
 import torch.nn as nn
@@ -24,12 +23,21 @@ import json
 class backbone(nn.Module):
     def __init__(self, in_dim, out_dim):
         super().__init__()
-        self.fc = nn.Linear(in_dim, out_dim)
-        self.gru = nn.GRU(out_dim, out_dim)
+        #self.fc = nn.Linear(in_dim, out_dim)
+        #self.gru = nn.GRU(out_dim, out_dim,num_layers=2,batch_first=True)
+        self.network = nn.Sequential(
+            nn.Linear(in_dim, out_dim),
+            nn.LayerNorm(out_dim),
+            nn.Linear(out_dim, out_dim),
+            nn.LeakyReLU(negative_slope= 0.01),
+            nn.Linear(out_dim, out_dim),
+            nn.LeakyReLU(negative_slope= 0.01),
+        )
     def forward(self, x):
-        x = self.fc(x)
-        x , h = self.gru(x)
-        return x[:,-1,:] , x[:,-1,:]
+        x = x[:,-1,:]
+        x = self.network(x)
+        #x , h = self.gru(x)
+        return x , x
 class actor(nn.Module):
     def __init__(self, in_dim, out_dim,backbone):
         super().__init__()
@@ -97,17 +105,13 @@ def main():
     args = parser.parse_args()
     args = process_args(args)
     tasks_commands = json.load(open(args.tasks_commands_dir))
-    tasks_commands = {k:list(set(v)) for k,v in tasks_commands.items() if k in args.tasks}
+    tasks_commands = {k:list(set(tasks_commands[k])) for k in args.tasks} #the commands dict should have the same order as args.tasks list
     train_tasks_commands,val_tasks_commands = split_dict(tasks_commands,args.commands_split_ratio,seed=args.seed)
 
-    metaenv = sequence_metaenv(train_tasks_commands,save_images=False,wandb_log = False)
-    # Create a vectorized environment
-    vec_env = make_vec_env("CartPole-v1", n_envs=4)
-    print(vec_env.action_space.n)
-    # Instantiate your custom policy
-
+    train_metaenv = sequence_metaenv(train_tasks_commands,save_images=False,wandb_log = False,max_seq_len=10)
+   
     # Create the PPO model with the custom policy
-    model = PPO(CustomPolicy, metaenv, verbose=1,
+    model = PPO(CustomPolicy, train_metaenv, verbose=1,
                 policy_kwargs=dict(share_features_extractor=False),
                 learning_rate=0.0003,
                 batch_size=64)

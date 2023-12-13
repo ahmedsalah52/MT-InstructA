@@ -219,10 +219,10 @@ class sequence_metaenv(Env):
         self.env = meta_env(random_task,task_pos=None,save_images=self.save_images,variant=None,episode_length = self.episode_length,pos_emb_flag=False,wandb_render = self.wandb_render,multi = True,process='None',wandb_log = self.wandb_log,general_model = self.general_model,cams_ids=[0,1,2,3,4])
         self.action_space = self.env.action_space
 
-        observation_space = {"hand_pos":Box(low=-1,high=1,shape=(max_seq_len,8),dtype=np.float32),
-                             "task_idx":Box(low=-1,high=len(commands_dict),shape=(1,),dtype=np.int32),
-                             "command_idx":Box(low=-1,high=500,shape=(1,),dtype=np.int32),
-                             "actions":Box(low=-1,high=1,shape=(max_seq_len,4),dtype=np.float32),
+        observation_space = {#"hand_pos":Box(low=-1,high=1,shape=(max_seq_len,8),dtype=np.float32),
+                             #"task_idx":Box(low=-1,high=len(commands_dict),shape=(1,),dtype=np.int32),
+                             #"command_idx":Box(low=-1,high=500,shape=(1,),dtype=np.int32),
+                             #"actions":Box(low=-1,high=1,shape=(max_seq_len,4),dtype=np.float32),
                             }
         if save_images:
             observation_space["images"] = Box(low=0,high=255,shape=(max_seq_len,3,224,224),dtype=np.uint8)
@@ -240,22 +240,29 @@ class sequence_metaenv(Env):
 
 
     def prepare_step(self,obs,images,task_id,command_id,aciton=np.zeros(4)):
-        self.actions_list.append(aciton)
+        
+        self.actions_list[-1] = aciton
+        self.actions_list.append(np.zeros(4))
         self.hand_pos_list.append(np.concatenate((obs[0:4],obs[18:22]),axis = 0,dtype=np.float32))
        
         aciton   = np.stack(self.actions_list)
         hand_pos = np.stack(self.hand_pos_list)
-        ret  = {"hand_pos":hand_pos,"task_idx":task_id,"command_idx":command_id,'actions':aciton}
-        
+
+
+        current_state = self.observation_space.sample()
+        #current_state["hand_pos"] = hand_pos
+        #current_state["actions"] = aciton
+        #current_state["task_idx"]    = np.array([task_id],dtype=np.int32)   #task_id
+        #current_state["command_idx"] = np.array([command_id],dtype=np.int32) #command_id
         if self.save_images:
             self.images_list.append(images)
             images        = np.stack(self.images_list)
-            ret["images"] = images
+            current_state["images"] = images
         else:
             self.obs_list.append(obs)
             obs        = np.stack(self.obs_list)
-            ret["obs"] = obs
-        return ret 
+            current_state["obs"] = obs
+        return current_state 
     
  
     def reset(self,seed=None, options=None):
@@ -277,7 +284,7 @@ class sequence_metaenv(Env):
         obs, reward, done ,success,info = self.env.step(a)
         images = info['images']
         del info['images']
-        return self.prepare_step(obs,images,-1,-1), reward, done ,success,info
+        return self.prepare_step(obs,images,-1,-1,a), reward, done ,success,info
     def render(self, mode='human'):
         pass
   
