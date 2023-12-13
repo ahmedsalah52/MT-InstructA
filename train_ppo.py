@@ -12,12 +12,14 @@ import torch.nn as nn
 import torch as th
 from stable_baselines3.common.distributions import Distribution
 from stable_baselines3.common.policies import ActorCriticPolicy
-from stable_baselines3.common.torch_layers import MlpExtractor
+from stable_baselines3.common.torch_layers import MlpExtractor,BaseFeaturesExtractor
 from collections import deque
 from meta_env import sequence_metaenv
 from train_utils.metaworld_dataset import split_dict
 from train_utils.args import  parser ,process_args
 import json 
+from stable_baselines3.common.callbacks import CheckpointCallback,CallbackList ,EvalCallback
+from stable_baselines3.common.monitor import Monitor
 
 
 class backbone(nn.Module):
@@ -101,6 +103,11 @@ class CustomPolicy(ActorCriticPolicy):
         latent_vf = self.mlp_extractor.forward_critic(latent_vf)
         return self.value_net(latent_vf)
 
+class My_Feature_extractor(BaseFeaturesExtractor):
+    def __init__(self, observation_space: gym.Space, features_dim: int = 256) -> None:
+        super().__init__(observation_space, features_dim)
+    def forward(self, observations):
+        return observations
 def main():
     args = parser.parse_args()
     args = process_args(args)
@@ -109,15 +116,27 @@ def main():
     train_tasks_commands,val_tasks_commands = split_dict(tasks_commands,args.commands_split_ratio,seed=args.seed)
 
     train_metaenv = sequence_metaenv(train_tasks_commands,save_images=False,wandb_log = False,max_seq_len=10)
-   
+    eval_metaenv  = sequence_metaenv(val_tasks_commands  ,save_images=False,wandb_log = False,max_seq_len=10)
+    eval_metaenv = Monitor(eval_metaenv)
+
+
+    eval_callback = EvalCallback(eval_metaenv,# best_model_save_path=logs_dir+"/eval_logs/"+run_name,
+                             #log_path=logs_dir+"/eval_logs/"+run_name,
+                             deterministic=True,
+                             #render=False,
+                             eval_freq=10000,
+                             n_eval_episodes=30)
+    callbacks = CallbackList([ eval_callback])
+
     # Create the PPO model with the custom policy
     model = PPO(CustomPolicy, train_metaenv, verbose=1,
-                policy_kwargs=dict(share_features_extractor=False),
+                policy_kwargs=dict(share_features_extractor=True,
+                                   features_extractor_class=My_Feature_extractor),
                 learning_rate=0.0003,
                 batch_size=64)
 
     # Train the model
-    model.learn(total_timesteps=2000000)
+    model.learn(total_timesteps=2000000,callback=callbacks)
 
     # Save the trained model
     model.save("ppo_cartpole_custom_policy")

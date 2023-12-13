@@ -277,6 +277,7 @@ class sequence_metaenv(Env):
         obs, first_info = self.env.reset()
         images = first_info['images']
         del first_info['images']
+        first_info['is_success'] = False
         return self.prepare_step(obs,images,task_id,command_id) , first_info
 
     def step(self,a):
@@ -284,6 +285,7 @@ class sequence_metaenv(Env):
         obs, reward, done ,success,info = self.env.step(a)
         images = info['images']
         del info['images']
+        info['is_success'] = success
         return self.prepare_step(obs,images,-1,-1,a), reward, done ,success,info
     def render(self, mode='human'):
         pass
