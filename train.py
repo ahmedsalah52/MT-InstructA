@@ -53,7 +53,7 @@ def main():
     tasks_commands = json.load(open(args.tasks_commands_dir))
     tasks_commands = {k:list(set(tasks_commands[k])) for k in args.tasks} #the commands dict should have the same order as args.tasks list
     train_tasks_commands,val_tasks_commands = split_dict(tasks_commands,args.commands_split_ratio,seed=args.seed)
-    
+   
     model = TL_model(args=args,tasks_commands=val_tasks_commands,env=meta_env,wandb_logger=wandb_logger,seed=args.seed)
     model = load_checkpoint(model,args.load_weights)
     model = freeze_layers(model , args)
