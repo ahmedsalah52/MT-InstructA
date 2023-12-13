@@ -194,9 +194,7 @@ class GPT(nn.Module):
         #hand_poses    = self.transformer.hand_pos_encoder(hand_poses)   + time_emb
         actions       = self.transformer.actions_encoder(actions)       + time_emb
         commands      = self.transformer.commands_encoder(commands)
-        # for i,tensor in enumerate([returns_to_go, states, hand_poses,actions]):
-        #   tensor.fill_(i)
-        # commands.fill_(-1)
+      
 
         
         stacked_sequence = torch.stack([returns_to_go, states,actions],dim=1).transpose(1,2)
@@ -207,17 +205,8 @@ class GPT(nn.Module):
         for block in self.transformer.h:
             stacked_sequence = block(stacked_sequence)
 
-        if self.ret_hidden:
-            return stacked_sequence
-        task_pred = self.task_head(stacked_sequence[:,0].reshape(b,-1)) # stacked_sequence[:,0] # out after the command
-
-        stacked_sequence = stacked_sequence[:,1:].reshape(b,t,self.step_len,-1) # b , t , step_len , emb_dim
-        stacked_sequence = stacked_sequence.transpose(1,2) # b , step_len , t , emb_dim
-
-        actions_pred = self.action_head(stacked_sequence[:,-2]) # step  -> return, state , hand_pos, actions # we predict the actions after the hand_pos 
-        rewards_pred = self.reward_head(stacked_sequence[:,-1]) # we predict the rewards after the actions
-        return actions_pred,rewards_pred,task_pred
-
+        return stacked_sequence
+        
 
     def configure_optimizers(self, weight_decay, learning_rate, cuda_device):
         # start with all of the candidate parameters
@@ -262,33 +251,7 @@ class GPT(nn.Module):
         mfu = flops_achieved / flops_promised
         return mfu
 
-    @torch.no_grad()
-    def generate(self, idx, max_new_tokens, temperature=1.0, top_k=None):
-        """
-        Take a conditioning sequence of indices idx (LongTensor of shape (b,t)) and complete
-        the sequence max_new_tokens times, feeding the predictions back into the model each time.
-        Most likely you'll want to make sure to be in model.eval() mode of operation for this.
-        """
-        for _ in range(max_new_tokens):
-            # if the sequence context is growing too long we must crop it at block_size
-            idx_cond = idx if idx.size(1) <= self.config.block_size else idx[:, -self.config.block_size:]
-            # forward the model to get the logits for the index in the sequence
-            logits, _ = self(idx_cond)
-            # pluck the logits at the final step and scale by desired temperature
-            logits = logits[:, -1, :] / temperature
-            # optionally crop the logits to only the top k options
-            if top_k is not None:
-                v, _ = torch.topk(logits, min(top_k, logits.size(-1)))
-                logits[logits < v[:, [-1]]] = -float('Inf')
-            # apply softmax to convert logits to (normalized) probabilities
-            probs = F.softmax(logits, dim=-1)
-            # sample from the distribution
-            idx_next = torch.multinomial(probs, num_samples=1)
-            # append sampled index to the running sequence and continue
-            idx = torch.cat((idx, idx_next), dim=1)
-
-        return idx
-    @property
+     @property
     def device(self):
         return next(self.parameters())
    
