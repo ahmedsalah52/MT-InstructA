@@ -314,7 +314,7 @@ class DFT_model_obs(arch):
         self.state_dim = 39
         self.tasks = args.tasks
         self.cat_loss = nn.CrossEntropyLoss()
-        self.tasks_accuracy = torchmetrics.Accuracy(task='multiclass',num_classes=len(args.tasks))
+        #self.tasks_accuracy = torchmetrics.Accuracy(task='multiclass',num_classes=len(args.tasks))
         @dataclass
         class GPTConfig:
             seq_len: int = args.seq_len
