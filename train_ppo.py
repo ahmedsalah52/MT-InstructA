@@ -135,8 +135,8 @@ def main():
     model = PPO(CustomPolicy, train_metaenv, verbose=1,
                 policy_kwargs=dict(share_features_extractor=True,
                                    features_extractor_class=My_Feature_extractor),
-                learning_rate=0.0003,
-                batch_size=64)
+                learning_rate=0.0001,
+                batch_size=256)
 
     # Train the model
     model.learn(total_timesteps=2000000,callback=callbacks)
