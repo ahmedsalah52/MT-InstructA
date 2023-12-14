@@ -39,7 +39,7 @@ class backbone(nn.Module):
         x = x[:,-1,:]
         x = self.network(x)
         #x , h = self.gru(x)
-        return x , x
+        return x 
 class actor(nn.Module):
     def __init__(self, in_dim, out_dim,backbone):
         super().__init__()
@@ -66,22 +66,26 @@ class My_MlpExtractor(MlpExtractor):
         self.max_seq_len = 10
         self.reset_seq_buffer()
 
-    def forward(self, features: th.Tensor) -> Tuple[th.Tensor, th.Tensor]: 
-        latent_pi, latent_vf = super().forward(features)
+    def forward(self, obs) -> Tuple[th.Tensor, th.Tensor]: 
+        obs_ = obs['obs'].to(torch.float32)
+        obs_ = self.backbone(obs_)
+        latent_pi, latent_vf = self.policy_net(obs_), self.value_net(obs_)
         return latent_pi, latent_vf
     
 
     def reset_seq_buffer(self):
         self.obs_list = deque([], maxlen=self.max_seq_len)
+
+
 class CustomPolicy(ActorCriticPolicy):
     def __init__(self, *args, **kwargs):
         super().__init__( *args, **kwargs)
     def forward(self, obs, deterministic: bool = False) -> Tuple[th.Tensor, th.Tensor, th.Tensor]:
         return super().forward(obs, deterministic=deterministic)
     def extract_features(self,obs):
-        obs_ = obs['obs'].to(torch.float32)
-        ret = self.mlp_extractor.backbone(obs_)
-        return ret
+        #obs_ = obs['obs'].to(torch.float32)
+        #ret = self.mlp_extractor.backbone(obs_)
+        return obs
 
 
     def _build_mlp_extractor(self):
@@ -91,16 +95,15 @@ class CustomPolicy(ActorCriticPolicy):
         """
         self.mlp_extractor = My_MlpExtractor(feature_dim=64,net_arch=[],activation_fn=nn.ReLU)
     
-    def predict_values(self, obs) -> th.Tensor:
-        """
-        Get the estimated values according to the current policy given the observations.
-
-        :param obs: Observation
-        :return: the estimated values.
-        """
+    def get_distribution(self, obs) -> Distribution:
         obs_ = obs['obs'].to(torch.float32)
-        latent_pi , latent_vf = self.mlp_extractor.backbone(obs_)
-        latent_vf = self.mlp_extractor.forward_critic(latent_vf)
+        obs_ = self.mlp_extractor.backbone(obs_)
+        latent_pi = self.mlp_extractor.forward_critic(obs_)
+        return self._get_action_dist_from_latent(latent_pi)
+    def predict_values(self, obs) -> th.Tensor:
+        obs_ = obs['obs'].to(torch.float32)
+        obs_ = self.mlp_extractor.backbone(obs_)
+        latent_vf = self.mlp_extractor.forward_critic(obs_)
         return self.value_net(latent_vf)
 
 class My_Feature_extractor(BaseFeaturesExtractor):

@@ -137,7 +137,7 @@ class meta_env(Env):
         self.prev_reward = 0
         
         if self.pos_emb_flag: obs = np.hstack((self.env.main_pos_index,obs))
-        return obs ,  {'images':images,'file_order':self.env.file_order if self.multi else -1,'success':0.0} # Reset environment
+        return obs ,  {'images':images,'file_order':self.env.file_order if self.multi else -1,'success':0.0,'is_success':False} # Reset environment
         
     def get_visual_obs_log(self):
         behindGripper  = self.env.render(offscreen= True,camera_name='behindGripper')
@@ -183,6 +183,7 @@ class meta_env(Env):
         
         info['images'] = images
         info['file_order'] = self.env.file_order if self.multi else -1
+        info['is_success'] = (info['success'] == 1.0)
 
         if self.pos_emb_flag: obs = np.hstack((self.env.main_pos_index,obs))
             
@@ -277,7 +278,6 @@ class sequence_metaenv(Env):
         obs, first_info = self.env.reset()
         images = first_info['images']
         del first_info['images']
-        first_info['is_success'] = False
         return self.prepare_step(obs,images,task_id,command_id) , first_info
 
     def step(self,a):
@@ -285,7 +285,6 @@ class sequence_metaenv(Env):
         obs, reward, done ,success,info = self.env.step(a)
         images = info['images']
         del info['images']
-        info['is_success'] = success
         return self.prepare_step(obs,images,-1,-1,a), reward, done ,success,info
     def render(self, mode='human'):
         pass
