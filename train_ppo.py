@@ -41,7 +41,7 @@ class backbone(nn.Module):
         #x , h = self.gru(x)
         return x 
 class actor(nn.Module):
-    def __init__(self, in_dim, out_dim,backbone):
+    def __init__(self, in_dim, out_dim):
         super().__init__()
         self.fc = nn.Linear(in_dim, out_dim)
 
@@ -49,7 +49,7 @@ class actor(nn.Module):
         return self.fc(x)
     
 class critic(nn.Module):
-    def __init__(self, in_dim, out_dim,backbone):
+    def __init__(self, in_dim, out_dim):
         super().__init__()
         self.fc = nn.Linear(in_dim, out_dim)
     def forward(self, x):
@@ -60,39 +60,27 @@ class My_MlpExtractor(MlpExtractor):
         activation_fn: Type[nn.Module],
         device: Union[th.device, str] = "auto") -> None:
         super().__init__(feature_dim, net_arch, activation_fn, device)
-        self.backbone    = backbone(39,feature_dim)
-        self.value_net   = critic(feature_dim,feature_dim,self.backbone)
-        self.policy_net  = actor(feature_dim,feature_dim,self.backbone)
-        self.max_seq_len = 10
-        self.reset_seq_buffer()
+        self.value_net   = critic(feature_dim,feature_dim)
+        self.policy_net  = actor(feature_dim,feature_dim)
 
     def forward(self, obs) -> Tuple[th.Tensor, th.Tensor]: 
-        obs_ = obs['obs'].to(torch.float32)
-        obs_ = self.backbone(obs_)
-        latent_pi, latent_vf = self.policy_net(obs_), self.value_net(obs_)
+        #obs_ = obs['obs'].to(torch.float32)
+        #obs_ = self.backbone(obs_)
+        latent_pi, latent_vf = self.policy_net(obs), self.value_net(obs)
         return latent_pi, latent_vf
     
-
-    def reset_seq_buffer(self):
-        self.obs_list = deque([], maxlen=self.max_seq_len)
 
 
 class CustomPolicy(ActorCriticPolicy):
     def __init__(self, *args, **kwargs):
         super().__init__( *args, **kwargs)
+
     def forward(self, obs, deterministic: bool = False) -> Tuple[th.Tensor, th.Tensor, th.Tensor]:
         return super().forward(obs, deterministic=deterministic)
-    def extract_features(self,obs):
-        #obs_ = obs['obs'].to(torch.float32)
-        #ret = self.mlp_extractor.backbone(obs_)
-        return obs
 
-
+"""
     def _build_mlp_extractor(self):
-        """
-        Create the policy and value networks.
-        Part of the layers can be shared.
-        """
+      
         self.mlp_extractor = My_MlpExtractor(feature_dim=64,net_arch=[],activation_fn=nn.ReLU)
     
     def get_distribution(self, obs) -> Distribution:
@@ -104,16 +92,23 @@ class CustomPolicy(ActorCriticPolicy):
         obs_ = obs['obs'].to(torch.float32)
         obs_ = self.mlp_extractor.backbone(obs_)
         latent_vf = self.mlp_extractor.forward_critic(obs_)
-        return self.value_net(latent_vf)
+        return self.value_net(latent_vf)"""
 
 class My_Feature_extractor(BaseFeaturesExtractor):
     def __init__(self, observation_space: gym.Space, features_dim: int = 256) -> None:
         super().__init__(observation_space, features_dim)
+        observation_dim = observation_space['obs'].shape[-1]
+        self.backbone    = backbone(observation_dim,features_dim)
+
     def forward(self, observations):
+        observations = observations['obs'].to(torch.float32)
+        observations = self.backbone(observations)
         return observations
 def main():
     args = parser.parse_args()
     args = process_args(args)
+    features_dim = 256
+
     tasks_commands = json.load(open(args.tasks_commands_dir))
     tasks_commands = {k:list(set(tasks_commands[k])) for k in args.tasks} #the commands dict should have the same order as args.tasks list
     train_tasks_commands,val_tasks_commands = split_dict(tasks_commands,args.commands_split_ratio,seed=args.seed)
@@ -132,13 +127,15 @@ def main():
                              n_eval_episodes=30)
     callbacks = CallbackList([ eval_callback])
 
+    feature_extractor_kwargs = {"features_dim": features_dim}
     # Create the PPO model with the custom policy
     model = PPO(CustomPolicy, train_metaenv, verbose=1,
                 policy_kwargs=dict(share_features_extractor=True,
-                                   features_extractor_class=My_Feature_extractor),
+                                   features_extractor_class=My_Feature_extractor,
+                                   features_extractor_kwargs=feature_extractor_kwargs),
                 learning_rate=0.0001,
                 batch_size=256)
-
+    
     # Train the model
     model.learn(total_timesteps=2000000,callback=callbacks)
 
