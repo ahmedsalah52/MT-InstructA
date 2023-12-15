@@ -280,7 +280,7 @@ class DFT_model(arch):
         self.backbone  = self.backbones[args.backbone](args)
         self.neck = self.necks[args.neck](args)
         self.flatten = nn.Flatten()
-        self.preprocess_image = None #self.backbone.preprocess_image
+        self.preprocess_image = self.backbone.preprocess_image
         self.prompt = args.prompt
         self.prompt_scale = args.prompt_scale 
         self.reward_norm = args.reward_norm
