@@ -380,47 +380,41 @@ class DFT_model(arch):
         average_loss = torch.sum(masked_loss) / torch.sum(mask)
         return average_loss
     def eval_step(self,input_step):
-        batch_step = {k : v.to(self.dummy_param.device) if k != 'instruction' else v  for k,v in input_step.items()}
-        #_,commands,_ = self.backbone(batch_step,cat=False,vision=False,command=True,pos=False)
-        task_name = self.tasks[input_step['task_id'].item()]
+        batch_step = {k : v.to(self.device) if type(v) == torch.tensor else v  for k,v in input_step.items()}
+        states,commands,_ = self.backbone(batch_step,cat=False,vision=True,command=True,pos=False)
+        if self.neck:
+            states,commands,_ = self.neck((states,commands,None),cat=False)
         
-        states = batch_step['obs']
-        
-        #self.commands_embeddings.append(command)
-        #self.poses_embeddings.append(poses)
+        self.commands_embeddings.append(commands)
+        self.poses_embeddings.append(batch_step['hand_pos'].to(torch.float32))
         self.states_embeddings.append(states.to(torch.float32))
         self.actions.append(torch.zeros_like(input_step['action'],dtype=torch.float32))
         self.timesteps.append(input_step['timesteps'].to(torch.long))
         self.rewards.append(torch.tensor([self.eval_return_to_go],dtype=torch.float32).to(self.device))
         self.attention_mask.append(torch.tensor([1],dtype=torch.long))
-        
        
-        states_embeddings   = torch.stack(list(self.states_embeddings),dim=0).transpose(1,0).to(self.device)
-        #commands_embeddings = torch.stack(list(self.commands_embeddings),dim=0).transpose(1,0).to(self.device)
-        #poses_embeddings    = torch.stack([s.to(self.dummy_param.device) for s in self.poses_embeddings],dim=0).transpose(1,0).to(self.dummy_param.device)
-        actions             = torch.stack(list(self.actions)       ,dim=0).transpose(1,0).to(self.device)
-        timesteps           = torch.stack(list(self.timesteps)     ,dim=0).transpose(1,0).to(self.device)
-        returns_to_go       = torch.stack(list(self.rewards)       ,dim=0).transpose(1,0).to(self.device)
-        attention_mask      = torch.stack(list(self.attention_mask),dim=0).transpose(1,0).to(self.device)
-        ids_embeddings      = self.dl_model.task_embeddings(batch_step['task_id']).unsqueeze(0)
-        states_embeddings = (states_embeddings - self.dataset_specs['obs_state_mean']) / self.dataset_specs['obs_state_std']
+        states_embeddings   = torch.stack(list(self.states_embeddings)  ,dim=0).transpose(1,0).to(self.device)
+        commands_embeddings = torch.stack(list(self.commands_embeddings),dim=0).transpose(1,0).to(self.device)
+        poses_embeddings    = torch.stack(list(self.poses_embeddings)   ,dim=0).transpose(1,0).to(self.device)
+        actions             = torch.stack(list(self.actions)            ,dim=0).transpose(1,0).to(self.device)
+        timesteps           = torch.stack(list(self.timesteps)          ,dim=0).transpose(1,0).to(self.device)
+        returns_to_go       = torch.stack(list(self.rewards)            ,dim=0).transpose(1,0).to(self.device)
+        attention_mask      = torch.stack(list(self.attention_mask)     ,dim=0).transpose(1,0).to(self.device)
 
-       
         if states_embeddings.shape[1]<self.args.seq_len:
             delta_seq_len     = self.args.seq_len - states_embeddings.shape[1]
-            states_embeddings = torch.cat([states_embeddings, torch.zeros((1 ,delta_seq_len,states_embeddings.shape[2]),dtype=torch.float32).to(self.device)],dim=1)
-            actions           = torch.cat([actions          ,torch.zeros((1 ,delta_seq_len,actions.shape[2]),dtype=torch.float32).to(self.device)           ],dim=1)
-            timesteps         = torch.cat([timesteps        ,torch.zeros((1 ,delta_seq_len),dtype=torch.long).to(self.device)                               ],dim=1)
-            #ids_embeddings    = torch.cat([ids_embeddings   ,torch.zeros((1 ,delta_seq_len),dtype=torch.long).to(self.device)                               ],dim=1)
-            returns_to_go     = torch.cat([returns_to_go    ,torch.zeros((1 ,delta_seq_len),dtype=torch.float32).to(self.device)                            ],dim=1)
-            attention_mask    = torch.cat([attention_mask   ,torch.zeros((1 ,delta_seq_len),dtype=torch.long).to(self.device)                                 ],dim=1)
-        
+            states_embeddings = torch.cat([states_embeddings ,torch.zeros((1 ,delta_seq_len, states_embeddings.shape[2]),dtype=torch.float32).to(self.device)],dim=1)
+            poses_embeddings  = torch.cat([poses_embeddings  ,torch.zeros((1 ,delta_seq_len, poses_embeddings.shape[2]) ,dtype=torch.float32).to(self.device)],dim=1)
+            actions           = torch.cat([actions           ,torch.zeros((1 ,delta_seq_len, actions.shape[2])          ,dtype=torch.float32).to(self.device)],dim=1)
+            timesteps         = torch.cat([timesteps         ,torch.zeros((1 ,delta_seq_len)                            ,dtype=torch.long   ).to(self.device)],dim=1)
+            returns_to_go     = torch.cat([returns_to_go     ,torch.zeros((1 ,delta_seq_len)                            ,dtype=torch.float32).to(self.device)],dim=1)
+            attention_mask    = torch.cat([attention_mask    ,torch.zeros((1 ,delta_seq_len)                            ,dtype=torch.long   ).to(self.device)],dim=1)
         
         action_preds,rewards_preds,task_pred = self.dl_model(
-            commands= ids_embeddings,
+            commands= commands_embeddings,
             returns_to_go= returns_to_go.unsqueeze(-1),
             states=states_embeddings,
-            hand_poses=None, 
+            hand_poses=poses_embeddings, 
             actions=actions,
             time_steps=timesteps
         )
@@ -433,7 +427,8 @@ class DFT_model(arch):
             else:
                 self.eval_return_to_go -= (rewards_preds[0,-2] * attention_mask[0,-2] * (self.reward_norm/self.prompt_scale)).item()
                 print(self.eval_return_to_go)"""
-        
+        task_name = self.tasks[input_step['task_id'].item()]
+
         self.eval_return_to_go -= input_step['reward']/self.dataset_specs['max_return_to_go'][task_name]
         self.actions[-1] = action_preds[:,current_ts]
         return action_preds[0,current_ts]
