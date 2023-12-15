@@ -183,7 +183,7 @@ class GPT(nn.Module):
 
     def forward(self, commands,returns_to_go, states, hand_poses, actions,time_steps):
         b, t , _ = states.size()
-
+    
         # encode time steps
         time_emb = self.transformer.time_encoder(time_steps)
         time_emb = self.transformer.drop(time_emb)
@@ -295,7 +295,7 @@ class DL_model_obs(arch):
         super().__init__(args)
         self.args = args
         self.loss_fun  = self.loss_funs[args.loss_fun](args)
-        #self.backbone  = self.backbones[args.backbone](args)
+        self.backbone  = self.backbones[args.backbone](args)
         #self.neck = self.necks[args.neck](args)
         self.flatten = nn.Flatten()
         self.preprocess_image = None #self.backbone.preprocess_image
@@ -316,7 +316,7 @@ class DL_model_obs(arch):
             max_episode_len: int = 200
             state_size: int = self.state_dim#args.imgs_emps * len(args.cams)
             action_size: int = 4
-            command_size: int = args.dt_embed_dim
+            command_size: int = args.instuction_emps
             hand_pos_size: int = 8
             n_layer: int = args.dt_n_layer
             n_head: int = args.dt_n_head
@@ -342,27 +342,14 @@ class DL_model_obs(arch):
         
          
     def forward(self,batch):
-        """states_embeddings ,commands_embeddings,poses_embeddings= [],[],[]
-        for i in range(self.args.seq_len):
-            batch_step = {}
-            for k,vs in batch.items():
-                batch_step[k] = vs[i]
-           
-            batch_step = {k : v.to(self.dummy_param.device) if k != 'instruction' else v  for k,v in batch_step.items()}
-            
-            _,commands,_ = self.backbone(batch_step,cat=False,vision=False,command=True,pos=False)
-         
-            states_embeddings.append(batch_step['obs'])
-            #poses_embeddings.append(poses)
-
-            commands_embeddings.append(commands)
-        """
-        
+ 
         #tasks_id = self.task_embeddings(batch['task_id'][:,0,:]) # use only the first task id from each sequence, (it doesn't change throught the sequence)
-        
+        inst_step = {'instruction' : batch['instruction'][0]}
+        _,commands,_ = self.backbone(inst_step,cat=False,vision=False,command=True,pos=False)
+
         states_embeddings   = torch.stack(batch['obs'],dim=0).transpose(1,0).to(self.dummy_param.device)
         #commands_embeddings = torch.stack(batch['task_id'][0],dim=0).to(self.dummy_param.device)
-        commands_embeddings = self.dl_model.task_embeddings(batch['task_id'][0].to(self.device))#.transpose(1,0)
+        commands_embeddings = commands.unsqueeze(1) #self.dl_model.task_embeddings(batch['task_id'][0].to(self.device))#.transpose(1,0)
 
         #poses_embeddings    = torch.stack(poses_embeddings,dim=0).transpose(1,0).to(self.dummy_param.device)
         actions             = torch.stack(batch['action'],dim=0).transpose(1,0).to(self.dummy_param.device)
@@ -410,7 +397,9 @@ class DL_model_obs(arch):
         batch_step = {k : v.to(self.dummy_param.device) if k != 'instruction' else v  for k,v in input_step.items()}
         #_,commands,_ = self.backbone(batch_step,cat=False,vision=False,command=True,pos=False)
         task_name = self.tasks[input_step['task_id'].item()]
-        
+        inst_step = {'instruction' : input_step['instruction']}
+        _,commands,_ = self.backbone(inst_step,cat=False,vision=False,command=True,pos=False)
+
         states = batch_step['obs']
         
         #self.commands_embeddings.append(command)
@@ -429,7 +418,7 @@ class DL_model_obs(arch):
         timesteps           = torch.stack(list(self.timesteps)     ,dim=0).transpose(1,0).to(self.device)
         returns_to_go       = torch.stack(list(self.rewards)       ,dim=0).transpose(1,0).to(self.device)
         attention_mask      = torch.stack(list(self.attention_mask),dim=0).transpose(1,0).to(self.device)
-        ids_embeddings      = self.dl_model.task_embeddings(batch_step['task_id']).unsqueeze(0)
+        #ids_embeddings      = self.dl_model.task_embeddings(batch_step['task_id']).unsqueeze(0)
         states_embeddings = (states_embeddings - self.dataset_specs['obs_state_mean']) / self.dataset_specs['obs_state_std']
 
        
@@ -444,7 +433,7 @@ class DL_model_obs(arch):
         
         
         action_preds,rewards_preds,task_pred = self.dl_model(
-            commands= ids_embeddings,
+            commands= commands.unsqueeze(0),
             returns_to_go= returns_to_go.unsqueeze(-1),
             states=states_embeddings,
             hand_poses=None, 

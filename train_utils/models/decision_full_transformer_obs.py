@@ -212,6 +212,8 @@ class GPT(nn.Module):
         stacked_sequence = torch.flatten(stacked_sequence,start_dim=1,end_dim=2)
         #stacked_sequence = torch.cat([commands,stacked_sequence],dim=1)
         stacked_sequence = self.transformer.ln_f(stacked_sequence)
+        
+        #encoder_input = torch.cat([commands,returns_to_go[:,0:1,:]],dim=1)
         for block in self.transformer.h:
             stacked_sequence = block(stacked_sequence,commands)
 
