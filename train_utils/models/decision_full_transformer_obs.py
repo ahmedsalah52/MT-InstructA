@@ -252,48 +252,6 @@ class GPT(nn.Module):
 
         return optimizer
 
-    def estimate_mfu(self, fwdbwd_per_iter, dt):
-        """ estimate model flops utilization (MFU) in units of A100 bfloat16 peak FLOPS """
-        # first estimate the number of flops we do per iteration.
-        # see PaLM paper Appendix B as ref: https://arxiv.org/abs/2204.02311
-        N = self.get_num_params()
-        cfg = self.config
-        L, H, Q, T = cfg.n_layer, cfg.n_head, cfg.n_embd//cfg.n_head, cfg.block_size
-        flops_per_token = 6*N + 12*L*H*Q*T
-        flops_per_fwdbwd = flops_per_token * T
-        flops_per_iter = flops_per_fwdbwd * fwdbwd_per_iter
-        # express our flops throughput as ratio of A100 bfloat16 peak flops
-        flops_achieved = flops_per_iter * (1.0/dt) # per second
-        flops_promised = 312e12 # A100 GPU bfloat16 peak flops is 312 TFLOPS
-        mfu = flops_achieved / flops_promised
-        return mfu
-
-    @torch.no_grad()
-    def generate(self, idx, max_new_tokens, temperature=1.0, top_k=None):
-        """
-        Take a conditioning sequence of indices idx (LongTensor of shape (b,t)) and complete
-        the sequence max_new_tokens times, feeding the predictions back into the model each time.
-        Most likely you'll want to make sure to be in model.eval() mode of operation for this.
-        """
-        for _ in range(max_new_tokens):
-            # if the sequence context is growing too long we must crop it at block_size
-            idx_cond = idx if idx.size(1) <= self.config.block_size else idx[:, -self.config.block_size:]
-            # forward the model to get the logits for the index in the sequence
-            logits, _ = self(idx_cond)
-            # pluck the logits at the final step and scale by desired temperature
-            logits = logits[:, -1, :] / temperature
-            # optionally crop the logits to only the top k options
-            if top_k is not None:
-                v, _ = torch.topk(logits, min(top_k, logits.size(-1)))
-                logits[logits < v[:, [-1]]] = -float('Inf')
-            # apply softmax to convert logits to (normalized) probabilities
-            probs = F.softmax(logits, dim=-1)
-            # sample from the distribution
-            idx_next = torch.multinomial(probs, num_samples=1)
-            # append sampled index to the running sequence and continue
-            idx = torch.cat((idx, idx_next), dim=1)
-
-        return idx
     @property
     def device(self):
         return next(self.parameters())
@@ -303,7 +261,7 @@ class DFT_model_obs(arch):
         super().__init__(args)
         self.args = args
         self.loss_fun  = self.loss_funs[args.loss_fun](args)
-        #self.backbone  = self.backbones[args.backbone](args)
+        self.backbone  = self.backbones[args.backbone](args)
         #self.neck = self.necks[args.neck](args)
         self.flatten = nn.Flatten()
         self.preprocess_image = None #self.backbone.preprocess_image
@@ -325,7 +283,7 @@ class DFT_model_obs(arch):
             max_episode_len: int = 200
             state_size: int = self.state_dim#args.imgs_emps * len(args.cams)
             action_size: int = 4
-            command_size: int = args.dt_embed_dim
+            command_size: int = args.instuction_emps
             hand_pos_size: int = 8
             n_layer: int = args.dt_n_layer
             n_head: int = args.dt_n_head
@@ -368,10 +326,14 @@ class DFT_model_obs(arch):
         """
         
         #tasks_id = self.task_embeddings(batch['task_id'][:,0,:]) # use only the first task id from each sequence, (it doesn't change throught the sequence)
-        
+        inst_step = {'instruction' : batch['instruction'][0]}
+        _,commands,_ = self.backbone(inst_step,cat=False,vision=False,command=True,pos=False)
+
+
+
         states_embeddings   = torch.stack(batch['obs'],dim=0).transpose(1,0).to(self.dummy_param.device)
         #commands_embeddings = torch.stack(batch['task_id'][0],dim=0).to(self.dummy_param.device)
-        commands_embeddings = self.dl_model.task_embeddings(batch['task_id'][0].to(self.device))#.transpose(1,0)
+        commands_embeddings = commands.unsqueeze(1)#self.dl_model.task_embeddings(batch['task_id'][0].to(self.device))#.transpose(1,0)
 
         #poses_embeddings    = torch.stack(poses_embeddings,dim=0).transpose(1,0).to(self.dummy_param.device)
         actions             = torch.stack(batch['action'],dim=0).transpose(1,0).to(self.dummy_param.device)
@@ -421,6 +383,9 @@ class DFT_model_obs(arch):
         #_,commands,_ = self.backbone(batch_step,cat=False,vision=False,command=True,pos=False)
         task_name = self.tasks[input_step['task_id'].item()]
         
+        inst_step = {'instruction' : input_step['instruction']}
+        _,commands,_ = self.backbone(inst_step,cat=False,vision=False,command=True,pos=False)
+
         states = batch_step['obs']
         
         #self.commands_embeddings.append(command)
@@ -439,7 +404,7 @@ class DFT_model_obs(arch):
         timesteps           = torch.stack(list(self.timesteps)     ,dim=0).transpose(1,0).to(self.device)
         returns_to_go       = torch.stack(list(self.rewards)       ,dim=0).transpose(1,0).to(self.device)
         attention_mask      = torch.stack(list(self.attention_mask),dim=0).transpose(1,0).to(self.device)
-        ids_embeddings      = self.dl_model.task_embeddings(batch_step['task_id']).unsqueeze(0)
+        #ids_embeddings      = self.dl_model.task_embeddings(batch_step['task_id']).unsqueeze(0)
         states_embeddings = (states_embeddings - self.dataset_specs['obs_state_mean']) / self.dataset_specs['obs_state_std']
 
        
@@ -454,7 +419,7 @@ class DFT_model_obs(arch):
         
         
         action_preds,rewards_preds,task_pred = self.dl_model(
-            commands= ids_embeddings,
+            commands= commands.unsqueeze(0),#ids_embeddings,
             returns_to_go= returns_to_go.unsqueeze(-1),
             states=states_embeddings,
             hand_poses=None, 
