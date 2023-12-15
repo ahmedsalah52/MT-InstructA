@@ -64,6 +64,7 @@ class temp_dataset(Dataset):
         ret['instruction']    = "empty instruction"
         ret['obs'] = torch.zeros(39).to(torch.float32)
         ret['attention_mask'] = 1
+        ret['task_id'] = torch.tensor([0],dtype=torch.int)
         return ret
 
 """def get_stats(data_dict):

@@ -13,6 +13,7 @@ from train_utils.models.seq import seq_model
 from train_utils.models.decision_transformer2 import DT_model
 from train_utils.models.decision_transformer_obs2 import DL_model_obs
 from train_utils.models.decision_full_transformer_obs import DFT_model_obs
+from train_utils.models.decision_full_transformer import DFT_model
 
 from tqdm import tqdm
 from collections import defaultdict
@@ -30,7 +31,7 @@ class TL_model(pl.LightningModule):
         self.batch_size = args.batch_size
         self.env = env
         self.wandb_logger = wandb_logger
-        models = {'base':base_model,'GAN':simple_GAN,'seq':seq_model,'dt':DT_model,'dt_obs':DL_model_obs,'dft_obs':DFT_model_obs}
+        models = {'base':base_model,'GAN':simple_GAN,'seq':seq_model,'dt':DT_model,'dt_obs':DL_model_obs,'dft_obs':DFT_model_obs,'dft':DFT_model}
         #print('TL model device is ',str(self.device))
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
