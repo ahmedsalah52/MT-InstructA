@@ -21,6 +21,10 @@ import json
 from stable_baselines3.common.callbacks import CheckpointCallback,CallbackList ,EvalCallback
 from stable_baselines3.common.monitor import Monitor
 
+class LeakyReLU(nn.LeakyReLU):
+    def __init__(self, negative_slope: float = 0.01, inplace: bool = False) -> None:
+        super().__init__(negative_slope, inplace)
+
 
 class backbone(nn.Module):
     def __init__(self, in_dim, out_dim):
@@ -130,17 +134,19 @@ def main():
     feature_extractor_kwargs = {"features_dim": features_dim}
     # Create the PPO model with the custom policy
     model = PPO(CustomPolicy, train_metaenv, verbose=1,
-                policy_kwargs=dict(share_features_extractor=True,
+                policy_kwargs=dict(share_features_extractor=False,
                                    features_extractor_class=My_Feature_extractor,
-                                   features_extractor_kwargs=feature_extractor_kwargs),
+                                   features_extractor_kwargs=feature_extractor_kwargs,
+                                   activation_fn=LeakyReLU,
+                                   net_arch=[]),
                 learning_rate=0.0001,
                 batch_size=256)
-    
+    #print(model.policy)
+
     # Train the model
     model.learn(total_timesteps=2000000,callback=callbacks)
-
     # Save the trained model
-    model.save("ppo_cartpole_custom_policy")
+    model.save("ppo_policy")
 
 if __name__ == "__main__":
     main()
