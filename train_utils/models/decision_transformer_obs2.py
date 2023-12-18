@@ -455,7 +455,7 @@ class DL_model_obs(arch):
         return action_preds[0,current_ts]
         
     def get_opt_params(self):
-        params =  [{"params": self.dl_model.parameters()}] #+self.backbone.get_opt_params() 
+        params =  [{"params": self.dl_model.parameters()}] +self.backbone.get_opt_params() 
        
         return params
     def get_optimizer(self):
