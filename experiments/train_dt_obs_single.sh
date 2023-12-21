@@ -2,8 +2,7 @@
 #!/bin/bash
 python train.py \
 --model dt_obs \
---project_dir ~/Metaworld/out_dir/ \
---dataset multi_levels \
+--dataset generated_data_multi_lvls \
 --seq_len 5 \
 --num_epochs 200000 \
 --checkpoint_every 500 \
