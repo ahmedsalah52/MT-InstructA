@@ -18,4 +18,4 @@ python train.py \
 --tasks window-open-v2 \
 --lr 1e-4  \
 --freeze_modules 'backbone,neck' \
---load_weights 'checkpoints/film_neck2_2cams/epoch=10-train_loss=0.00.ckpt' \
+--load_checkpoint_path '/system/user/publicdata/mansour_datasets/metaworld/general_model/window_open/checkpoints/last-v2.ckpt' \
