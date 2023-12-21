@@ -7,7 +7,7 @@ python train.py \
 --num_epochs 200000 \
 --checkpoint_every 500 \
 --opt_patience 1000 \
---evaluation_episodes 3 \
+--evaluation_episodes 10 \
 --weight_decay 1e-4 \
 --batch_size 64 \
 --dt_n_layer 8 \
