@@ -5,7 +5,7 @@ python train.py \
 --dataset generated_data_multi_lvls \
 --seq_len 5 \
 --num_epochs 200000 \
---checkpoint_every 500 \
+--checkpoint_every 50 \
 --opt_patience 1000 \
 --evaluation_episodes 10 \
 --weight_decay 1e-4 \
