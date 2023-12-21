@@ -15,4 +15,6 @@ python train.py \
 --dt_embed_dim 128 \
 --run_name window_open \
 --tasks window-open-v2 \
---lr 1e-5
+--lr 1e-5 \
+--load_weights '/system/user/publicdata/mansour_datasets/metaworld/general_model/film_neck2_2cams/checkpoints/epoch=10-train_loss=0.00.ckpt' \
+--freeze_modules 'backbone,neck'
