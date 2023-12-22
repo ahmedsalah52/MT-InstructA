@@ -17,3 +17,4 @@ python train.py \
 --tasks window-open-v2 \
 --lr 1e-4  \
 --freeze_modules 'backbone,neck' \
+--load_checkpoint_path '/system/user/publicdata/mansour_datasets/metaworld/general_model/window_open/checkpoints/last-v3.ckpt' \
