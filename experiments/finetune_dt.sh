@@ -19,6 +19,5 @@ python train.py \
 --lr 1e-4 \
 --freeze_modules 'backbone,neck,dl_model' \
 --freeze_except 'lora'       \
---debugging_mode  \
---project_dir ../out_dir/  \
---use_task_idx
+--use_task_idx  \
+--load_weights '/system/user/publicdata/mansour_datasets/metaworld/general_model/dt/checkpoints/epoch=34-success_rate=0.89.ckpt' \
