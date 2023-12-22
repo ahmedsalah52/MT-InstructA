@@ -5,6 +5,7 @@ python train.py \
 --dataset generated_data_multi_lvls \
 --seq_len 5 \
 --cams '2,4' \
+--neck film
 --num_epochs 1000 \
 --checkpoint_every 5 \
 --opt_patience 30 \

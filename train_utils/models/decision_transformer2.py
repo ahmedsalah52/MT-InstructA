@@ -182,7 +182,6 @@ class GPT(nn.Module):
             torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
 
     def forward(self, commands,returns_to_go, states, hand_poses, actions,time_steps):
-        print(states.size())
         b, t , _ = states.size()
 
         # encode time steps
