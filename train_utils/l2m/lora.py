@@ -5,7 +5,7 @@ import torch.nn as nn
 
 class LoRA(nn.Module):
 
-    def __init__(self, length=2, pool_size =1,n_layer=1,embed_dim=128,top_k=1, dropout_rate=0.0, init_prompts="zeros",
+    def __init__(self, length=0, pool_size =1,n_layer=1,embed_dim=128,top_k=1, dropout_rate=0.0, init_prompts="zeros",
                  rank=4, mod_q=True, mod_v=True, mod_k=False, mod_ff=True, 
                  lora_alpha=None, log_mod_stats=False, **kwargs):
         
@@ -18,15 +18,8 @@ class LoRA(nn.Module):
         self.mod_ff = mod_ff
         self.lora_alpha = lora_alpha if lora_alpha is not None else self.rank * 2
         self._scaling = self.lora_alpha / self.rank
-        if  mod_q: 
-            length -= 1
-        if  mod_v:
-            length -= 1
-        if mod_k: 
-            length += 1
-        if mod_ff: 
-            # mlp is 4 * embed_dim
-            length += 4
+        
+        length = 10
         
         self.length = length
         self.pool_size = pool_size
@@ -55,9 +48,30 @@ class LoRA(nn.Module):
         # lora_b_batched: [n_layer x length x batch_size x embed_dim x rank]
         lora_a_batched = self.lora_a[idx].permute(1,2,0,3,4)
         lora_b_batched = self.lora_b[idx].permute(1,2,0,3,4)
-        
+        lora_params = []
+        for a,b in zip(lora_a_batched,lora_b_batched):
+            qa,qb = a[0],b[0]
+            va,vb = a[1],b[1]
+            ffa1,ffb1 = a[2:3],b[2:6]
+            ffa2,ffb2 = a[6:10],b[6:7]
 
-        return lora_a_batched,lora_b_batched
+
+            #permute mlp layers
+            ffa1 = ffa1.permute(1,2,0,3).flatten(start_dim=1,end_dim=2)
+            ffa2 = ffa2.permute(1,2,0,3).flatten(start_dim=1,end_dim=2)
+            ffb1 = ffb1.permute(1,2,0,3).flatten(start_dim=2,end_dim=3)
+            ffb2 = ffb2.permute(1,2,0,3).flatten(start_dim=2,end_dim=3)
+            
+
+            lora_params.append({
+                'q_ab' : torch.matmul(qa,qb),
+                'v_ab' : torch.matmul(va,vb),
+                'ff1_ab': torch.matmul(ffa1,ffb1),
+                'ff2_ab': torch.matmul(ffa2,ffb2)
+
+            })
+            
+        return lora_params
     
 
     def add_dropout(self, batched_prompt):

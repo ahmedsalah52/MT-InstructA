@@ -11,7 +11,7 @@ def ret_None(args):
 class arch(nn.Module):
     def __init__(self,args):
         super().__init__()
-        self.backbones = {'simple_clip':ClIP,'open_ai_clip':Open_AI_CLIP}
+        self.backbones = {'open_ai_clip':Open_AI_CLIP}
         self.necks = {'transformer':transformer_encoder,
                       'cross_attention':CrossAttentionNeck,
                       'film':Film,

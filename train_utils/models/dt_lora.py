@@ -1,23 +1,17 @@
-"""
-Full definition of a GPT Language Model, all of it in this single file.
-References:
-1) the official GPT-2 TensorFlow implementation released by OpenAI:
-https://github.com/openai/gpt-2/blob/master/src/model.py
-2) huggingface/transformers PyTorch implementation:
-https://github.com/huggingface/transformers/blob/main/src/transformers/models/gpt2/modeling_gpt2.py
-"""
-
 import numpy as np
 import torch
 import torch.nn as nn
 
 import transformers
+
+from decision_transformer.models.model import TrajectoryModel
+from decision_transformer.models.trajectory_gpt2 import GPT2Model
 import torch.functional as F
 from train_utils.backbones import *
+from train_utils.necks.transformer import *
+from train_utils.heads import *
 from train_utils.models.base import arch
 from collections import deque
-
-
 import math
 import inspect
 from dataclasses import dataclass
@@ -25,8 +19,11 @@ from dataclasses import dataclass
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
+
 from train_utils.l2m.lora import LoRA
 from train_utils.l2m.key_pool import keys_pool
+
+
 class LayerNorm(nn.Module):
     """ LayerNorm but with an optional bias. PyTorch doesn't support simply bias=False """
 
@@ -135,10 +132,16 @@ class GPT(nn.Module):
 
         self.transformer = nn.ModuleDict(dict(
             time_encoder     = nn.Embedding(config.max_episode_len, config.n_embd),
-            state_encoder    = nn.Linear(config.state_size,config.n_embd),
-            returns_encoder  = nn.Linear(1                ,config.n_embd),
-            actions_encoder  = nn.Linear(config.action_size,config.n_embd),
-            commands_encoder = nn.Linear(config.command_size,config.n_embd),
+            #state_encoder    = nn.Linear(config.state_size   ,config.n_embd),
+            state_encoder    = nn.Sequential(
+                               nn.Linear(config.state_size, config.n_embd),
+                               nn.LayerNorm(config.n_embd),
+                               nn.ReLU(),
+                               nn.Linear(config.n_embd,config.n_embd)
+                                                                           ),
+            returns_encoder  = nn.Linear(1                   ,config.n_embd),
+            actions_encoder  = nn.Linear(config.action_size  ,config.n_embd),
+            commands_encoder = nn.Linear(config.command_size ,config.n_embd),
             hand_pos_encoder = nn.Linear(config.hand_pos_size,config.n_embd),
             drop = nn.Dropout(config.dropout),
             h = nn.ModuleList([Block(config) for _ in range(config.n_layer)]),
@@ -150,12 +153,12 @@ class GPT(nn.Module):
         
         self.reward_head = nn.Sequential(nn.Linear(config.n_embd, 1, bias=True),
                                          nn.Sigmoid())
-        self.task_embeddings = nn.Embedding(config.num_tasks, config.n_embd)
-        self.task_head       = nn.Linear(config.n_embd, config.num_tasks, bias=True)
+
 
         self.pool = keys_pool(input_size=config.command_size,d_dim=config.n_embd,pool_size=config.pool_size)
         self.lora = LoRA(pool_size=config.pool_size,embed_dim=config.n_embd,n_layer=config.n_layer,rank=config.lora_rank)
         self.use_task_idx = config.use_task_idx
+
         # with weight tying when using torch.compile() some warnings get generated:
         # "UserWarning: functional_call was passed multiple values for tied weights.
         # This behavior is deprecated and will be an error in future versions"
@@ -204,29 +207,28 @@ class GPT(nn.Module):
         #encode all inputs to emb_size and add time_emb
         returns_to_go = self.transformer.returns_encoder(returns_to_go) + time_emb
         states        = self.transformer.state_encoder(states)          + time_emb
-        #hand_poses    = self.transformer.hand_pos_encoder(hand_poses)   + time_emb
+        hand_poses    = self.transformer.hand_pos_encoder(hand_poses)   + time_emb
         actions       = self.transformer.actions_encoder(actions)       + time_emb
         commands      = self.transformer.commands_encoder(commands)
-     
+
         
-        stacked_sequence = torch.stack([returns_to_go, states,actions],dim=1).transpose(1,2)
+        stacked_sequence = torch.stack([returns_to_go, states, hand_poses, actions],dim=1).transpose(1,2)
         stacked_sequence = torch.flatten(stacked_sequence,start_dim=1,end_dim=2)
         stacked_sequence = torch.cat([commands,stacked_sequence],dim=1)
+        
         stacked_sequence = self.transformer.ln_f(stacked_sequence)
-
         lora_layers = self.lora.extract_prompt(idx)
 
         for block,lora_layer in zip(self.transformer.h,lora_layers):
             stacked_sequence = block(stacked_sequence,lora_layer)
 
-        task_pred = self.task_head(stacked_sequence[:,0].reshape(b,-1)) # stacked_sequence[:,0] # out after the command
-
+        #stacked_sequence[:,0] # out after the command
         stacked_sequence = stacked_sequence[:,1:].reshape(b,t,self.step_len,-1) # b , t , step_len , emb_dim
         stacked_sequence = stacked_sequence.transpose(1,2) # b , step_len , t , emb_dim
 
         actions_pred = self.action_head(stacked_sequence[:,-2]) # step  -> return, state , hand_pos, actions # we predict the actions after the hand_pos 
         rewards_pred = self.reward_head(stacked_sequence[:,-1]) # we predict the rewards after the actions
-        return actions_pred,rewards_pred,task_pred
+        return actions_pred,rewards_pred
 
 
     def configure_optimizers(self, weight_decay, learning_rate, cuda_device):
@@ -256,80 +258,36 @@ class GPT(nn.Module):
 
         return optimizer
 
-    def estimate_mfu(self, fwdbwd_per_iter, dt):
-        """ estimate model flops utilization (MFU) in units of A100 bfloat16 peak FLOPS """
-        # first estimate the number of flops we do per iteration.
-        # see PaLM paper Appendix B as ref: https://arxiv.org/abs/2204.02311
-        N = self.get_num_params()
-        cfg = self.config
-        L, H, Q, T = cfg.n_layer, cfg.n_head, cfg.n_embd//cfg.n_head, cfg.block_size
-        flops_per_token = 6*N + 12*L*H*Q*T
-        flops_per_fwdbwd = flops_per_token * T
-        flops_per_iter = flops_per_fwdbwd * fwdbwd_per_iter
-        # express our flops throughput as ratio of A100 bfloat16 peak flops
-        flops_achieved = flops_per_iter * (1.0/dt) # per second
-        flops_promised = 312e12 # A100 GPU bfloat16 peak flops is 312 TFLOPS
-        mfu = flops_achieved / flops_promised
-        return mfu
 
-    @torch.no_grad()
-    def generate(self, idx, max_new_tokens, temperature=1.0, top_k=None):
-        """
-        Take a conditioning sequence of indices idx (LongTensor of shape (b,t)) and complete
-        the sequence max_new_tokens times, feeding the predictions back into the model each time.
-        Most likely you'll want to make sure to be in model.eval() mode of operation for this.
-        """
-        for _ in range(max_new_tokens):
-            # if the sequence context is growing too long we must crop it at block_size
-            idx_cond = idx if idx.size(1) <= self.config.block_size else idx[:, -self.config.block_size:]
-            # forward the model to get the logits for the index in the sequence
-            logits, _ = self(idx_cond)
-            # pluck the logits at the final step and scale by desired temperature
-            logits = logits[:, -1, :] / temperature
-            # optionally crop the logits to only the top k options
-            if top_k is not None:
-                v, _ = torch.topk(logits, min(top_k, logits.size(-1)))
-                logits[logits < v[:, [-1]]] = -float('Inf')
-            # apply softmax to convert logits to (normalized) probabilities
-            probs = F.softmax(logits, dim=-1)
-            # sample from the distribution
-            idx_next = torch.multinomial(probs, num_samples=1)
-            # append sampled index to the running sequence and continue
-            idx = torch.cat((idx, idx_next), dim=1)
-
-        return idx
     @property
     def device(self):
         return next(self.parameters())
    
-class DL_lora_obs(arch):
+
+class DT_lora(arch):
     def __init__(self,args) -> None:
         super().__init__(args)
         self.args = args
         self.loss_fun  = self.loss_funs[args.loss_fun](args)
         self.backbone  = self.backbones[args.backbone](args)
-        #self.neck = self.necks[args.neck](args)
+        self.neck = self.necks[args.neck](args)
         self.flatten = nn.Flatten()
-        self.preprocess_image = None #self.backbone.preprocess_image
+        self.preprocess_image = self.backbone.preprocess_image
         self.prompt = args.prompt
         self.prompt_scale = args.prompt_scale 
         self.reward_norm = args.reward_norm
-        self.dummy_param = nn.Parameter(torch.zeros(0))
-        self.state_dim = 39
         self.tasks = args.tasks
-        self.cat_loss = nn.CrossEntropyLoss()
         @dataclass
         class GPTConfig:
             seq_len: int = args.seq_len
-            step_len: int = 3
+            step_len: int = 4
             block_size: int = (seq_len*step_len) + 1
             #vocab_size: int = None # GPT-2 vocab_size of 50257, padded up to nearest multiple of 64 for efficiency
-            num_tasks: int = len(args.tasks)
-            max_episode_len: int = 200
-            state_size: int = self.state_dim#args.imgs_emps * len(args.cams)
-            action_size: int = 4
+            max_episode_len: int = args.max_ep_len
+            state_size: int = args.imgs_emps * len(args.cams)
+            action_size: int = args.action_dim
             command_size: int = args.instuction_emps
-            hand_pos_size: int = 8
+            hand_pos_size: int = args.pos_dim
             n_layer: int = args.dt_n_layer
             n_head: int = args.dt_n_head
             n_embd: int = args.dt_embed_dim
@@ -341,87 +299,85 @@ class DL_lora_obs(arch):
         
         
         self.use_task_idx = args.use_task_idx
+        self.dt_model = GPT(GPTConfig())
 
-        self.dl_model = GPT(GPTConfig())
-        #self.states_mean = #0.18576333177347915
-        #self.states_std  = #0.3379336491547313
-       
     def reset_memory(self):
         args = self.args
-        #self.commands_embeddings = deque([], maxlen=1)  
-        #self.poses_embeddings    = deque([torch.zeros(1, args.pos_emp).to(self.dummy_param.device)    for _ in range(args.seq_len)], maxlen=args.seq_len)  
+        self.commands_embeddings = deque([], maxlen=1)  
+        self.poses_embeddings    = deque([], maxlen=args.seq_len)  
         self.states_embeddings   = deque([], maxlen=args.seq_len)  
         self.actions             = deque([], maxlen=args.seq_len)  
         self.rewards             = deque([], maxlen=args.seq_len)  
         self.timesteps           = deque([], maxlen=args.seq_len)  
-        self.attention_mask      = deque([], maxlen=args.seq_len)  
+        self.attention_mask      = deque([], maxlen=args.seq_len)   
         self.eval_return_to_go   = 1.0
-        
-         
+
     def forward(self,batch):
- 
-        #tasks_id = self.task_embeddings(batch['task_id'][:,0,:]) # use only the first task id from each sequence, (it doesn't change throught the sequence)
-        inst_step = {'instruction' : batch['instruction'][0]}
-        _,commands,_ = self.backbone(inst_step,cat=False,vision=False,command=True,pos=False)
-
-        states_embeddings   = torch.stack(batch['obs'],dim=0).transpose(1,0).to(self.dummy_param.device)
-        #commands_embeddings = torch.stack(batch['task_id'][0],dim=0).to(self.dummy_param.device)
-        commands_embeddings = commands.unsqueeze(1) #self.dl_model.task_embeddings(batch['task_id'][0].to(self.device))#.transpose(1,0)
-
-        #poses_embeddings    = torch.stack(poses_embeddings,dim=0).transpose(1,0).to(self.dummy_param.device)
-        actions             = torch.stack(batch['action'],dim=0).transpose(1,0).to(self.dummy_param.device)
-        timesteps           = torch.stack(batch['timesteps'],dim=0).transpose(1,0).to(self.dummy_param.device)
-        returns_to_go       = torch.stack(batch[self.prompt],dim=0).unsqueeze(-1).transpose(1,0).to(torch.float32).to(self.dummy_param.device)
+        states_embeddings ,attention_mask,poses_embeddings= [],[],[]
+        commands_to_use = None
+        for i in range(self.args.seq_len):
+            batch_step = {k: v[i].to(self.device) if type(v[i]) == torch.tensor else v[i] for k, v in batch.items()}
+            states,commands,poses = self.backbone(batch_step,cat=False,vision=True,command=(i==0),pos=False)
+            if i==0: commands_to_use = commands #update only the first command (to have one command per sequence)
+            
+            if self.neck:
+                states,_,_ = self.neck((states,commands_to_use,poses),cat=False) 
+            states_embeddings.append(states)
+            poses_embeddings.append(batch_step['hand_pos'].to(torch.float32))
+            attention_mask.append(batch_step['attention_mask'].to(torch.long))        
+        #attention_mask = torch.tensor(batch['attention_mask'],dtype=torch.long).to(self.device)
+        states_embeddings   = torch.stack(states_embeddings,dim=0).transpose(1,0).to(self.device)
+        commands_embeddings = commands_to_use.unsqueeze(1)#torch.stack(commands_embeddings,dim=0).transpose(1,0).to(self.device)
+        poses_embeddings    = torch.stack(poses_embeddings,dim=0).transpose(1,0).to(self.device)
+        actions             = torch.stack(batch['action'],dim=0).transpose(1,0).to(self.device)
+        timesteps           = torch.stack(batch['timesteps'],dim=0).transpose(1,0).to(self.device)
+        returns_to_go       = torch.stack(batch[self.prompt],dim=0).unsqueeze(-1).transpose(1,0).to(torch.float32).to(self.device)
+        attention_mask      = torch.stack(attention_mask,dim=0).transpose(1,0).to(self.device)
         #returns_to_go/= self.prompt_scale
-        states_embeddings = (states_embeddings - self.dataset_specs['obs_state_mean']) / self.dataset_specs['obs_state_std']
         
-        #batch_size,seq_length,_ = actions.shape
-        #print(commands_embeddings.shape)
-        #print(actions.shape)
-        action_preds,rewards_preds,task_pred = self.dl_model(
+
+        action_preds,rewards_preds = self.dt_model(
             commands= commands_embeddings,
             returns_to_go= returns_to_go,
             states=states_embeddings,
-            hand_poses=None, 
+            hand_poses=poses_embeddings, 
             actions=actions,
             time_steps=timesteps,
             idx = batch['task_id'][0].squeeze(-1) if self.use_task_idx else None
+
         )
 
         action_preds  = action_preds.transpose(1,0)
         rewards_preds = rewards_preds.transpose(1,0)
-        return action_preds,rewards_preds,task_pred
+        return action_preds,rewards_preds
     
     def train_step(self,batch,device,opts=None):
         y_actions = torch.stack(batch['action'],dim=0).to(device)
         y_rewards = torch.stack(batch['reward'],dim=0).unsqueeze(-1).to(torch.float32).to(device)
-        attention_mask = torch.stack(batch['attention_mask'],dim=0).unsqueeze(-1).to(torch.long).to(self.dummy_param.device)
+        attention_mask = torch.stack(batch['attention_mask'],dim=0).unsqueeze(-1).to(torch.long).to(self.device)
 
-        pred_actions,pred_rewards,task_pred = self.forward(batch)
+        pred_actions,pred_rewards = self.forward(batch)
         
         actions_loss = self.masked_loss_fun(y_actions, pred_actions, attention_mask.repeat(1,1,4)) 
-        rewards_loss = self.masked_loss_fun(y_rewards, pred_rewards, attention_mask)  
-        task_loss    = self.cat_loss(task_pred, batch['task_id'][0].squeeze(-1).to(torch.long)) #batch['task_id'] is a repeated task id for each step (the task stays the same along the sequence)
-        return actions_loss + rewards_loss + task_loss
+        rewards_loss = self.masked_loss_fun(y_rewards, pred_rewards, attention_mask)               
+
+        return actions_loss + rewards_loss
     def masked_loss_fun(self,y_gt, y,mask):
         loss = (y_gt-y)**2
         # Apply the mask to ignore padded steps
         masked_loss = loss * mask
         # Calculate the average loss over the non-padded steps
-
         average_loss = torch.sum(masked_loss) / torch.sum(mask)
         return average_loss
+    
     def eval_step(self,input_step):
-        batch_step = {k : v.to(self.dummy_param.device) if k != 'instruction' else v  for k,v in input_step.items()}
-        #_,commands,_ = self.backbone(batch_step,cat=False,vision=False,command=True,pos=False)
-        task_name = self.tasks[input_step['task_id'].item()]
-        inst_step = {'instruction' : input_step['instruction']}
-        _,commands,_ = self.backbone(inst_step,cat=False,vision=False,command=True,pos=False)
-
-        states = batch_step['obs']
+        batch_step = {k : v.to(self.device) if type(v) == torch.tensor else v  for k,v in input_step.items()}
+        states,commands,_ = self.backbone(batch_step,cat=False,vision=True,command=True,pos=False)
+        if self.neck:
+            states,commands,_ = self.neck((states,commands,None),cat=False)
         
-        #self.commands_embeddings.append(command)
-        #self.poses_embeddings.append(poses)
+        self.commands_embeddings.append(commands)
+        self.poses_embeddings.append(batch_step['hand_pos'].to(torch.float32))
         self.states_embeddings.append(states.to(torch.float32))
         self.actions.append(torch.zeros_like(input_step['action'],dtype=torch.float32))
         self.timesteps.append(input_step['timesteps'].to(torch.long))
@@ -429,59 +385,63 @@ class DL_lora_obs(arch):
         self.attention_mask.append(torch.tensor([1],dtype=torch.long))
         
        
-        states_embeddings   = torch.stack(list(self.states_embeddings),dim=0).transpose(1,0).to(self.device)
-        #commands_embeddings = torch.stack(list(self.commands_embeddings),dim=0).transpose(1,0).to(self.device)
-        #poses_embeddings    = torch.stack([s.to(self.dummy_param.device) for s in self.poses_embeddings],dim=0).transpose(1,0).to(self.dummy_param.device)
-        actions             = torch.stack(list(self.actions)       ,dim=0).transpose(1,0).to(self.device)
-        timesteps           = torch.stack(list(self.timesteps)     ,dim=0).transpose(1,0).to(self.device)
-        returns_to_go       = torch.stack(list(self.rewards)       ,dim=0).transpose(1,0).to(self.device)
-        attention_mask      = torch.stack(list(self.attention_mask),dim=0).transpose(1,0).to(self.device)
-        #ids_embeddings      = self.dl_model.task_embeddings(batch_step['task_id']).unsqueeze(0)
-        states_embeddings = (states_embeddings - self.dataset_specs['obs_state_mean']) / self.dataset_specs['obs_state_std']
 
-       
+        states_embeddings   = torch.stack(list(self.states_embeddings)  ,dim=0).transpose(1,0).to(self.device)
+        commands_embeddings = torch.stack(list(self.commands_embeddings),dim=0).transpose(1,0).to(self.device)
+        poses_embeddings    = torch.stack(list(self.poses_embeddings)   ,dim=0).transpose(1,0).to(self.device)
+        actions             = torch.stack(list(self.actions)            ,dim=0).transpose(1,0).to(self.device)
+        timesteps           = torch.stack(list(self.timesteps)          ,dim=0).transpose(1,0).to(self.device)
+        returns_to_go       = torch.stack(list(self.rewards)            ,dim=0).transpose(1,0).to(self.device)
+        attention_mask      = torch.stack(list(self.attention_mask)     ,dim=0).transpose(1,0).to(self.device)
+
         if states_embeddings.shape[1]<self.args.seq_len:
             delta_seq_len     = self.args.seq_len - states_embeddings.shape[1]
-            states_embeddings = torch.cat([states_embeddings, torch.zeros((1 ,delta_seq_len,states_embeddings.shape[2]),dtype=torch.float32).to(self.device)],dim=1)
-            actions           = torch.cat([actions          ,torch.zeros((1 ,delta_seq_len,actions.shape[2]),dtype=torch.float32).to(self.device)           ],dim=1)
-            timesteps         = torch.cat([timesteps        ,torch.zeros((1 ,delta_seq_len),dtype=torch.long).to(self.device)                               ],dim=1)
-            #ids_embeddings    = torch.cat([ids_embeddings   ,torch.zeros((1 ,delta_seq_len),dtype=torch.long).to(self.device)                               ],dim=1)
-            returns_to_go     = torch.cat([returns_to_go    ,torch.zeros((1 ,delta_seq_len),dtype=torch.float32).to(self.device)                            ],dim=1)
-            attention_mask    = torch.cat([attention_mask   ,torch.zeros((1 ,delta_seq_len),dtype=torch.long).to(self.device)                                 ],dim=1)
+            states_embeddings = torch.cat([states_embeddings ,torch.zeros((1 ,delta_seq_len, states_embeddings.shape[2]),dtype=torch.float32).to(self.device)],dim=1)
+            poses_embeddings  = torch.cat([poses_embeddings  ,torch.zeros((1 ,delta_seq_len, poses_embeddings.shape[2]) ,dtype=torch.float32).to(self.device)],dim=1)
+            actions           = torch.cat([actions           ,torch.zeros((1 ,delta_seq_len, actions.shape[2])          ,dtype=torch.float32).to(self.device)],dim=1)
+            timesteps         = torch.cat([timesteps         ,torch.zeros((1 ,delta_seq_len)                            ,dtype=torch.long   ).to(self.device)],dim=1)
+            returns_to_go     = torch.cat([returns_to_go     ,torch.zeros((1 ,delta_seq_len)                            ,dtype=torch.float32).to(self.device)],dim=1)
+            attention_mask    = torch.cat([attention_mask    ,torch.zeros((1 ,delta_seq_len)                            ,dtype=torch.long   ).to(self.device)],dim=1)
         
         
-        action_preds,rewards_preds,task_pred = self.dl_model(
-            commands= commands.unsqueeze(0),
+        
+        action_preds,rewards_preds = self.dt_model(
+            commands= commands_embeddings,
             returns_to_go= returns_to_go.unsqueeze(-1),
             states=states_embeddings,
-            hand_poses=None, 
+            hand_poses=poses_embeddings, 
             actions=actions,
             time_steps=timesteps,
-            idx = input_step['task_id'] if self.use_task_idx else None
+            idx = input_step['task_id']
         )
         
+
         current_ts = input_step['timesteps'].item()
-        current_ts = min(current_ts,self.args.seq_len-1)
-        """if self.prompt != 'reward':
-            if self.args.use_env_reward:
-                self.eval_return_to_go -= input_step['reward']/self.prompt_scale
-            else:
-                self.eval_return_to_go -= (rewards_preds[0,-2] * attention_mask[0,-2] * (self.reward_norm/self.prompt_scale)).item()
-                print(self.eval_return_to_go)"""
-        
+        current_ts = min(current_ts , self.args.seq_len-1)
+       
+        task_name = self.tasks[input_step['task_id'].item()]
+
+        #if self.prompt != 'reward':
+        #    if self.args.use_env_reward:
+        #self.eval_return_to_go -= input_step['reward']/self.prompt_scale
         self.eval_return_to_go -= input_step['reward']/self.dataset_specs['max_return_to_go'][task_name]
+
+        #    else:
+        #        self.eval_return_to_go -= (rewards_preds[0,-2] * attention_mask[0,-2])
         self.actions[-1] = action_preds[:,current_ts]
         return action_preds[0,current_ts]
         
     def get_opt_params(self):
-        params =  [{"params": self.dl_model.parameters()}] +self.backbone.get_opt_params() 
+        params = self.backbone.get_opt_params() + [{"params": self.dt_model.parameters()}] 
+        if self.neck:
+            params += self.neck.get_opt_params()
        
         return params
     def get_optimizer(self):
         params = self.get_opt_params()
-        #print('device is ',str(self.device))
-        #return self.dl_model.configure_optimizers(learning_rate=self.args.lr,weight_decay=self.args.weight_decay,cuda_device= 'cuda' in str(self.device))
-        return torch.optim.AdamW(params,lr=self.args.lr,weight_decay=self.args.weight_decay)
+        #return self.dt_model.configure_optimizers(learning_rate=self.args.lr,weight_decay=self.args.weight_decay,cuda_device= 'cuda' in str(self.device))
         #return torch.optim.Adam(params,lr=self.args.lr)
+
+        return torch.optim.AdamW(params,lr=self.args.lr,weight_decay=self.args.weight_decay)
 
    

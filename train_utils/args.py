@@ -35,7 +35,7 @@ parser.add_argument('--seq_overlap',type=int,default=2,help='overlap between seq
 #model       
 #arch         
 parser.add_argument('--seed', type=int, default=42)
-parser.add_argument('--model', type=str, default='base',choices=['base','GAN','seq','dt','dt_obs','dft_obs','dft','dt_lora_obs'])
+parser.add_argument('--model', type=str, default='base',choices=['base','GAN','seq','dt','dt_obs','dft_obs','dft','dt_lora_obs','dt_lora'])
 parser.add_argument('--backbone', type=str, default='open_ai_clip',choices=['open_ai_clip','simple_clip'])
 parser.add_argument('--neck', type=str, default=None,choices=[None,'transformer','cross_attention','film'])
 parser.add_argument('--head', type=str, default='fc',choices=['fc'])
@@ -68,17 +68,6 @@ parser.add_argument('--prompt', type=str, default='return_to_go',choices=['rewar
 parser.add_argument('--target_rtg', type=float, default=2000.0)
 parser.add_argument('--use_env_reward', action='store_true',help='by raising this flag, the return to go will be calulated using the env reward instead of the model predicted reward')
 
-
-#simple clip backbone params
-parser.add_argument('--image_model_name', type=str, default='resnet50')
-parser.add_argument('--text_model_name', type=str, default='distilbert-base-uncased')
-parser.add_argument('--text_model_pretrained', type=bool, default=True)
-parser.add_argument('--text_model_trainable', type=bool, default=True)
-parser.add_argument('--image_model_pretrained', type=bool, default=True)
-parser.add_argument('--image_model_trainable', type=bool, default=True)
-parser.add_argument('--text_model_max_length', type=int, default=20)
-parser.add_argument('--img_model_lr', type=float, default=1e-5)
-parser.add_argument('--txt_model_lr', type=float, default=1e-5)
 
 
 #open ai clip backbone params
@@ -133,6 +122,12 @@ parser.add_argument('--lr', type=float, default=1e-4)
 parser.add_argument('--weight_decay', type=float, default=1e-2)
 parser.add_argument('--opt_patience', type=int, default=1)
 parser.add_argument('--trainloss_checkpoint',action='store_true')
+
+#fine tuning efficive only with lora included in the model name
+parser.add_argument('--pool_size', type=int, default=100)
+parser.add_argument('--lora_rank', type=int, default=8)
+parser.add_argument('--use_task_idx', action='store_true',help='by raising this flag, the task index will be used to pick the lora modules instead of a learnable key')
+
 
 
 #testing
