@@ -7,7 +7,7 @@ python train.py \
 --cams '2,4' \
 --neck film \
 --num_epochs 1000 \
---checkpoint_every 5 \
+--checkpoint_every 1 \
 --opt_patience 30 \
 --evaluation_episodes 10 \
 --weight_decay 1e-4 \
@@ -17,5 +17,5 @@ python train.py \
 --dt_embed_dim 1024 \
 --run_name dt \
 --lr 1e-4 \
---load_weights '/system/user/publicdata/mansour_datasets/metaworld/general_model/film_neck2_2cams/checkpoints/epoch=10-train_loss=0.00.ckpt' \
+--load_weights '/system/user/publicdata/mansour_datasets/metaworld/general_model/dt/checkpoints/epoch=29-success_rate=0.22.ckpt' \
 --freeze_modules 'backbone,neck'
