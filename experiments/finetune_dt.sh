@@ -7,7 +7,7 @@ python train.py \
 --cams '2,4' \
 --neck film \
 --num_epochs 1000 \
---checkpoint_every 5 \
+--checkpoint_every 1 \
 --opt_patience 30 \
 --evaluation_episodes 10 \
 --weight_decay 1e-4 \
