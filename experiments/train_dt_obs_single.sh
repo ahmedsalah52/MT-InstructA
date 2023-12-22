@@ -10,7 +10,7 @@ python train.py \
 --evaluation_episodes 10 \
 --weight_decay 1e-4 \
 --batch_size 64 \
---dt_n_layer 8 \
+--dt_n_layer 3 \
 --dt_n_head 16 \
 --dt_embed_dim 128 \
 --run_name window_open \
