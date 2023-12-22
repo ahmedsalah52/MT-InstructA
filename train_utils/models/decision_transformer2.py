@@ -261,11 +261,10 @@ class DT_model(arch):
         self.prompt_scale = args.prompt_scale 
         self.reward_norm = args.reward_norm
         self.tasks = args.tasks
-        step_len = 4
         @dataclass
         class GPTConfig:
             seq_len: int = args.seq_len
-            step_len: int = step_len
+            step_len: int = 4
             block_size: int = (seq_len*step_len) + 1
             #vocab_size: int = None # GPT-2 vocab_size of 50257, padded up to nearest multiple of 64 for efficiency
             max_episode_len: int = args.max_ep_len
