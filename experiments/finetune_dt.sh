@@ -17,7 +17,7 @@ python train.py \
 --dt_embed_dim 1024 \
 --run_name finetune_dt \
 --lr 1e-4 \
---freeze_modules 'backbone,neck,dl_model' \
+--freeze_modules 'backbone,neck,dt_model' \
 --freeze_except 'lora'       \
 --use_task_idx  \
 --load_weights '/system/user/publicdata/mansour_datasets/metaworld/general_model/dt/checkpoints/epoch=34-success_rate=0.89.ckpt' \
