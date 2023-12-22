@@ -15,7 +15,7 @@ python train.py \
 --dt_n_layer 5 \
 --dt_n_head 16 \
 --dt_embed_dim 1024 \
---run_name dt \
+--run_name finetune_dt \
 --lr 1e-4 \
 --freeze_modules 'backbone,neck,dl_model' \
 --freeze_except 'lora'       \
