@@ -11,10 +11,9 @@ python train.py \
 --weight_decay 1e-4 \
 --batch_size 64 \
 --dt_n_layer 3 \
---dt_n_head 16 \
+--dt_n_head 1 \
 --dt_embed_dim 128 \
 --run_name window_open \
 --tasks window-open-v2 \
 --lr 1e-4  \
 --freeze_modules 'backbone,neck' \
---load_checkpoint_path '/system/user/publicdata/mansour_datasets/metaworld/general_model/window_open/checkpoints/last-v3.ckpt' \
