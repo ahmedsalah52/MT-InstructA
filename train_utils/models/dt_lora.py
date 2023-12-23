@@ -156,9 +156,10 @@ class GPT(nn.Module):
                                          nn.Sigmoid())
 
 
-        self.pool = keys_pool(input_size=config.command_size,d_dim=config.n_embd,pool_size=config.pool_size)
         self.lora = LoRA(pool_size=config.pool_size,embed_dim=config.n_embd,n_layer=config.n_layer,rank=config.lora_rank)
         self.use_task_idx = config.use_task_idx
+        if not self.use_task_idx:
+            self.pool = keys_pool(input_size=config.command_size,d_dim=config.n_embd,pool_size=config.pool_size)
 
         # with weight tying when using torch.compile() some warnings get generated:
         # "UserWarning: functional_call was passed multiple values for tied weights.
