@@ -158,7 +158,6 @@ class GPT(nn.Module):
 
         self.pool = keys_pool(input_size=config.command_size,d_dim=config.n_embd,pool_size=config.pool_size)
         self.lora = LoRA(pool_size=config.pool_size,embed_dim=config.n_embd,n_layer=config.n_layer,rank=config.lora_rank)
-        self.lora_aciton = LoRA_layer(pool_size=config.pool_size,in_embed_dim=config.n_embd,out_embed_dim=config.action_size,rank=config.lora_rank)
         self.use_task_idx = config.use_task_idx
 
         # with weight tying when using torch.compile() some warnings get generated:
@@ -228,7 +227,7 @@ class GPT(nn.Module):
         stacked_sequence = stacked_sequence[:,1:].reshape(b,t,self.step_len,-1) # b , t , step_len , emb_dim
         stacked_sequence = stacked_sequence.transpose(1,2) # b , step_len , t , emb_dim
 
-        actions_pred = self.action_head(stacked_sequence[:,-2]) + self.lora_aciton(stacked_sequence[:,-2],idx) # step  -> return, state , hand_pos, actions # we predict the actions after the hand_pos 
+        actions_pred = self.action_head(stacked_sequence[:,-2]) + self.lora.action(stacked_sequence[:,-2],idx) # step  -> return, state , hand_pos, actions # we predict the actions after the hand_pos 
         rewards_pred = self.reward_head(stacked_sequence[:,-1]) # we predict the rewards after the actions
         return actions_pred,rewards_pred
 

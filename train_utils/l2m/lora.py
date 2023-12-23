@@ -26,6 +26,7 @@ class LoRA(nn.Module):
         self.n_layer = n_layer
         self.embed_dim = embed_dim
         self._setup_prompt()
+        self.action = LoRA_layer(pool_size=pool_size,in_embed_dim=embed_dim,out_embed_dim=4,rank=rank)
 
     @property
     def scaling(self):
@@ -36,7 +37,7 @@ class LoRA(nn.Module):
         self.lora_b = nn.Parameter(torch.zeros((self.pool_size, self.n_layer, self.length, self.rank, self.embed_dim)))
         nn.init.kaiming_uniform_(self.lora_a, a=math.sqrt(5))
         nn.init.zeros_(self.lora_b)
-    
+
     def extract_prompt(self, idx):
         """
         Args:
