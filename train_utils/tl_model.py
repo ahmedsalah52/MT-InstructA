@@ -91,7 +91,7 @@ class TL_model(pl.LightningModule):
             return self.base_training_step(batch,batch_idx)
         
     def on_train_epoch_end(self):
-        if self.eval_checkpoint and ((self.current_epoch % self.evaluate_every == 0) and self.current_epoch > 0):
+        if self.eval_checkpoint and ((self.current_epoch % self.evaluate_every == 0) ):
             print(f"\n epoch {self.current_epoch}  evaluation on device {self.device}")
             success_rate = self.evaluate_model()
             self.log("success_rate", success_rate,sync_dist=True,batch_size=self.batch_size,prog_bar=True) # type: ignore
