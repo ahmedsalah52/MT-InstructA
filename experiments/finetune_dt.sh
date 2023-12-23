@@ -15,10 +15,12 @@ python train.py \
 --dt_n_layer 5 \
 --dt_n_head 16 \
 --dt_embed_dim 1024 \
---run_name finetune_dt \
+--run_name finetune_single \
 --lr 1e-4 \
 --freeze_modules 'backbone,neck,dt_model' \
 --freeze_except 'lora'       \
 --lora_rank 4  \
+--pool_size 1  \
+--tasks window-open-v2  \
 --use_task_idx  \
 --load_weights '/system/user/publicdata/mansour_datasets/metaworld/general_model/dt/checkpoints/epoch=34-success_rate=0.89.ckpt' \
