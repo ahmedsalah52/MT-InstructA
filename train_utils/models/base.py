@@ -23,6 +23,16 @@ class arch(nn.Module):
         
         self.args = args
         self.dataset_specs = None
+        self.success_idx = torch.tensor([])     
+    def fill_success_idx(self,success_dict):
+        success_idx = []
+        for task,poses in success_dict.items():
+            success_rate = torch.mean(torch.tensor([c/self.args.evaluation_episodes for c in poses.values()])).item()
+            if success_rate >= self.args.success_threshold:
+                success_idx.append(self.args.tasks.index(task)) 
+                print(f'task: {task} reached the success rate threshold')
+        self.success_idx = torch.tensor(success_idx)                      
+
     def eval_step(self,input_step):
         return self.forward(input_step)[0]
     def reset_memory(self):

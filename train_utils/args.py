@@ -127,6 +127,7 @@ parser.add_argument('--trainloss_checkpoint',action='store_true')
 parser.add_argument('--pool_size', type=int, default=10)
 parser.add_argument('--lora_rank', type=int, default=4)
 parser.add_argument('--lora_alpha', type=int, default=None)
+parser.add_argument('--success_threshold', type=float, default=0.95)
 parser.add_argument('--use_task_idx', action='store_true',help='by raising this flag, the task index will be used to pick the lora modules instead of a learnable key')
 
 

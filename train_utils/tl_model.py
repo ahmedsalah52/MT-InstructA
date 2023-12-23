@@ -116,6 +116,7 @@ class TL_model(pl.LightningModule):
 
             
         pbar.close()
+        self.model.fill_success_idx(success_dict)
         for task , row in success_dict.items(): print(f'success rate in {task} with mean {np.mean([c/self.evaluation_episodes for c in row.values()])} and detailed {[[k,c/self.evaluation_episodes] for k,c in row.items()]}')
         success_rate =  np.mean(total_success)
         print('total success rate',success_rate)         

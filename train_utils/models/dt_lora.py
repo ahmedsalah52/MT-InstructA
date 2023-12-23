@@ -230,7 +230,7 @@ class GPT(nn.Module):
 
         actions_pred = self.action_head(stacked_sequence[:,-2]) + self.lora.action(stacked_sequence[:,-2],idx) # step  -> return, state , hand_pos, actions # we predict the actions after the hand_pos 
         rewards_pred = self.reward_head(stacked_sequence[:,-1]) # we predict the rewards after the actions
-        return actions_pred,rewards_pred
+        return actions_pred,rewards_pred,{'idx':idx}
 
 
     def configure_optimizers(self, weight_decay, learning_rate, cuda_device):
@@ -302,7 +302,6 @@ class DT_lora(arch):
         
         self.use_task_idx = args.use_task_idx
         self.dt_model = GPT(GPTConfig())
-
     def reset_memory(self):
         args = self.args
         self.commands_embeddings = deque([], maxlen=1)  
@@ -338,7 +337,7 @@ class DT_lora(arch):
         #returns_to_go/= self.prompt_scale
         
 
-        action_preds,rewards_preds = self.dt_model(
+        action_preds,rewards_preds,info = self.dt_model(
             commands= commands_embeddings,
             returns_to_go= returns_to_go,
             states=states_embeddings,
@@ -351,20 +350,26 @@ class DT_lora(arch):
 
         action_preds  = action_preds.transpose(1,0)
         rewards_preds = rewards_preds.transpose(1,0)
-        return action_preds,rewards_preds
+        return action_preds,rewards_preds,info
     
     def train_step(self,batch,device,opts=None):
         y_actions = torch.stack(batch['action'],dim=0).to(device)
         y_rewards = torch.stack(batch['reward'],dim=0).unsqueeze(-1).to(torch.float32).to(device)
         attention_mask = torch.stack(batch['attention_mask'],dim=0).unsqueeze(-1).to(torch.long).to(self.device)
 
-        pred_actions,pred_rewards = self.forward(batch)
+        pred_actions,pred_rewards ,info = self.forward(batch)
         
-        actions_loss = self.masked_loss_fun(y_actions, pred_actions, attention_mask.repeat(1,1,4)) 
-        rewards_loss = self.masked_loss_fun(y_rewards, pred_rewards, attention_mask)               
+        actions_loss = self.masked_loss_fun(y_actions, pred_actions, attention_mask.repeat(1,1,4),info) 
+        rewards_loss = self.masked_loss_fun(y_rewards, pred_rewards, attention_mask,info)               
 
         return actions_loss + rewards_loss
-    def masked_loss_fun(self,y_gt, y,mask):
+    def masked_loss_fun(self,y_gt, y,mask,info):
+        idx = info['idx']
+        t,b,c = mask.shape
+        success_mask = ((idx.unsqueeze(1) == self.success_idx.to(self.device)).any(1))
+        success_mask = torch.logical_not(success_mask)
+        success_mask = success_mask.reshape(1,-1,1).repeat(t,1,c)
+        mask = mask * success_mask
         loss = (y_gt-y)**2
         # Apply the mask to ignore padded steps
         masked_loss = loss * mask
@@ -407,7 +412,7 @@ class DT_lora(arch):
         
         
         
-        action_preds,rewards_preds = self.dt_model(
+        action_preds,rewards_preds,info = self.dt_model(
             commands= commands_embeddings,
             returns_to_go= returns_to_go.unsqueeze(-1),
             states=states_embeddings,
