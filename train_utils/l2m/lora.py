@@ -19,7 +19,7 @@ class LoRA(nn.Module):
         self.lora_alpha = lora_alpha if lora_alpha is not None else self.rank * 2
         self._scaling = self.lora_alpha / self.rank
         
-        length = 10
+        length = 7
         
         self.length = length
         self.pool_size = pool_size
@@ -44,7 +44,7 @@ class LoRA(nn.Module):
 
         """
         # idx: [batch_size x 1]
-        # lora_a_batched: [n_layer x length x batch_size x rank x embed_dim]
+        # lora_a_batched: [n_layer x length x batch_size x rank      x embed_dim]
         # lora_b_batched: [n_layer x length x batch_size x embed_dim x rank]
         lora_a_batched = self.lora_a[idx].permute(1,2,0,3,4)
         lora_b_batched = self.lora_b[idx].permute(1,2,0,3,4)
@@ -53,8 +53,7 @@ class LoRA(nn.Module):
             qa,qb = a[0],b[0]
             va,vb = a[1],b[1]
             ffa1,ffb1 = a[2:3],b[2:6]
-            ffa2,ffb2 = a[6:10],b[6:7]
-
+            ffa2,ffb2 = a[3:7],b[6:7]
 
             #permute mlp layers
             ffa1 = ffa1.permute(1,2,0,3).flatten(start_dim=1,end_dim=2)
@@ -76,3 +75,31 @@ class LoRA(nn.Module):
 
     def add_dropout(self, batched_prompt):
         return batched_prompt
+    
+
+
+class LoRA_layer(nn.Module):
+    def __init__(self,pool_size=1,in_embed_dim=128,out_embed_dim=128,rank=4,lora_alpha=None):
+        super().__init__()
+        self.rank = rank
+        self.lora_alpha = lora_alpha if lora_alpha is not None else self.rank * 2
+        self._scaling = self.lora_alpha / self.rank
+        self.pool_size = pool_size
+        self.in_embed_dim = in_embed_dim
+        self.out_embed_dim = out_embed_dim
+        self._setup_prompt()
+
+    @property
+    def scaling(self):
+        return self._scaling
+        
+    def _setup_prompt(self):
+        self.lora_a = nn.Parameter(torch.zeros((self.pool_size, self.in_embed_dim , self.rank)))
+        self.lora_b = nn.Parameter(torch.zeros((self.pool_size, self.rank         , self.out_embed_dim)))
+        nn.init.kaiming_uniform_(self.lora_a, a=math.sqrt(5))
+        nn.init.zeros_(self.lora_b)
+
+    def forward(self,x,idx):
+        a,b = self.lora_a[idx],self.lora_b[idx]
+        ab = torch.matmul(a,b)
+        return  (torch.matmul(x,ab) * self.scaling)

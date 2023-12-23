@@ -125,7 +125,8 @@ parser.add_argument('--trainloss_checkpoint',action='store_true')
 
 #fine tuning efficive only with lora included in the model name
 parser.add_argument('--pool_size', type=int, default=10)
-parser.add_argument('--lora_rank', type=int, default=8)
+parser.add_argument('--lora_rank', type=int, default=4)
+parser.add_argument('--lora_alpha', type=int, default=None)
 parser.add_argument('--use_task_idx', action='store_true',help='by raising this flag, the task index will be used to pick the lora modules instead of a learnable key')
 
 

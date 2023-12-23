@@ -20,7 +20,7 @@ import torch
 import torch.nn as nn
 from torch.nn import functional as F
 
-from train_utils.l2m.lora import LoRA
+from train_utils.l2m.lora import LoRA,LoRA_layer
 from train_utils.l2m.key_pool import keys_pool
 
 
@@ -63,12 +63,13 @@ class CausalSelfAttention(nn.Module):
 
         # calculate query, key, values for all heads in batch and move head forward to be the batch dim
         q, k, v  = self.c_attn(x).split(self.n_embd, dim=2)
+        if lora_params:
+            q = q + torch.matmul(x,lora_params['q_ab'])
+            v = v + torch.matmul(x,lora_params['v_ab'])
         k = k.view(B, T, self.n_head, C // self.n_head).transpose(1, 2) # (B, nh, T, hs)
         q = q.view(B, T, self.n_head, C // self.n_head).transpose(1, 2) # (B, nh, T, hs)
         v = v.view(B, T, self.n_head, C // self.n_head).transpose(1, 2) # (B, nh, T, hs)
-        if lora_params:
-            q = q + torch.matmul(x,lora_params['q_ab']).view(B, T, self.n_head, C // self.n_head).transpose(1, 2)
-            v = v + torch.matmul(x,lora_params['v_ab']).view(B, T, self.n_head, C // self.n_head).transpose(1, 2)
+        
         # causal self-attention; Self-attend: (B, nh, T, hs) x (B, nh, hs, T) -> (B, nh, T, T)
         if self.flash:
             # efficient attention using Flash Attention CUDA kernels
@@ -157,6 +158,7 @@ class GPT(nn.Module):
 
         self.pool = keys_pool(input_size=config.command_size,d_dim=config.n_embd,pool_size=config.pool_size)
         self.lora = LoRA(pool_size=config.pool_size,embed_dim=config.n_embd,n_layer=config.n_layer,rank=config.lora_rank)
+        self.lora_aciton = LoRA_layer(pool_size=config.pool_size,in_embed_dim=config.n_embd,out_embed_dim=config.action_size,rank=config.lora_rank)
         self.use_task_idx = config.use_task_idx
 
         # with weight tying when using torch.compile() some warnings get generated:
@@ -226,7 +228,7 @@ class GPT(nn.Module):
         stacked_sequence = stacked_sequence[:,1:].reshape(b,t,self.step_len,-1) # b , t , step_len , emb_dim
         stacked_sequence = stacked_sequence.transpose(1,2) # b , step_len , t , emb_dim
 
-        actions_pred = self.action_head(stacked_sequence[:,-2]) # step  -> return, state , hand_pos, actions # we predict the actions after the hand_pos 
+        actions_pred = self.action_head(stacked_sequence[:,-2]) + self.lora_aciton(stacked_sequence[:,-2],idx) # step  -> return, state , hand_pos, actions # we predict the actions after the hand_pos 
         rewards_pred = self.reward_head(stacked_sequence[:,-1]) # we predict the rewards after the actions
         return actions_pred,rewards_pred
 
