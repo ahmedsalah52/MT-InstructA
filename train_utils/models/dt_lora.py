@@ -156,7 +156,7 @@ class GPT(nn.Module):
                                          nn.Sigmoid())
 
 
-        self.lora = LoRA(pool_size=config.pool_size,embed_dim=config.n_embd,n_layer=config.n_layer,rank=config.lora_rank)
+        self.lora = LoRA(pool_size=config.pool_size,embed_dim=config.n_embd,n_layer=config.n_layer,rank=config.lora_rank,lora_alpha=config.lora_alpha)
         self.use_task_idx = config.use_task_idx
         if not self.use_task_idx:
             self.pool = keys_pool(input_size=config.command_size,d_dim=config.n_embd,pool_size=config.pool_size)
@@ -297,6 +297,7 @@ class DT_lora(arch):
             bias: bool = False # True: bias in Linears and LayerNorms, like GPT-2. False: a bit better and faster
             use_task_idx: bool = args.use_task_idx
             lora_rank: int = args.lora_rank
+            lora_alpha: int = args.lora_alpha
             pool_size: int = args.pool_size
         
         
@@ -364,9 +365,10 @@ class DT_lora(arch):
 
         return actions_loss + rewards_loss
     def masked_loss_fun(self,y_gt, y,mask,info):
+        success_idx = torch.tensor(self.success_idx).to(self.device)
         idx = info['idx']
         t,b,c = mask.shape
-        success_mask = ((idx.unsqueeze(1) == self.success_idx.to(self.device)).any(1))
+        success_mask = ((idx.unsqueeze(1) == success_idx).any(1))
         success_mask = torch.logical_not(success_mask)
         success_mask = success_mask.reshape(1,-1,1).repeat(t,1,c)
         mask = mask * success_mask
