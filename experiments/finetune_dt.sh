@@ -8,7 +8,7 @@ python train.py \
 --neck film \
 --num_epochs 1000 \
 --checkpoint_every 1 \
---opt_patience 30 \
+--opt_patience 10 \
 --evaluation_episodes 10 \
 --weight_decay 1e-4 \
 --batch_size 32 \
