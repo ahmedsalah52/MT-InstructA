@@ -12,4 +12,4 @@ python evaluate_model.py \
 --dt_n_head 16 \
 --dt_embed_dim 1024 \
 --run_name dt \
---load_checkpoint_path 'checkpoints/dt/epoch=34-success_rate=0.89.ckpt' \
+--load_checkpoint_path $1 \

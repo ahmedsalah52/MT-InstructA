@@ -15,5 +15,4 @@ python evaluate_model.py \
 --lora_rank 4  \
 --lora_alpha 4  \
 --use_task_idx  \
---run_note 'action(fixed) no scale stop at thresh' \
---load_checkpoint_path '/system/user/publicdata/mansour_datasets/metaworld/general_model/finetune_dt/checkpoints/epoch=3-success_rate=0.92.ckpt' \
+--load_checkpoint_path $1
