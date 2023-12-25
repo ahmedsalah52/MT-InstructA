@@ -149,9 +149,8 @@ class GPT(nn.Module):
             ln_f = LayerNorm(config.n_embd, bias=config.bias),
         ))
         self.step_len = config.step_len
-        self.action_head = nn.Sequential(nn.Linear(config.n_embd, config.action_size, bias=True),
-                                         nn.Tanh())
-        
+        self.action_head = nn.Sequential(nn.Linear(config.n_embd, config.action_size, bias=True))
+        self.tanh =  nn.Tanh()
         self.reward_head = nn.Sequential(nn.Linear(config.n_embd, 1, bias=True),
                                          nn.Sigmoid())
 
@@ -229,6 +228,8 @@ class GPT(nn.Module):
         stacked_sequence = stacked_sequence.transpose(1,2) # b , step_len , t , emb_dim
 
         actions_pred = self.action_head(stacked_sequence[:,-2]) + self.lora.action(stacked_sequence[:,-2],idx) # step  -> return, state , hand_pos, actions # we predict the actions after the hand_pos 
+        actions_pred = self.tanh(actions_pred)
+        
         rewards_pred = self.reward_head(stacked_sequence[:,-1]) # we predict the rewards after the actions
         return actions_pred,rewards_pred,{'idx':idx}
 
