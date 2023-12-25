@@ -23,5 +23,5 @@ python train.py \
 --lora_alpha 4  \
 --success_threshold 0.95 \
 --use_task_idx  \
---run_note 'action no scale stop at thresh' \
+--run_note 'action(fixed) no scale stop at thresh' \
 --load_weights '/system/user/publicdata/mansour_datasets/metaworld/general_model/dt/checkpoints/epoch=34-success_rate=0.89.ckpt' \
