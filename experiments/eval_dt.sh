@@ -13,3 +13,4 @@ python evaluate_model.py \
 --dt_embed_dim 1024 \
 --run_name dt \
 --load_checkpoint_path $1 \
+--seed $2

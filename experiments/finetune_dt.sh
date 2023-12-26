@@ -25,3 +25,4 @@ python train.py \
 --use_task_idx  \
 --run_note 'action(fixed) no scale stop at thresh' \
 --load_weights '/system/user/publicdata/mansour_datasets/metaworld/general_model/dt/checkpoints/epoch=34-success_rate=0.89.ckpt' \
+--seed $2
