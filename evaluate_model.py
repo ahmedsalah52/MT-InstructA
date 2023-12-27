@@ -21,7 +21,7 @@ def main():
     tasks_commands = json.load(open(args.tasks_commands_dir))
     tasks_commands = {k:list(set(tasks_commands[k])) for k in args.tasks} #the commands dict should have the same order as args.tasks list
    
-    _,val_tasks_commands = split_dict(tasks_commands,args.commands_split_ratio,seed=42)
+    _,val_tasks_commands = split_dict(tasks_commands,args.commands_split_ratio,seed=42) # the seed used for training should be the same as evaluation
     
     #assign general seed
     random.seed(args.seed)
@@ -43,7 +43,7 @@ def main():
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
     torch.cuda.manual_seed_all(args.seed)
-    
+
     success_rate = model.evaluate_model()
     to_log = f'model {args.load_checkpoint_path} with success rate {success_rate} - {args.run_name}'
     print('-'*50)
