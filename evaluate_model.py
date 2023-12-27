@@ -39,7 +39,11 @@ def main():
 
     dataset_rtg_dict = { 'max_return_to_go': {'button-press-topdown-v2': 1177.6984059210347, 'button-press-v2': 1289.018530097603, 'door-lock-v2': 1141.5641889309939, 'door-open-v2': 892.0785433900224, 'drawer-open-v2': 1487.7217649712063, 'window-open-v2': 1261.3283346301089, 'faucet-open-v2': 1140.6936299207996, 'faucet-close-v2': 1418.5725616135462, 'handle-press-v2': 1646.7226295389921, 'coffee-button-v2': 542.8299921921665}}
     model.model.set_dataset_specs(dataset_rtg_dict)
-   
+    random.seed(args.seed)
+    np.random.seed(args.seed)
+    torch.manual_seed(args.seed)
+    torch.cuda.manual_seed_all(args.seed)
+    
     success_rate = model.evaluate_model()
     to_log = f'model {args.load_checkpoint_path} with success rate {success_rate} - {args.run_name}'
     print('-'*50)
