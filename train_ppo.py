@@ -20,7 +20,10 @@ from train_utils.args import  parser ,process_args
 import json 
 from stable_baselines3.common.callbacks import CheckpointCallback,CallbackList ,EvalCallback
 from stable_baselines3.common.monitor import Monitor
+from typing import Callable, Dict, List, Optional, Tuple, Type, Union
 
+from gymnasium import spaces
+from train_utils.RL_model import genaral_model
 class LeakyReLU(nn.LeakyReLU):
     def __init__(self, negative_slope: float = 0.01, inplace: bool = False) -> None:
         super().__init__(negative_slope, inplace)
@@ -108,6 +111,79 @@ class My_Feature_extractor(BaseFeaturesExtractor):
         observations = observations['obs'].to(torch.float32)
         observations = self.backbone(observations)
         return observations
+
+
+
+class CustomNetwork(nn.Module):
+    """
+    Custom network for policy and value function.
+    It receives as input the features extracted by the features extractor.
+
+    :param feature_dim: dimension of the features extracted with the features_extractor (e.g. features from a CNN)
+    :param last_layer_dim_pi: (int) number of units for the last layer of the policy network
+    :param last_layer_dim_vf: (int) number of units for the last layer of the value network
+    """
+
+    def __init__(
+        self,
+        feature_dim: int,
+        last_layer_dim_pi: int = 64,
+        last_layer_dim_vf: int = 64,
+    ):
+        super().__init__()
+
+        # IMPORTANT:
+        # Save output dimensions, used to create the distributions
+        self.latent_dim_pi = last_layer_dim_pi
+        self.latent_dim_vf = last_layer_dim_vf
+
+        # Policy network
+        self.policy_net = nn.Sequential(
+            nn.Linear(feature_dim, last_layer_dim_pi), nn.ReLU()
+        )
+        # Value network
+        self.value_net = nn.Sequential(
+            nn.Linear(feature_dim, last_layer_dim_vf), nn.ReLU()
+        )
+
+    def forward(self, features: th.Tensor) -> Tuple[th.Tensor, th.Tensor]:
+        """
+        :return: (th.Tensor, th.Tensor) latent_policy, latent_value of the specified network.
+            If all layers are shared, then ``latent_policy == latent_value``
+        """
+        return self.forward_actor(features), self.forward_critic(features)
+
+    def forward_actor(self, features: th.Tensor) -> th.Tensor:
+        return self.policy_net(features)
+
+    def forward_critic(self, features: th.Tensor) -> th.Tensor:
+        return self.value_net(features)
+
+
+class CustomActorCriticPolicy(ActorCriticPolicy):
+    def __init__(
+        self,
+        observation_space: spaces.Space,
+        action_space: spaces.Space,
+        lr_schedule: Callable[[float], float],
+        *args,
+        **kwargs,
+    ):
+        # Disable orthogonal initialization
+        kwargs["ortho_init"] = False
+        super().__init__(
+            observation_space,
+            action_space,
+            lr_schedule,
+            # Pass remaining arguments to base class
+            *args,
+            **kwargs,
+        )
+
+
+    def _build_mlp_extractor(self) -> None:
+        self.mlp_extractor = CustomNetwork(self.features_dim)
+
 def main():
     args = parser.parse_args()
     args = process_args(args)
@@ -117,8 +193,8 @@ def main():
     tasks_commands = {k:list(set(tasks_commands[k])) for k in args.tasks} #the commands dict should have the same order as args.tasks list
     train_tasks_commands,val_tasks_commands = split_dict(tasks_commands,args.commands_split_ratio,seed=args.seed)
 
-    train_metaenv = sequence_metaenv(train_tasks_commands,save_images=False,wandb_log = False,max_seq_len=10)
-    #eval_metaenv  = sequence_metaenv(val_tasks_commands  ,save_images=False,wandb_log = False,max_seq_len=10)
+    train_metaenv = sequence_metaenv(train_tasks_commands,save_images=False,wandb_log = False,max_seq_len=10,train=True)
+    eval_metaenv  = sequence_metaenv(val_tasks_commands  ,save_images=False,wandb_log = False,max_seq_len=10,train=False)
     #train_metaenv= Monitor(train_metaenv)
     #eval_metaenv = Monitor(train_metaenv)
 
@@ -133,7 +209,7 @@ def main():
 
     feature_extractor_kwargs = {"features_dim": features_dim}
     # Create the PPO model with the custom policy
-    model = PPO(CustomPolicy, train_metaenv, verbose=1,
+    model = PPO("MultiInputPolicy", train_metaenv, verbose=1,
                 policy_kwargs=dict(share_features_extractor=False,
                                    features_extractor_class=My_Feature_extractor,
                                    features_extractor_kwargs=feature_extractor_kwargs,

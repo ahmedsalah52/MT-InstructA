@@ -1,0 +1,1 @@
+python train_RL.py --project_dir ../out_dir/ --neck film --load_weights checkpoints/base_2cams/epoch\=2-success_rate\=0.80.ckpt --cams 2,4 --freeze_modules model --run_name finetune_base_rl

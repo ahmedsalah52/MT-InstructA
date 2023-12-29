@@ -199,7 +199,7 @@ class meta_env(Env):
     
 
 class sequence_metaenv(Env):
-    def __init__(self,commands_dict,save_images,episode_length = 200,wandb_render = False,process='None',wandb_log = True,general_model = False,cams_ids=[0,1,2,3,4],max_seq_len=10):
+    def __init__(self,commands_dict,save_images,episode_length = 200,wandb_render = False,process='None',wandb_log = True,general_model = False,cams_ids=[0,1,2,3,4],max_seq_len=10,train=True):
         super().__init__()
 
         self.max_seq_len = max_seq_len
@@ -215,7 +215,7 @@ class sequence_metaenv(Env):
         #random_task = np.random.choice(list(self.commands_dict.keys()))
         random_task = list(self.commands_dict.keys())[0]
 
-        self.env = meta_env(random_task,task_pos=None,save_images=self.save_images,variant=None,episode_length = self.episode_length,pos_emb_flag=False,wandb_render = self.wandb_render,multi = True,process='None',wandb_log = self.wandb_log,general_model = self.general_model,cams_ids=[0,1,2,3,4])
+        self.env = meta_env(random_task,task_pos=None,save_images=self.save_images,variant=None,episode_length = self.episode_length,pos_emb_flag=False,wandb_render = self.wandb_render,multi = True,process='None',wandb_log = self.wandb_log,general_model = self.general_model,cams_ids=self.cams_ids)
         self.action_space = self.env.action_space
 
         observation_space = {#"hand_pos":Box(low=-1,high=1,shape=(max_seq_len,8),dtype=np.float32),
@@ -224,8 +224,8 @@ class sequence_metaenv(Env):
                              #"actions":Box(low=-1,high=1,shape=(max_seq_len,4),dtype=np.float32),
                             }
         if save_images:
-            observation_space["images"] = Box(low=0,high=255,shape=(max_seq_len,3,224,224),dtype=np.uint8)
-            self.images_list   = deque([np.zeros((3,224,224))]*max_seq_len,maxlen=self.max_seq_len)
+            observation_space["images"] = Box(low=0,high=255,shape=(max_seq_len,len(cams_ids),224,224,3),dtype=np.uint8)
+            self.images_list   = deque([np.zeros((len(cams_ids),224,224,3))]*max_seq_len,maxlen=self.max_seq_len)
 
         else:
             observation_space["obs"] = Box(low=-1,high=1,shape=(max_seq_len,39),dtype=np.float32)
@@ -236,7 +236,7 @@ class sequence_metaenv(Env):
 
         self.actions_list  = deque([np.zeros(4)]*max_seq_len,maxlen=self.max_seq_len)
         self.hand_pos_list = deque([np.zeros(8)]*max_seq_len,maxlen=self.max_seq_len)
-
+        self.command_dict_idx = 0 if train else 1
 
     def prepare_step(self,obs,images,task_id,command_id,aciton=np.zeros(4)):
         
@@ -249,10 +249,11 @@ class sequence_metaenv(Env):
 
 
         current_state = self.observation_space.sample()
-        #current_state["hand_pos"] = hand_pos
-        #current_state["actions"] = aciton
-        #current_state["task_idx"]    = np.array([task_id],dtype=np.int32)   #task_id
-        #current_state["command_idx"] = np.array([command_id],dtype=np.int32) #command_id
+        current_state["hand_pos"] = hand_pos
+        current_state["actions"] = aciton
+        current_state["task_idx"]    = np.array([task_id],dtype=np.int32)   #task_id
+        current_state["command_idx"] = np.array([command_id],dtype=np.int32) #command_id
+        current_state["command_dict_idx"] = np.array([self.command_dict_idx],dtype=np.int32)
         if self.save_images:
             self.images_list.append(images)
             images        = np.stack(self.images_list)
@@ -271,7 +272,7 @@ class sequence_metaenv(Env):
         task_name = list(self.commands_dict.keys())[0]
         command_id = np.random.randint(len(self.commands_dict[task_name]))
         
-        self.env = meta_env(task_name,task_pos=None,save_images=self.save_images,variant=None,episode_length = self.episode_length,pos_emb_flag=False,wandb_render = self.wandb_render,multi = True,process='None',wandb_log = self.wandb_log,general_model = self.general_model,cams_ids=[0,1,2,3,4])
+        self.env = meta_env(task_name,task_pos=None,save_images=self.save_images,variant=None,episode_length = self.episode_length,pos_emb_flag=False,wandb_render = self.wandb_render,multi = True,process='None',wandb_log = self.wandb_log,general_model = self.general_model,cams_ids=self.cams_ids)
 
         obs, first_info = self.env.reset()
         images = first_info['images']
