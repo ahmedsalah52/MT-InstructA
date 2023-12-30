@@ -21,7 +21,9 @@ import json
 from stable_baselines3.common.callbacks import CheckpointCallback,CallbackList ,EvalCallback
 from stable_baselines3.common.monitor import Monitor
 from typing import Callable, Dict, List, Optional, Tuple, Type, Union
-
+import wandb
+from wandb.integration.sb3 import WandbCallback
+import os
 from gymnasium import spaces
 from train_utils.RL_model import genaral_model
 class LeakyReLU(nn.LeakyReLU):
@@ -34,6 +36,18 @@ def main():
     args = parser.parse_args()
     args = process_args(args)
     features_dim = args.imgs_emps * len(args.cams) + args.instuction_emps + args.pos_emp
+    checkpoints_dir = os.path.join(args.project_dir,args.project_name,"RL_finetune")
+
+
+
+
+    run = wandb.init(
+    project="Metaworld multi-task environment",
+    name = args.run_name,
+    sync_tensorboard=True,  # auto-upload sb3's tensorboard metrics
+    monitor_gym=False,  # auto-upload the videos of agents playing the game
+    save_code=True,  # optional
+    )
 
     tasks_commands = json.load(open(args.tasks_commands_dir))
     tasks_commands = {k:list(set(tasks_commands[k])) for k in args.tasks} #the commands dict should have the same order as args.tasks list
@@ -44,15 +58,20 @@ def main():
     eval_metaenv  = sequence_metaenv(val_tasks_commands  ,save_images=True,wandb_log = False,max_seq_len=1,train=False,cams_ids=[2,4])
     #train_metaenv= Monitor(train_metaenv)
     #eval_metaenv = Monitor(train_metaenv)
+    wandb_callback=WandbCallback(
+        gradient_save_freq=100,
+        model_save_path=f"{checkpoints_dir}/{run.id}",
+        verbose=2,
+    )
 
-
-    eval_callback = EvalCallback(eval_metaenv,# best_model_save_path=logs_dir+"/eval_logs/"+run_name,
-                             #log_path=logs_dir+"/eval_logs/"+run_name,
+    eval_callback = EvalCallback(eval_metaenv,
+                             best_model_save_path=f"{checkpoints_dir}/{args.run_name}",
+                             log_path=f"{checkpoints_dir}/{args.run_name}",
                              deterministic=True,
-                             #render=False,
+                             render=False,
                              eval_freq=10000,
                              n_eval_episodes=30)
-    callbacks = CallbackList([ eval_callback])
+    callbacks = CallbackList([wandb_callback, eval_callback])
 
     feature_extractor_kwargs = {"GM_args": args,
                                 "features_dim": features_dim}
