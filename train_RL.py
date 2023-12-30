@@ -28,33 +28,12 @@ class LeakyReLU(nn.LeakyReLU):
     def __init__(self, negative_slope: float = 0.01, inplace: bool = False) -> None:
         super().__init__(negative_slope, inplace)
 
-    def __init__(
-        self,
-        observation_space: spaces.Space,
-        action_space: spaces.Space,
-        lr_schedule: Callable[[float], float],
-        *args,
-        **kwargs,
-    ):
-        # Disable orthogonal initialization
-        kwargs["ortho_init"] = False
-        super().__init__(
-            observation_space,
-            action_space,
-            lr_schedule,
-            # Pass remaining arguments to base class
-            *args,
-            **kwargs,
-        )
 
-
-    def _build_mlp_extractor(self) -> None:
-        self.mlp_extractor = CustomNetwork(self.features_dim)
 
 def main():
     args = parser.parse_args()
     args = process_args(args)
-    features_dim = 256
+    features_dim = args.imgs_emps * len(args.cams) + args.instuction_emps + args.pos_emp
 
     tasks_commands = json.load(open(args.tasks_commands_dir))
     tasks_commands = {k:list(set(tasks_commands[k])) for k in args.tasks} #the commands dict should have the same order as args.tasks list
@@ -83,9 +62,9 @@ def main():
                                    features_extractor_class=genaral_model,
                                    features_extractor_kwargs=feature_extractor_kwargs,
                                    activation_fn=LeakyReLU,
-                                   net_arch=[]),
+                                   net_arch=args.rl_model_layers),
                 learning_rate=0.0001,
-                batch_size=2)
+                batch_size=args.batch_size)
     #print(model.policy)
 
     # Train the model

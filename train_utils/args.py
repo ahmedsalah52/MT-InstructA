@@ -134,6 +134,9 @@ parser.add_argument('--weight_decay', type=float, default=1e-2)
 parser.add_argument('--opt_patience', type=int, default=1)
 parser.add_argument('--trainloss_checkpoint',action='store_true')
 
+parser.add_argument('--rl_model_layers',type=str,default='512,512,512')
+
+
 
 #testing
 parser.add_argument('--video_exp_name', type=str, default=None)
@@ -145,5 +148,6 @@ parser.add_argument('--vis_embeddings', action='store_true')
 def process_args(args):
     args.cams  = [int(c) for c in args.cams.split(',')]
     args.tasks = [c for c in args.tasks.split(',')]
+    args.rl_model_layers = [int(l) for l in args.rl_model_layers.split(',')]
 
     return args
