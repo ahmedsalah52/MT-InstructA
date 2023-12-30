@@ -42,7 +42,7 @@ def main():
 
 
     run = wandb.init(
-    project="Metaworld multi-task environment",
+    project="Metaworld_GM_RL_finetune",
     name = args.run_name,
     sync_tensorboard=True,  # auto-upload sb3's tensorboard metrics
     monitor_gym=False,  # auto-upload the videos of agents playing the game
