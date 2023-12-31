@@ -232,10 +232,10 @@ class sequence_metaenv(Env):
         else:
             observation_space["obs"] = Box(low=-1,high=1,shape=(max_seq_len,39),dtype=np.float32)
             self.obs_list      = deque([np.zeros(39)]*max_seq_len,maxlen=self.max_seq_len)
-        observation_space['command_dict_idx'] = Box(low=0,high=1,shape=(max_seq_len,),dtype=np.int32)
-        observation_space['task_idx']         = Box(low=0,high=len(commands_dict),shape=(max_seq_len,),dtype=np.int32)
-        observation_space['command_idx']      = Box(low=0,high=1000,shape=(max_seq_len,),dtype=np.int32)
-        observation_space['hand_pos']         = Box(low=-1,high=1  ,shape=(max_seq_len,8),dtype=np.float32)
+        observation_space['command_dict_idx'] = Box(low=0,high=1                         ,shape=(max_seq_len,) ,dtype=np.int32)
+        observation_space['task_idx']         = Box(low=0,high=len(commands_dict)        ,shape=(max_seq_len,) ,dtype=np.int32)
+        observation_space['command_idx']      = Box(low=0,high=1000                      ,shape=(max_seq_len,) ,dtype=np.int32)
+        observation_space['hand_pos']         = Box(low=-1,high=1                        ,shape=(max_seq_len,8),dtype=np.float32)
         self.observation_space = gymnasium.spaces.Dict(observation_space)
         
 
@@ -254,11 +254,11 @@ class sequence_metaenv(Env):
 
 
         current_state = self.observation_space.sample()
-        current_state["hand_pos"] = hand_pos
-        current_state["actions"] = aciton
-        current_state["task_idx"]    = self.task_id # np.array([task_id],dtype=np.int32)   #task_id
-        current_state["command_idx"] = self.command_id#np.array([command_id],dtype=np.int32) #command_id
-        current_state["command_dict_idx"] =self.command_dict_idx# np.array([self.command_dict_idx],dtype=np.int32)
+        current_state["hand_pos"]         = hand_pos
+        #current_state["actions"]          = aciton
+        current_state["task_idx"]         = self.task_id # np.array([task_id],dtype=np.int32)   #task_id
+        current_state["command_idx"]      = self.command_id#np.array([command_id],dtype=np.int32) #command_id
+        current_state["command_dict_idx"] = self.command_dict_idx# np.array([self.command_dict_idx],dtype=np.int32)
         if self.save_images:
             self.images_list.append(images)
             images        = np.stack(self.images_list)
