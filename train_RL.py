@@ -94,6 +94,7 @@ def main():
     model.learn(total_timesteps=2000000,callback=callbacks)
     # Save the trained model
     model.save("ppo_policy")
+    run.finish()
 
 if __name__ == "__main__":
     main()
