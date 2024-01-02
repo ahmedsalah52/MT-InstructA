@@ -213,7 +213,7 @@ class sequence_metaenv(Env):
         self.cams_ids = cams_ids
 
         #random_task = np.random.choice(list(self.commands_dict.keys()))
-        self.task_id = 0 #np.random.randint(len(self.commands_dict.keys()))
+        self.task_id = np.random.randint(len(self.commands_dict.keys()))
         task_name = list(self.commands_dict.keys())[self.task_id]
         self.command_id = np.random.randint(len(self.commands_dict[task_name]))
 
@@ -273,7 +273,7 @@ class sequence_metaenv(Env):
  
     def reset(self,seed=None, options=None):
         super().reset(seed=seed)
-        self.task_id = 0 #np.random.randint(len(self.commands_dict.keys()))
+        self.task_id = np.random.randint(len(self.commands_dict.keys()))
         task_name = list(self.commands_dict.keys())[self.task_id]
         self.command_id = np.random.randint(len(self.commands_dict[task_name]))
         
