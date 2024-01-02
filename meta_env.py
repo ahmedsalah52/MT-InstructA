@@ -256,9 +256,9 @@ class sequence_metaenv(Env):
         current_state = self.observation_space.sample()
         current_state["hand_pos"]         = hand_pos
         #current_state["actions"]          = aciton
-        current_state["task_idx"]         = self.task_id # np.array([task_id],dtype=np.int32)   #task_id
-        current_state["command_idx"]      = self.command_id#np.array([command_id],dtype=np.int32) #command_id
-        current_state["command_dict_idx"] = self.command_dict_idx# np.array([self.command_dict_idx],dtype=np.int32)
+        current_state["task_idx"]         = np.array([self.task_id],dtype=np.int32)   #task_id
+        current_state["command_idx"]      = np.array([self.command_id],dtype=np.int32) #command_id
+        current_state["command_dict_idx"] = np.array([self.command_dict_idx],dtype=np.int32)
         if self.save_images:
             self.images_list.append(images)
             images        = np.stack(self.images_list)
@@ -267,6 +267,7 @@ class sequence_metaenv(Env):
             self.obs_list.append(obs)
             obs        = np.stack(self.obs_list)
             current_state["obs"] = obs
+        
         return current_state 
     
  
