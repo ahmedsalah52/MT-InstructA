@@ -25,7 +25,7 @@ import wandb
 from wandb.integration.sb3 import WandbCallback
 import os
 from gymnasium import spaces
-from train_utils.RL_model import genaral_model
+from train_utils.RL_model import genaral_model,Obs_FeaturesExtractor
 class LeakyReLU(nn.LeakyReLU):
     def __init__(self, negative_slope: float = 0.01, inplace: bool = False) -> None:
         super().__init__(negative_slope, inplace)
@@ -35,7 +35,6 @@ class LeakyReLU(nn.LeakyReLU):
 def main():
     args = parser.parse_args()
     args = process_args(args)
-    features_dim = args.imgs_emps * len(args.cams) + args.instuction_emps + args.pos_emp
     checkpoints_dir = os.path.join(args.project_dir,args.project_name,"RL_finetune")
 
 
@@ -54,10 +53,10 @@ def main():
     train_tasks_commands,val_tasks_commands = split_dict(tasks_commands,args.commands_split_ratio,seed=args.seed)
 
     
-    train_metaenv = sequence_metaenv(train_tasks_commands,save_images=True,wandb_log = False,max_seq_len=1,train=True ,cams_ids=[2,4])
-    eval_metaenv  = sequence_metaenv(val_tasks_commands  ,save_images=True,wandb_log = False,max_seq_len=1,train=False,cams_ids=[2,4])
-    #train_metaenv= Monitor(train_metaenv)
-    #eval_metaenv = Monitor(train_metaenv)
+    train_metaenv = sequence_metaenv(train_tasks_commands,images_obs= not args.obs_only,wandb_log = False,max_seq_len=1,train=True ,cams_ids=[2,4])
+    eval_metaenv  = sequence_metaenv(val_tasks_commands  ,images_obs= not args.obs_only,wandb_log = False,max_seq_len=1,train=False,cams_ids=[2,4])
+    train_metaenv= Monitor(train_metaenv)
+    eval_metaenv = Monitor(train_metaenv)
     wandb_callback=WandbCallback(
         gradient_save_freq=100,
         model_save_path=f"{checkpoints_dir}/{run.id}",
@@ -72,13 +71,19 @@ def main():
                              eval_freq=10000,
                              n_eval_episodes=30)
     callbacks = CallbackList([wandb_callback, eval_callback])
-
-    feature_extractor_kwargs = {"GM_args": args,
+    if args.obs_only:
+        feature_extractor = Obs_FeaturesExtractor
+        feature_extractor_kwargs = {"features_dim": args.rl_model_layers[0]}
+    else:
+        features_dim = args.imgs_emps * len(args.cams) + args.instuction_emps + args.pos_emp
+        feature_extractor = genaral_model
+        feature_extractor_kwargs = {"GM_args": args,
                                 "features_dim": features_dim}
+   
     # Create the PPO model with the custom policy
     model = PPO("MultiInputPolicy", train_metaenv, verbose=1,
                 policy_kwargs=dict(share_features_extractor=True,
-                                   features_extractor_class=genaral_model,
+                                   features_extractor_class=feature_extractor,
                                    features_extractor_kwargs=feature_extractor_kwargs,
                                    activation_fn=LeakyReLU,
                                    net_arch=args.rl_model_layers),

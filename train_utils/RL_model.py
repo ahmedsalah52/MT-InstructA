@@ -16,7 +16,13 @@ import random
 import os
 import shutil
 import json
-
+class Obs_FeaturesExtractor(BaseFeaturesExtractor):
+    def __init__(self, observation_space: gym.Space, features_dim: int = 0) -> None:
+        super().__init__(observation_space, features_dim)
+        self.linear = nn.Sequential(nn.Linear(observation_space['obs'].shape[-1], features_dim),
+                                nn.LayerNorm(features_dim))
+    def forward(self, observations):
+        return self.linear(observations['obs'][:,-1,:])
 class genaral_model(BaseFeaturesExtractor):
     def __init__(self, observation_space: gym.Space, features_dim: int = 256,GM_args:parser = None) -> None:
         super().__init__(observation_space, features_dim)

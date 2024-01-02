@@ -134,8 +134,9 @@ parser.add_argument('--weight_decay', type=float, default=1e-2)
 parser.add_argument('--opt_patience', type=int, default=1)
 parser.add_argument('--trainloss_checkpoint',action='store_true')
 
+#rl model params for fine tuning the general model
 parser.add_argument('--rl_model_layers',type=str,default='512,512,512')
-
+parser.add_argument('--obs_only', action='store_true') #to use the default obs without the images as input
 
 
 #testing

@@ -199,12 +199,12 @@ class meta_env(Env):
     
 
 class sequence_metaenv(Env):
-    def __init__(self,commands_dict,save_images,episode_length = 200,wandb_render = False,process='None',wandb_log = True,general_model = False,cams_ids=[0,1,2,3,4],max_seq_len=10,train=True):
+    def __init__(self,commands_dict,images_obs,episode_length = 200,wandb_render = False,process='None',wandb_log = True,general_model = False,cams_ids=[0,1,2,3,4],max_seq_len=10,train=True):
         super().__init__()
 
         self.max_seq_len = max_seq_len
         self.commands_dict = commands_dict
-        self.save_images = save_images
+        self.images_obs = images_obs
         self.episode_length = episode_length
         self.wandb_render = wandb_render
         self.process = process
@@ -217,7 +217,7 @@ class sequence_metaenv(Env):
         task_name = list(self.commands_dict.keys())[self.task_id]
         self.command_id = np.random.randint(len(self.commands_dict[task_name]))
 
-        self.env = meta_env(task_name,task_pos=None,save_images=self.save_images,variant=None,episode_length = self.episode_length,pos_emb_flag=False,wandb_render = self.wandb_render,multi = True,process='None',wandb_log = self.wandb_log,general_model = self.general_model,cams_ids=self.cams_ids)
+        self.env = meta_env(task_name,task_pos=None,save_images=self.images_obs,variant=None,episode_length = self.episode_length,pos_emb_flag=False,wandb_render = self.wandb_render,multi = True,process='None',wandb_log = self.wandb_log,general_model = self.general_model,cams_ids=self.cams_ids)
         self.action_space = self.env.action_space
 
         observation_space = {#"hand_pos":Box(low=-1,high=1,shape=(max_seq_len,8),dtype=np.float32),
@@ -225,9 +225,12 @@ class sequence_metaenv(Env):
                              #"command_idx":Box(low=-1,high=500,shape=(1,),dtype=np.int32),
                              #"actions":Box(low=-1,high=1,shape=(max_seq_len,4),dtype=np.float32),
                             }
-        if save_images:
+        if images_obs:
             observation_space["images"] = Box(low=0,high=255,shape=(max_seq_len,len(cams_ids),224,224,3),dtype=np.uint8)
+            observation_space['hand_pos']         = Box(low=-1,high=1                        ,shape=(max_seq_len,8),dtype=np.float32)
+
             self.images_list   = deque([np.zeros((len(cams_ids),224,224,3))]*max_seq_len,maxlen=self.max_seq_len)
+            self.hand_pos_list = deque([np.zeros(8)]*max_seq_len,maxlen=self.max_seq_len)
 
         else:
             observation_space["obs"] = Box(low=-1,high=1,shape=(max_seq_len,39),dtype=np.float32)
@@ -235,34 +238,34 @@ class sequence_metaenv(Env):
         observation_space['command_dict_idx'] = Box(low=0,high=1                         ,shape=(max_seq_len,) ,dtype=np.int32)
         observation_space['task_idx']         = Box(low=0,high=len(commands_dict)        ,shape=(max_seq_len,) ,dtype=np.int32)
         observation_space['command_idx']      = Box(low=0,high=1000                      ,shape=(max_seq_len,) ,dtype=np.int32)
-        observation_space['hand_pos']         = Box(low=-1,high=1                        ,shape=(max_seq_len,8),dtype=np.float32)
         self.observation_space = gymnasium.spaces.Dict(observation_space)
         
 
         self.actions_list  = deque([np.zeros(4)]*max_seq_len,maxlen=self.max_seq_len)
-        self.hand_pos_list = deque([np.zeros(8)]*max_seq_len,maxlen=self.max_seq_len)
         self.command_dict_idx = 0 if train else 1
 
     def prepare_step(self,obs,images,aciton=np.zeros(4)):
         
         self.actions_list[-1] = aciton
         self.actions_list.append(np.zeros(4))
-        self.hand_pos_list.append(np.concatenate((obs[0:4],obs[18:22]),axis = 0,dtype=np.float32))
        
         aciton   = np.stack(self.actions_list)
-        hand_pos = np.stack(self.hand_pos_list)
-
+       
 
         current_state = self.observation_space.sample()
-        current_state["hand_pos"]         = hand_pos
         #current_state["actions"]          = aciton
         current_state["task_idx"]         = np.array([self.task_id],dtype=np.int32)   #task_id
         current_state["command_idx"]      = np.array([self.command_id],dtype=np.int32) #command_id
         current_state["command_dict_idx"] = np.array([self.command_dict_idx],dtype=np.int32)
-        if self.save_images:
+        if self.images_obs:
             self.images_list.append(images)
             images        = np.stack(self.images_list)
             current_state["images"] = images
+
+            self.hand_pos_list.append(np.concatenate((obs[0:4],obs[18:22]),axis = 0,dtype=np.float32))
+            hand_pos = np.stack(self.hand_pos_list)
+            current_state["hand_pos"]         = hand_pos
+
         else:
             self.obs_list.append(obs)
             obs        = np.stack(self.obs_list)
@@ -277,7 +280,7 @@ class sequence_metaenv(Env):
         task_name = list(self.commands_dict.keys())[self.task_id]
         self.command_id = np.random.randint(len(self.commands_dict[task_name]))
         
-        self.env = meta_env(task_name,task_pos=None,save_images=self.save_images,variant=None,episode_length = self.episode_length,pos_emb_flag=False,wandb_render = self.wandb_render,multi = True,process='None',wandb_log = self.wandb_log,general_model = self.general_model,cams_ids=self.cams_ids)
+        self.env = meta_env(task_name,task_pos=None,save_images=self.images_obs,variant=None,episode_length = self.episode_length,pos_emb_flag=False,wandb_render = self.wandb_render,multi = True,process='None',wandb_log = self.wandb_log,general_model = self.general_model,cams_ids=self.cams_ids)
 
         obs, first_info = self.env.reset()
         images = first_info['images']
