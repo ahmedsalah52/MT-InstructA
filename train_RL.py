@@ -58,7 +58,6 @@ def main():
     train_metaenv= Monitor(train_metaenv)
     eval_metaenv = Monitor(train_metaenv)
     wandb_callback=WandbCallback(
-        gradient_save_freq=100,
         model_save_path=f"{checkpoints_dir}/{run.id}",
         verbose=2,
     )
@@ -69,7 +68,7 @@ def main():
                              deterministic=True,
                              render=False,
                              eval_freq=10000,
-                             n_eval_episodes=30)
+                             n_eval_episodes=30*len(args.tasks))
     callbacks = CallbackList([wandb_callback, eval_callback])
     if args.obs_only:
         feature_extractor = Obs_FeaturesExtractor
