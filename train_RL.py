@@ -86,7 +86,7 @@ def main():
                                    features_extractor_kwargs=feature_extractor_kwargs,
                                    activation_fn=LeakyReLU,
                                    net_arch=args.rl_model_layers),
-                learning_rate=0.0001,
+                learning_rate=args.lr,
                 batch_size=args.batch_size)
     #print(model.policy)
 
