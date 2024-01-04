@@ -42,6 +42,8 @@ class genaral_model(BaseFeaturesExtractor):
         model = load_checkpoint(model,GM_args.load_weights)
         model = freeze_layers(model , GM_args)
         self.model = model
+        self.linear = nn.Sequential(nn.Linear(features_dim, features_dim),
+                                nn.LayerNorm(features_dim))
     def forward(self, observations):
         #observations = observations['obs'].to(torch.float32)
        
@@ -60,7 +62,7 @@ class genaral_model(BaseFeaturesExtractor):
         
         x = self.model.model.backbone(batch_step,cat=self.model.model.cat_backbone_out)
         x = self.model.model.neck(x)
-
+        x = self.linear(x)
         return x
     @property
     def device(self):
