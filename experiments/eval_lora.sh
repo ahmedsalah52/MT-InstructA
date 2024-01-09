@@ -15,4 +15,6 @@ python evaluate_model.py \
 --lora_rank 4  \
 --lora_alpha 4  \
 --use_task_idx  \
---load_checkpoint_path $1
+--run_name "$1 -seed:$2" \
+--load_checkpoint_path "$1" \
+--seed $2

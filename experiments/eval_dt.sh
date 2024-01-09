@@ -7,10 +7,10 @@ python evaluate_model.py \
 --cams '2,4' \
 --neck film \
 --evaluation_episodes 10 \
---batch_size 64 \
 --dt_n_layer 5 \
 --dt_n_head 16 \
 --dt_embed_dim 1024 \
 --run_name dt \
---load_checkpoint_path $1 \
+--run_name "$1 -seed:$2" \
+--load_checkpoint_path "$1" \
 --seed $2
