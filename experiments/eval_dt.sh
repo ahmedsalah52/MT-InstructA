@@ -1,5 +1,6 @@
 
 #!/bin/bash
+echo "$1 -seed: $2"
 python evaluate_model.py \
 --model dt \
 --dataset generated_data_multi_lvls \
