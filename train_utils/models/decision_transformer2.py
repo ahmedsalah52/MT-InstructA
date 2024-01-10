@@ -397,12 +397,11 @@ class DT_model(arch):
         task_name = self.tasks[input_step['task_id'].item()]
 
         #if self.prompt != 'reward':
-        #    if self.args.use_env_reward:
-        #self.eval_return_to_go -= input_step['reward']/self.prompt_scale
-        self.eval_return_to_go -= input_step['reward']/self.dataset_specs['max_return_to_go'][task_name]
-
-        #    else:
-        #        self.eval_return_to_go -= (rewards_preds[0,-2] * attention_mask[0,-2])
+        if self.args.use_env_reward:
+            self.eval_return_to_go -= input_step['reward']/self.dataset_specs['max_return_to_go'][task_name]
+        else:
+            if current_ts > 0:
+                self.eval_return_to_go -= (rewards_preds[0,current_ts-1] * attention_mask[0,current_ts-1])
         self.actions[-1] = action_preds[:,current_ts]
         return action_preds[0,current_ts]
         
