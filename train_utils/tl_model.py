@@ -32,7 +32,7 @@ class TL_model(pl.LightningModule):
         self.batch_size = args.batch_size
         self.env = env
         self.wandb_logger = wandb_logger
-        models = {'base':base_model,'GAN':simple_GAN,'seq':seq_model,'dt':DT_model,'dt_obs':DL_model_obs,'dft_obs':DFT_model_obs,'dft':DFT_model,'dt_lora_obs':DL_lora_obs,'dt_lora':DT_lora}
+        models = {'base':base_model,'seq':seq_model,'dt':DT_model,'dt_obs':DL_model_obs,'dft_obs':DFT_model_obs,'dft':DFT_model,'dt_lora_obs':DL_lora_obs,'dt_lora':DT_lora}
         #print('TL model device is ',str(self.device))
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
@@ -45,7 +45,6 @@ class TL_model(pl.LightningModule):
                 patience=args.opt_patience,
                 verbose=True
             )
-        self.automatic_optimization =  self.model_name != 'GAN'
         self.max_return_to_go = None
         
         #self.my_scheduler = StepLR(self.opt, step_size=args.schedular_step, gamma=0.5)
@@ -54,41 +53,10 @@ class TL_model(pl.LightningModule):
         loss = self.model.train_step(batch,self.device)
         self.log("train_loss", loss,sync_dist=True,batch_size=self.batch_size,prog_bar=True)
         return loss
-    def gan_training_step(self, batch, batch_idx):
-        batch = {k : v.to(self.device) if k != 'instruction' else v  for k,v in batch.items()}
-
-        optimizer_g, optimizer_d = self.optimizers()
-        
-        self.toggle_optimizer(optimizer_g)
-        embeddings = self.model.encode(batch)
-
-        #generator step
-        generated_embeddings,generated_actions = self.generate_batch()
-        g_loss = self.model.generator_step(generated_embeddings,generated_actions)
-        self.manual_backward(g_loss)
-        optimizer_g.step()
-        optimizer_g.zero_grad()
-        self.untoggle_optimizer(optimizer_g)
-
-        # train discriminator
-        self.toggle_optimizer(optimizer_d)
-
-        d_loss = self.model.discriminator_step(embeddings,batch['action'],generated_embeddings,generated_actions)
-        
-        self.manual_backward(d_loss)
-        optimizer_d.step()
-        optimizer_d.zero_grad()
-        self.untoggle_optimizer(optimizer_d)
-
-        self.log("g_loss", g_loss,sync_dist=True,batch_size=self.batch_size,prog_bar=True)
-        self.log("d_loss", d_loss,sync_dist=True,batch_size=self.batch_size,prog_bar=True)
-
+ 
     
     def training_step(self, batch, batch_idx):
-        if self.model_name == 'GAN':
-            return self.gan_training_step(batch,batch_idx)
-        else:
-            return self.base_training_step(batch,batch_idx)
+        return self.base_training_step(batch,batch_idx)
         
     def on_train_epoch_end(self):
         if self.eval_checkpoint and ((self.current_epoch % self.evaluate_every == 0) ):
