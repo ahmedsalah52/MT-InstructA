@@ -8,7 +8,6 @@ from PIL import Image
 
 from torch.optim.lr_scheduler import StepLR
 from train_utils.models.base import base_model
-from train_utils.models.GAN import simple_GAN
 from train_utils.models.seq import seq_model
 from train_utils.models.decision_transformer2 import DT_model
 from train_utils.models.decision_transformer_obs2 import DL_model_obs
