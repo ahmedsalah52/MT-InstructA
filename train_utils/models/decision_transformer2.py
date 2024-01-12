@@ -126,7 +126,7 @@ class GPT(nn.Module):
             #state_encoder    = nn.Linear(config.state_size   ,config.n_embd),
             state_encoder    = nn.ModuleList([
                                nn.Linear(config.state_size, config.n_embd) 
-                               for _ in range(len(config.cams))]),
+                               for _ in range(config.n_cams)]),
 
             returns_encoder  = nn.Linear(1                   ,config.n_embd),
             actions_encoder  = nn.Linear(config.action_size  ,config.n_embd),
@@ -265,7 +265,7 @@ class DT_model(arch):
             seq_len: int = args.seq_len
             step_len: int = 3 + len(args.cams)
             block_size: int = (seq_len*step_len) + 1
-            cams: list = args.cams
+            n_cams: int = len(args.cams)
             #vocab_size: int = None # GPT-2 vocab_size of 50257, padded up to nearest multiple of 64 for efficiency
             max_episode_len: int = args.max_ep_len
             state_size: int = args.imgs_emps 
