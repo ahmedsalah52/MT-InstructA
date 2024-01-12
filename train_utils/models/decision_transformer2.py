@@ -187,7 +187,7 @@ class GPT(nn.Module):
         time_emb = self.transformer.drop(time_emb)
 
         #split state into cams
-        states = states.reshape(b,t,-1,len(self.config.state_size))
+        states = states.reshape(b,t,-1,self.config.state_size)
         #encode all inputs to emb_size and add time_emb
         returns_to_go = self.transformer.returns_encoder(returns_to_go) + time_emb
         states        = [encoder(states[:,:,i,:]) + time_emb for i,encoder in enumerate(self.transformer.state_encoder)]
