@@ -11,7 +11,7 @@ python evaluate_model.py \
 --dt_n_layer 5 \
 --dt_n_head 16 \
 --dt_embed_dim 1024 \
---run_name "-seed:$2" \
+--run_name "use_env_reward-seed:$2" \
 --use_env_reward \
 --load_checkpoint_path "$1" \
 --seed $2
