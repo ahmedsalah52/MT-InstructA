@@ -15,7 +15,8 @@ python train.py \
 --dt_n_layer 5 \
 --dt_n_head 16 \
 --dt_embed_dim 1024 \
---run_name dt_best_film \
+--run_name dt_split \
+--run_notes 'cams splitted and predicted reward is used' \
 --lr 1e-4 \
 --load_weights '/system/user/publicdata/mansour_datasets/metaworld/general_model/film_neck2_2cams/checkpoints/epoch=17-train_loss=0.01.ckpt' \
 --freeze_modules 'backbone,neck'
