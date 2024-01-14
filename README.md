@@ -8,24 +8,21 @@ Reinforcement learning techniques have revolutionized robotic systems, enabling 
 
 ## Components
 
-
 ### Meta-World Environment
 - **Description:** An open-source benchmark for meta-reinforcement learning, consisting of 50 distinct robotic manipulation tasks.
-- **Implementation:** 10 tasks selected, with the simulator modified to handle three tasks concurrently.
-
-### Single Task Environment
-- **Training SAC Agents:** Agents trained on individual tasks, with a focus on state vector observations.
-- **Results:** Achieved approximately 97% success rate with the best agents.
-
-### Multi-task Environment
+- **Use case modification:** 10 tasks were selected, with the simulator modified to handle three tasks concurrently.
 - **Data Generation:** Utilized SAC agents for generating datasets encompassing visual information, state observations, actions, rewards, and success flags.
-- **Algorithms:** Soft Actor Critic (SAC), CLIP, FiLM, and Decision Transformer Models are employed.
+- **Tasks:** button-press-topdown-v2, button-press-v2, door-lock-v2, door-open-v2, drawer-open-v2, window-open-v2, faucet-open-v2, faucet-close-v2, handle-press-v2, coffee-button-v2.
+
+ ![multi-env](figures/multi-env.png) 
 
 ### Algorithms Overview
-- **Soft Actor Critic (SAC):** Balances exploration and exploitation in continuous action spaces.
-- **CLIP:** Trained on a variety of (image, text) pairs.
-- **FiLM:** Feature-wise Linear Modulation for neural network computation.
-- **Decision Transformer:** Employs GPT architecture, integrating modality-specific embeddings, and predicting actions autoregressively.
+- **Soft Actor Critic (SAC):** more info can be found here (https://stable-baselines3.readthedocs.io/en/master/modules/sac.html)
+- **CLIP:** CLIP model was used to encode the images and Language instructions 
+![clip](figures/ViT.png) 
+- **FiLM:** for more info: (https://github.com/caffeinism/film-pytorch)
+- **Decision Transformer:** 
+![DT](figures/dt.png) 
 
 ### What is provided in the repo:
 - **Modified Metaworld environment:** the environment holds 3 tasks as a time, this applies only on the visual rendered env observation, which means the vector observation includes only one task.
@@ -57,3 +54,10 @@ many examples for different models for training or evaluation in experiments dir
   * finetune_dt.sh for training base model (clip + film layers + decision transformer + dt lora layers)
   * train_dt_obs.sh for training decision transformer only using the vector observation without images
 
+- **references:**
+  Learning to Modulate pre-trained Models in RL: (https://arxiv.org/pdf/2306.14884.pdf)
+  Metaworld: (https://github.com/Farama-Foundation/Metaworld)
+  Soft-Actor-Critic: (https://arxiv.org/pdf/1801.01290v2.pdf)
+  CLIP: (https://github.com/openai/CLIP)
+  FiLM: (https://arxiv.org/pdf/1709.07871.pdf)
+  Decision Transformer: paper:(https://arxiv.org/pdf/2106.01345.pdf)   implementation from nanoGPT:(https://github.com/karpathy/nanoGPT) 
