@@ -27,7 +27,7 @@ Reinforcement learning techniques have revolutionized robotic systems, enabling 
 - **FiLM:** Feature-wise Linear Modulation for neural network computation.
 - **Decision Transformer:** Employs GPT architecture, integrating modality-specific embeddings, and predicting actions autoregressively.
 
-### What we provide in this repo
+### What is provided in the repo:
 - **Modified Metaworld environment:** the environment holds 3 tasks as a time, this applies only on the visual rendered env observation, which means the vector observation includes only one task.
 for trying, run: python  test_single.py
 
@@ -43,16 +43,16 @@ note: if task-name doesn't exist in the directory then defauld.json will be used
 - **dataset generation:**
 after training the SAC agents, you can use them for generating dataset, using generate_data.py script, the script gets:
 arguments from train_utils/args.py
-configs/general_model_configs/agents_dict.json to configure the best agent for every task
-for data generation run:
+1. configs/general_model_configs/agents_dict.json to configure the best agent for every task
+2.  for data generation run:
 sh experiments/generate_dataset.sh
 
 - **general model training**
 many examples for different models for training or evaluation in experiments directory, for example:
-train_base.sh  for training base model (clip + linear head)
-train_film.sh  for training base model (clip + film layers + linear head)
-train_dt.sh    for training base model (clip + film layers + decision transformer)
-finetune_dt.sh for training base model (clip + film layers + decision transformer + dt lora layers)
+* train_base.sh  for training base model (clip + linear head)
+* train_film.sh  for training base model (clip + film layers + linear head)
+* train_dt.sh    for training base model (clip + film layers + decision transformer)
+* finetune_dt.sh for training base model (clip + film layers + decision transformer + dt lora layers)
 
-train_dt_obs.sh for training decision transformer only using the vector observation without images
+* train_dt_obs.sh for training decision transformer only using the vector observation without images
 
