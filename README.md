@@ -30,7 +30,8 @@ Reinforcement learning techniques have revolutionized robotic systems, enabling 
 - **FiLM:** for more info: (https://github.com/caffeinism/film-pytorch)
 
 - **Base Model:** 
-![base](figures/base.png | width=512) 
+
+<img src='figures/base.png' width='512'>
 
 
 - **Decision Transformer model:** 
