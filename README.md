@@ -14,7 +14,7 @@ Reinforcement learning techniques have revolutionized robotic systems, enabling 
 - **Data Generation:** Utilized SAC agents for generating datasets encompassing visual information, state observations, actions, rewards, and success flags.
 - **Tasks:** button-press-topdown-v2, button-press-v2, door-lock-v2, door-open-v2, drawer-open-v2, window-open-v2, faucet-open-v2, faucet-close-v2, handle-press-v2, coffee-button-v2.
 
-![multi-env](figures/env_front.png) |  ![multi-env](figures/env_top.png)
+![multi-env](figures/env_front.png)  ![multi-env](figures/env_top.png)
 
 ### Algorithms Overview
 - **Soft Actor Critic (SAC):** more info can be found here (https://stable-baselines3.readthedocs.io/en/master/modules/sac.html)
@@ -28,11 +28,11 @@ Reinforcement learning techniques have revolutionized robotic systems, enabling 
 - **FiLM:** for more info: (https://github.com/caffeinism/film-pytorch)
 
 - **Base Model:** 
+![base](figures/base.png) 
 
 
 - **Decision Transformer model:** 
 ![DT](figures/dt.png) 
-![base](figures/base.png) 
 
 
 
