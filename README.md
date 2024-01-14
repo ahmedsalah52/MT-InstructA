@@ -40,10 +40,10 @@ task poses are 0 1 2 3 which are equivalent to right middle left Mix, which mean
 the training configs can be found under the directory configs/sac_configs/<task-name>.json 
 note: if task-name doesn't exist in the directory then defauld.json will be used
 
-- **dataset generation**
+- **dataset generation:**
 after training the SAC agents, you can use them for generating dataset, using generate_data.py script, the script gets:
-- arguments from train_utils/args.py
-- configs/general_model_configs/agents_dict.json to configure the best agent for every task
+arguments from train_utils/args.py
+configs/general_model_configs/agents_dict.json to configure the best agent for every task
 for data generation run:
 sh experiments/generate_dataset.sh
 
