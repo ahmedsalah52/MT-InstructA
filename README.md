@@ -31,7 +31,7 @@ Reinforcement learning techniques have revolutionized robotic systems, enabling 
 
 - **Base Model:** 
 
-<img src='figures/base.png' width='512'>
+    <img src='figures/base.png' width='384'>
 
 
 - **Decision Transformer model:** 
