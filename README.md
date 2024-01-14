@@ -20,14 +20,19 @@ Reinforcement learning techniques have revolutionized robotic systems, enabling 
 - **Soft Actor Critic (SAC):** more info can be found here (https://stable-baselines3.readthedocs.io/en/master/modules/sac.html)
 
 
-- **CLIP:** CLIP model was used to encode the images and Language instructions 
+- **CLIP:** CLIP model was used to encode the images using ViT as in the following figure and Language instructions using a transformer encoder.
 ![clip](figures/ViT.png) 
 
 
 
 - **FiLM:** for more info: (https://github.com/caffeinism/film-pytorch)
-- **Decision Transformer:** 
+
+- **Base Model:** 
+
+
+- **Decision Transformer model:** 
 ![DT](figures/dt.png) 
+![base](figures/base.png) 
 
 
 
@@ -62,9 +67,9 @@ many examples for different models for training or evaluation in experiments dir
   * train_dt_obs.sh for training decision transformer only using the vector observation without images
 
 - **references:**
-  Learning to Modulate pre-trained Models in RL: (https://arxiv.org/pdf/2306.14884.pdf)
-  Metaworld: (https://github.com/Farama-Foundation/Metaworld)
-  Soft-Actor-Critic: (https://arxiv.org/pdf/1801.01290v2.pdf)
-  CLIP: (https://github.com/openai/CLIP)
-  FiLM: (https://arxiv.org/pdf/1709.07871.pdf)
-  Decision Transformer: paper:(https://arxiv.org/pdf/2106.01345.pdf)   implementation from nanoGPT:(https://github.com/karpathy/nanoGPT) 
+  * Learning to Modulate pre-trained Models in RL: (https://arxiv.org/pdf/2306.14884.pdf)
+  * Metaworld: (https://github.com/Farama-Foundation/Metaworld)
+  * Soft-Actor-Critic: (https://arxiv.org/pdf/1801.01290v2.pdf)
+  * CLIP: (https://github.com/openai/CLIP)
+  * FiLM: (https://arxiv.org/pdf/1709.07871.pdf)
+  * Decision Transformer: paper:(https://arxiv.org/pdf/2106.01345.pdf)   implementation from nanoGPT:(https://github.com/karpathy/nanoGPT) 
