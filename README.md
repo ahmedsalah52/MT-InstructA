@@ -47,12 +47,11 @@ arguments from train_utils/args.py
   2. for data generation run:
 sh experiments/generate_dataset.sh
 
-- **general model training**
+- **general model training:**
 many examples for different models for training or evaluation in experiments directory, for example:
-* train_base.sh  for training base model (clip + linear head)
-* train_film.sh  for training base model (clip + film layers + linear head)
-* train_dt.sh    for training base model (clip + film layers + decision transformer)
-* finetune_dt.sh for training base model (clip + film layers + decision transformer + dt lora layers)
-
-* train_dt_obs.sh for training decision transformer only using the vector observation without images
+  * train_base.sh  for training base model (clip + linear head)
+  * train_film.sh  for training base model (clip + film layers + linear head)
+  * train_dt.sh    for training base model (clip + film layers + decision transformer)
+  * finetune_dt.sh for training base model (clip + film layers + decision transformer + dt lora layers)
+  * train_dt_obs.sh for training decision transformer only using the vector observation without images
 
