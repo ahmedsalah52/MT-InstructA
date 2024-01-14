@@ -33,7 +33,9 @@ for trying, run: python  test_single.py
 
 - **training script of baseline3 SAC:**  
 train_sac_on.py script is used to train a SAC agent on a single task, to use:
-python train_sac_on.py <task_name> <task_pos> 
+
+'python train_sac_on.py <task_name> <task_pos>'
+
 task_name i.e. button-press-v2 
 task_pos i.e. 0
 task poses are 0 1 2 3 which are equivalent to right middle left Mix, which means where the target task should be placed on the table
