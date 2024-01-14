@@ -61,14 +61,14 @@ arguments from train_utils/args.py
   2. for data generation run:
 sh experiments/generate_dataset.sh
 
-- **general model training:**
+- **general model training and RL fine-tuning:**
 many examples for different models for training or evaluation in experiments directory, for example:
   * train_base.sh  for training base model (clip + linear head)
   * train_film.sh  for training base model (clip + film layers + linear head)
   * train_dt.sh    for training base model (clip + film layers + decision transformer)
   * finetune_dt.sh for training base model (clip + film layers + decision transformer + dt lora layers)
-  * train_dt_obs.sh for training decision transformer only using the vector observation without images
-
+  * train_dt_obs.sh for training decision transformer only using the vector observation without images.
+  * finetune_base_rl.sh for fine tuning a pretrained model with PPO using baseline3 framework (we did not get promising results with this yet) 
 - **Installations**
   * for Metaworld installations, please follow the instrucions in Metaworld repo (https://github.com/Farama-Foundation/Metaworld) or in L2M repo (https://github.com/ml-jku/L2M)
   * Baseline3: (https://stable-baselines3.readthedocs.io/en/master/guide/install.html)
