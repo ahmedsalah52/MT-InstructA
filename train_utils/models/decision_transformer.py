@@ -15,325 +15,239 @@ from collections import deque
 
 
 
-class DecisionTransformer_multi(TrajectoryModel):
+import math
+import inspect
+from dataclasses import dataclass
 
-    """
-    This model uses GPT to model (Return_1, state_1, action_1, Return_2, state_2, ...)
-    """
+import torch
+import torch.nn as nn
+from torch.nn import functional as F
 
-    def __init__(
-            self,
-            state_dim,
-            state_len,
-            act_dim,
-            command_dim,
-            pos_emp,
-            hidden_size,
-            max_length=None,
-            max_ep_len=4096,
-            action_tanh=True,
-            **kwargs
-    ):
-        super().__init__(state_dim, act_dim, max_length=max_length)
+class LayerNorm(nn.Module):
+    """ LayerNorm but with an optional bias. PyTorch doesn't support simply bias=False """
 
-        self.hidden_size = hidden_size
-        self.pos_emp = pos_emp
-        self.command_dim = command_dim
-        self.step_len = state_len + 3
+    def __init__(self, ndim, bias):
+        super().__init__()
+        self.weight = nn.Parameter(torch.ones(ndim))
+        self.bias = nn.Parameter(torch.zeros(ndim)) if bias else None
 
+    def forward(self, input):
+        return F.layer_norm(input, self.weight.shape, self.weight, self.bias, 1e-5)
 
-        config = transformers.GPT2Config(
-            vocab_size=1,  # doesn't matter -- we don't use the vocab
-            n_embd=hidden_size,
-            n_inner=self.step_len*hidden_size +1,
-            **kwargs
-        )
-       
-        # note: the only difference between this GPT2Model and the default Huggingface version
-        # is that the positional embeddings are removed (since we'll add those ourselves)
-        self.transformer = GPT2Model(config)
+class CausalSelfAttention(nn.Module):
 
-        self.embed_timestep = nn.Embedding(max_ep_len, hidden_size)
-        self.embed_command = torch.nn.Linear(self.command_dim, hidden_size)
-        self.embed_state = nn.ModuleList([torch.nn.Linear(self.state_dim, hidden_size) for _ in range(state_len)]) 
-        self.embed_action = torch.nn.Linear(self.act_dim, hidden_size)
-        self.embed_pos = torch.nn.Linear(self.pos_emp, hidden_size)
-        self.embed_return = torch.nn.Linear(1, hidden_size)
+    def __init__(self, config):
+        super().__init__()
+        assert config.n_embd % config.n_head == 0
+        # key, query, value projections for all heads, but in a batch
+        self.c_attn = nn.Linear(config.n_embd, 3 * config.n_embd, bias=config.bias)
+        # output projection
+        self.c_proj = nn.Linear(config.n_embd, config.n_embd, bias=config.bias)
+        # regularization
+        self.attn_dropout = nn.Dropout(config.dropout)
+        self.resid_dropout = nn.Dropout(config.dropout)
+        self.n_head = config.n_head
+        self.n_embd = config.n_embd
+        self.dropout = config.dropout
+        # flash attention make GPU go brrrrr but support is only in PyTorch >= 2.0
+        self.flash = hasattr(torch.nn.functional, 'scaled_dot_product_attention')
+        if not self.flash:
+            print("WARNING: using slow attention. Flash Attention requires PyTorch >= 2.0")
+            # causal mask to ensure that attention is only applied to the left in the input sequence
+            self.register_buffer("bias", torch.tril(torch.ones(config.block_size, config.block_size))
+                                        .view(1, 1, config.block_size, config.block_size))
 
-        self.embed_ln = nn.LayerNorm(hidden_size)
+    def forward(self, x):
+        B, T, C = x.size() # batch size, sequence length, embedding dimensionality (n_embd)
 
-        # note: we don't predict states or returns for the paper
-        #self.predict_state = torch.nn.Linear(hidden_size, self.state_dim)
-        self.predict_action = nn.Sequential(
-            *([nn.Linear(hidden_size, self.act_dim)] + ([nn.Tanh()] if action_tanh else []))
-        )
+        # calculate query, key, values for all heads in batch and move head forward to be the batch dim
+        q, k, v  = self.c_attn(x).split(self.n_embd, dim=2)
+        k = k.view(B, T, self.n_head, C // self.n_head).transpose(1, 2) # (B, nh, T, hs)
+        q = q.view(B, T, self.n_head, C // self.n_head).transpose(1, 2) # (B, nh, T, hs)
+        v = v.view(B, T, self.n_head, C // self.n_head).transpose(1, 2) # (B, nh, T, hs)
 
-        self.predict_reward = torch.nn.Linear(hidden_size, 1)
-        self.ReLU = nn.ReLU()
-        #self.command_preds = torch.nn.Linear(hidden_size, command_dim)
+        # causal self-attention; Self-attend: (B, nh, T, hs) x (B, nh, hs, T) -> (B, nh, T, T)
+        if self.flash:
+            # efficient attention using Flash Attention CUDA kernels
+            y = torch.nn.functional.scaled_dot_product_attention(q, k, v, attn_mask=None, dropout_p=self.dropout if self.training else 0, is_causal=True)
+        else:
+            # manual implementation of attention
+            att = (q @ k.transpose(-2, -1)) * (1.0 / math.sqrt(k.size(-1)))
+            att = att.masked_fill(self.bias[:,:,:T,:T] == 0, float('-inf'))
+            att = F.softmax(att, dim=-1)
+            att = self.attn_dropout(att)
+            y = att @ v # (B, nh, T, T) x (B, nh, T, hs) -> (B, nh, T, hs)
+        y = y.transpose(1, 2).contiguous().view(B, T, C) # re-assemble all head outputs side by side
 
-    def forward(self, states, actions, poses, command,returns_to_go, timesteps, attention_mask=None):
+        # output projection
+        y = self.resid_dropout(self.c_proj(y))
+        return y
 
-        batch_size, seq_length = states.shape[0], states.shape[1]
-        if attention_mask is None:
-            # attention mask for GPT: 1 if can be attended to, 0 if not
-            attention_mask = torch.ones((batch_size, seq_length), dtype=torch.long).to(states.device)
-        #command = command[:,0:1] #only first command
-        # embed each modality with a different head
-        state_embeddings = [state_emp(states) for i,state_emp in enumerate(self.embed_state)]
-        action_embeddings = self.embed_action(actions)
-        command_embeddings = self.embed_command(command)
-        time_embeddings = self.embed_timestep(timesteps)
-        pos_embeddings  = self.embed_pos(poses)
-        returns_embeddings  = self.embed_return(returns_to_go)
+class MLP(nn.Module):
 
-        # time embeddings are treated similar to positional embeddings
-        state_embeddings = [state + time_embeddings for state in state_embeddings]
-        action_embeddings = action_embeddings + time_embeddings
-        #command_embeddings = command_embeddings + time_embeddings
-        pos_embeddings  = pos_embeddings + time_embeddings
-        returns_embeddings = returns_embeddings + time_embeddings
-        # this makes the sequence look like (R_1, s_1, a_1, R_2, s_2, a_2, ...)
-        # which works nice in an autoregressive sense since states predict actions
-        stacked_inputs = torch.stack(
-            (returns_embeddings,pos_embeddings, *state_embeddings,action_embeddings), dim=1
-        ).permute(0, 2, 1, 3).reshape(batch_size, self.step_len*seq_length, self.hidden_size)
-        stacked_inputs = torch.cat((command_embeddings,stacked_inputs), dim=1)
+    def __init__(self, config):
+        super().__init__()
+        self.c_fc    = nn.Linear(config.n_embd, 4 * config.n_embd, bias=config.bias)
+        self.gelu    = nn.GELU()
+        self.c_proj  = nn.Linear(4 * config.n_embd, config.n_embd, bias=config.bias)
+        self.dropout = nn.Dropout(config.dropout)
+
+    def forward(self, x):
+        x = self.c_fc(x)
+        x = self.gelu(x)
+        x = self.c_proj(x)
+        x = self.dropout(x)
+        return x
+
+class Block(nn.Module):
+
+    def __init__(self, config):
+        super().__init__()
+        self.ln_1 = LayerNorm(config.n_embd, bias=config.bias)
+        self.attn = CausalSelfAttention(config)
+        self.ln_2 = LayerNorm(config.n_embd, bias=config.bias)
+        self.mlp = MLP(config)
+
+    def forward(self, x):
+        x = x + self.attn(self.ln_1(x))
+        x = x + self.mlp(self.ln_2(x))
+        return x
+
+class GPT(nn.Module):
+
+    def __init__(self, config):
+        super().__init__()
+        #assert config.vocab_size is not None
+        assert config.block_size is not None
+        self.config = config
+
+        self.transformer = nn.ModuleDict(dict(
+            time_encoder     = nn.Embedding(config.max_episode_len, config.n_embd),
+            #state_encoder    = nn.Linear(config.state_size   ,config.n_embd),
+            state_encoder    = nn.ModuleList([
+                               nn.Linear(config.state_size, config.n_embd) 
+                               for _ in range(config.n_cams)]),
+
+            returns_encoder  = nn.Linear(1                   ,config.n_embd),
+            actions_encoder  = nn.Linear(config.action_size  ,config.n_embd),
+            commands_encoder = nn.Linear(config.command_size ,config.n_embd),
+            hand_pos_encoder = nn.Linear(config.hand_pos_size,config.n_embd),
+            drop = nn.Dropout(config.dropout),
+            h = nn.ModuleList([Block(config) for _ in range(config.n_layer)]),
+            ln_f = LayerNorm(config.n_embd, bias=config.bias),
+        ))
+        self.step_len = config.step_len
+        self.action_head = nn.Sequential(nn.Linear(config.n_embd, config.action_size, bias=True),
+                                         nn.Tanh())
         
-        stacked_inputs = self.embed_ln(stacked_inputs)
+        self.reward_head = nn.Sequential(nn.Linear(config.n_embd, 1, bias=True),
+                                         nn.Sigmoid())
 
-        # to make the attention mask fit the stacked inputs, have to stack it as well
-        stacked_attention_mask = torch.stack(
-            [attention_mask]*self.step_len, dim=1
-        ).permute(0, 2, 1).reshape(batch_size, self.step_len*seq_length)
-        stacked_attention_mask = torch.cat((stacked_attention_mask, torch.ones((batch_size, 1), dtype=torch.long).to(stacked_attention_mask.device)), dim=1)
+        # with weight tying when using torch.compile() some warnings get generated:
+        # "UserWarning: functional_call was passed multiple values for tied weights.
+        # This behavior is deprecated and will be an error in future versions"
+        # not 100% sure what this is, so far seems to be harmless. TODO investigate
+        #self.transformer.wte.weight = self.lm_head.weight # https://paperswithcode.com/method/weight-tying
 
-        # we feed in the input embeddings (not word indices as in NLP) to the model
-        transformer_outputs = self.transformer(
-            inputs_embeds=stacked_inputs,
-            attention_mask=stacked_attention_mask,
-        )
-        x = transformer_outputs['last_hidden_state']
+        # init all weights
+        self.apply(self._init_weights)
+        # apply special scaled init to the residual projections, per GPT-2 paper
+        for pn, p in self.named_parameters():
+            if pn.endswith('c_proj.weight'):
+                torch.nn.init.normal_(p, mean=0.0, std=0.02/math.sqrt(2 * config.n_layer))
 
-        # reshape x so that the second dimension corresponds to the original
-        # returns (0) pos (1), command (2), state (3) , action (4); i.e. x[:,1,t] is the token for s_t
-        x = x[:,1:].reshape(batch_size, seq_length, self.step_len, self.hidden_size).permute(0, 2, 1, 3)
+        # report number of parameters
+        print("number of parameters: %.2fM" % (self.get_num_params()/1e6,))
 
-        # get predictions
-       
-        reward_preds = self.predict_reward(x[:,-1])  
-        #state_preds  = self.predict_state(x[:,2])    
-        action_preds = self.predict_action(x[:,-2])   # predict next action given state
+    def get_num_params(self, non_embedding=True):
+        """
+        Return the number of parameters in the model.
+        For non-embedding count (default), the position embeddings get subtracted.
+        The token embeddings would too, except due to the parameter sharing these
+        params are actually used as weights in the final layer, so we include them.
+        """
+        n_params = sum(p.numel() for p in self.parameters())
+        if non_embedding:
+            n_params -= self.transformer.time_encoder.weight.numel()
+        return n_params
 
-        return action_preds,self.ReLU(reward_preds)
+    def _init_weights(self, module):
+        if isinstance(module, nn.Linear):
+            torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
+            if module.bias is not None:
+                torch.nn.init.zeros_(module.bias)
+        elif isinstance(module, nn.Embedding):
+            torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
 
-    
+    def forward(self, commands,returns_to_go, states, hand_poses, actions,time_steps):
+        b, t , _ = states.size()
 
-class DecisionTransformer_2cams(TrajectoryModel):
+        # encode time steps
+        time_emb = self.transformer.time_encoder(time_steps)
+        time_emb = self.transformer.drop(time_emb)
 
-    """
-    This model uses GPT to model (Return_1, state_1, action_1, Return_2, state_2, ...)
-    """
-
-    def __init__(
-            self,
-            state_dim,
-            state_len,
-            act_dim,
-            command_dim,
-            pos_emp,
-            hidden_size,
-            max_length=None,
-            max_ep_len=4096,
-            action_tanh=True,
-            **kwargs
-    ):
-        super().__init__(state_dim, act_dim, max_length=max_length)
+        #split state into cams
+        states = states.reshape(b,t,-1,self.config.state_size)
+        #encode all inputs to emb_size and add time_emb
+        returns_to_go = self.transformer.returns_encoder(returns_to_go) + time_emb
+        states        = [encoder(states[:,:,i,:]) + time_emb for i,encoder in enumerate(self.transformer.state_encoder)]
+        hand_poses    = self.transformer.hand_pos_encoder(hand_poses)   + time_emb
+        actions       = self.transformer.actions_encoder(actions)       + time_emb
+        commands      = self.transformer.commands_encoder(commands)
 
         
-        config = transformers.GPT2Config(
-            vocab_size=1,  # doesn't matter -- we don't use the vocab
-            n_embd=hidden_size,
-            **kwargs
-        )
-        self.hidden_size = hidden_size
-        self.pos_emp = pos_emp
-        self.command_dim = command_dim
-        self.step_len = state_len + 2
-        # note: the only difference between this GPT2Model and the default Huggingface version
-        # is that the positional embeddings are removed (since we'll add those ourselves)
-        self.transformer = GPT2Model(config)
-
-        self.embed_timestep = nn.Embedding(max_ep_len, hidden_size)
-        self.embed_command = torch.nn.Linear(self.command_dim, hidden_size)
-        self.embed_state = nn.ModuleList([torch.nn.Linear(self.state_dim, hidden_size) for _ in range(state_len)]) 
-        #self.embed_action = torch.nn.Linear(self.act_dim, hidden_size)
-        #self.embed_pos = torch.nn.Linear(self.pos_emp, hidden_size)
-        self.embed_return = torch.nn.Linear(1, hidden_size)
-
-        self.embed_ln = nn.LayerNorm(hidden_size)
-
-        # note: we don't predict states or returns for the paper
-        #self.predict_state = torch.nn.Linear(hidden_size, self.state_dim)
-        self.predict_action = nn.Sequential(
-            *([nn.Linear(hidden_size, self.act_dim)] + ([nn.Tanh()] if action_tanh else []))
-        )
-        #self.command_preds = torch.nn.Linear(hidden_size, command_dim)
-
-    def forward(self, states, actions, pos_embeddings, command,returns_to_go, timesteps, attention_mask=None):
-
-        batch_size, seq_length = states.shape[0], states.shape[1]
-        if attention_mask is None:
-            # attention mask for GPT: 1 if can be attended to, 0 if not
-            attention_mask = torch.ones((batch_size, seq_length), dtype=torch.long)
-
-        # embed each modality with a different head
-        state_embeddings = [state_emp(states[:,:,i,:]) for i,state_emp in enumerate(self.embed_state)]
-        #action_embeddings = self.embed_action(actions)
-        command_embeddings = self.embed_command(command)
-        time_embeddings = self.embed_timestep(timesteps)
-        #pos_embeddings  = self.embed_pos(poses)
-        returns_embeddings  = self.embed_return(returns_to_go)
-
-        # time embeddings are treated similar to positional embeddings
-        state_embeddings = [state + time_embeddings for state in state_embeddings]
-        #action_embeddings = action_embeddings + time_embeddings
-        #command_embeddings = command_embeddings + time_embeddings
-        pos_embeddings  = pos_embeddings + time_embeddings
-        returns_embeddings = returns_embeddings + time_embeddings
-        # this makes the sequence look like (R_1, s_1, a_1, R_2, s_2, a_2, ...)
-        # which works nice in an autoregressive sense since states predict actions
-        stacked_inputs = torch.stack(
-            (returns_embeddings,pos_embeddings, *state_embeddings), dim=1
-        ).permute(0, 2, 1, 3).reshape(batch_size, self.step_len*seq_length, self.hidden_size)
+        stacked_sequence = torch.stack([returns_to_go, *states, hand_poses, actions],dim=1).transpose(1,2)
+        stacked_sequence = torch.flatten(stacked_sequence,start_dim=1,end_dim=2)
+        stacked_sequence = torch.cat([commands,stacked_sequence],dim=1)
         
-        #add command 
-        stacked_inputs = torch.cat((command_embeddings,stacked_inputs), dim=1)
-        stacked_inputs = self.embed_ln(stacked_inputs)
+        stacked_sequence = self.transformer.ln_f(stacked_sequence)
 
-        # to make the attention mask fit the stacked inputs, have to stack it as well
-        stacked_attention_mask = torch.stack(
-            [attention_mask]*self.step_len, dim=1
-        ).permute(0, 2, 1).reshape(batch_size, self.step_len*seq_length)
+        for block in self.transformer.h:
+            stacked_sequence = block(stacked_sequence)
 
-        # we feed in the input embeddings (not word indices as in NLP) to the model
-        
-        #add command mask
-        stacked_attention_mask = torch.cat((stacked_attention_mask, torch.ones((batch_size, 1), dtype=torch.long).to(stacked_attention_mask.device)), dim=1)
+        #stacked_sequence[:,0] # out after the command
+        stacked_sequence = stacked_sequence[:,1:].reshape(b,t,self.step_len,-1) # b , t , step_len , emb_dim
+        stacked_sequence = stacked_sequence.transpose(1,2) # b , step_len , t , emb_dim
 
-        transformer_outputs = self.transformer(
-            inputs_embeds=stacked_inputs,
-            attention_mask=stacked_attention_mask,
-        )
-       
-        x = transformer_outputs['last_hidden_state']
-
-        # reshape x so that the second dimension corresponds to the original
-        # returns (0) pos (1), command (2), state (3) , action (4); i.e. x[:,1,t] is the token for s_t
-        x = x[:,1:].reshape(batch_size, seq_length, self.step_len, self.hidden_size).permute(0, 2, 1, 3)
-
-        # get predictions
-        #command_preds = self.command_preds(x[:,0])  
-        #state_preds  = self.predict_state(x[:,2])    
-        action_preds = self.predict_action(x[:,-1])   # predict next action given state
-
-        return action_preds
-
-    
+        actions_pred = self.action_head(stacked_sequence[:,-2]) # step  -> return, state , hand_pos, actions # we predict the actions after the hand_pos 
+        rewards_pred = self.reward_head(stacked_sequence[:,-1]) # we predict the rewards after the actions
+        return actions_pred,rewards_pred
 
 
-class DecisionTransformer(TrajectoryModel):
+    def configure_optimizers(self, weight_decay, learning_rate, cuda_device):
+        # start with all of the candidate parameters
+        param_dict = {pn: p for pn, p in self.named_parameters()}
+        # filter out those that do not require grad
+        param_dict = {pn: p for pn, p in param_dict.items() if p.requires_grad}
+        # create optim groups. Any parameters that is 2D will be weight decayed, otherwise no.
+        # i.e. all weight tensors in matmuls + embeddings decay, all biases and layernorms don't.
+        decay_params = [p for n, p in param_dict.items() if p.dim() >= 2]
+        nodecay_params = [p for n, p in param_dict.items() if p.dim() < 2]
+        optim_groups = [
+            {'params': decay_params, 'weight_decay': weight_decay},
+            {'params': nodecay_params, 'weight_decay': 0.0}
+        ]
+        num_decay_params = sum(p.numel() for p in decay_params)
+        num_nodecay_params = sum(p.numel() for p in nodecay_params)
+        print(f"num decayed parameter tensors: {len(decay_params)}, with {num_decay_params:,} parameters")
+        print(f"num non-decayed parameter tensors: {len(nodecay_params)}, with {num_nodecay_params:,} parameters")
+        # Create AdamW optimizer and use the fused version if it is available
+        fused_available = 'fused' in inspect.signature(torch.optim.AdamW).parameters
+        use_fused = fused_available and cuda_device
+        print(f"fused available: {fused_available} , cuda available: {cuda_device}")
+        #extra_args = dict(fused=True) if use_fused else dict()
+        optimizer = torch.optim.AdamW(optim_groups, lr=learning_rate,fused=use_fused)
+        print(f"using fused AdamW: {use_fused}")
 
-    """
-    This model uses GPT to model (Return_1, state_1, action_1, Return_2, state_2, ...)
-    """
-
-    def __init__(
-            self,
-            state_dim,
-            act_dim,
-            hidden_size,
-            max_length=None,
-            max_ep_len=4096,
-            action_tanh=True,
-            **kwargs
-    ):
-        super().__init__(state_dim, act_dim, max_length=max_length)
-
-        self.hidden_size = hidden_size
-        config = transformers.GPT2Config(
-            vocab_size=1,  # doesn't matter -- we don't use the vocab
-            n_embd=hidden_size,
-            **kwargs
-        )
-
-        # note: the only difference between this GPT2Model and the default Huggingface version
-        # is that the positional embeddings are removed (since we'll add those ourselves)
-        self.transformer = GPT2Model(config)
-
-        self.embed_timestep = nn.Embedding(max_ep_len, hidden_size)
-        self.embed_return = torch.nn.Linear(1, hidden_size)
-        self.embed_state = torch.nn.Linear(self.state_dim, hidden_size)
-        self.embed_action = torch.nn.Linear(self.act_dim, hidden_size)
-
-        self.embed_ln = nn.LayerNorm(hidden_size)
-
-        # note: we don't predict states or returns for the paper
-        self.predict_action = nn.Sequential(
-            *([nn.Linear(hidden_size, self.act_dim)] + ([nn.Tanh()] if action_tanh else []))
-        )
-        self.predict_return = torch.nn.Linear(hidden_size, 1)
-
-    def forward(self, states, actions, rewards, returns_to_go, timesteps, attention_mask=None):
-
-        batch_size, seq_length = states.shape[0], states.shape[1]
-
-        if attention_mask is None:
-            # attention mask for GPT: 1 if can be attended to, 0 if not
-            attention_mask = torch.ones((batch_size, seq_length), dtype=torch.long)
-
-        # embed each modality with a different head
-        state_embeddings = self.embed_state(states)
-        action_embeddings = self.embed_action(actions)
-        returns_embeddings = self.embed_return(returns_to_go)
-        time_embeddings = self.embed_timestep(timesteps)
-
-        # time embeddings are treated similar to positional embeddings
-        state_embeddings = state_embeddings + time_embeddings
-        action_embeddings = action_embeddings + time_embeddings
-        returns_embeddings = returns_embeddings + time_embeddings
-
-        # this makes the sequence look like (R_1, s_1, a_1, R_2, s_2, a_2, ...)
-        # which works nice in an autoregressive sense since states predict actions
-        stacked_inputs = torch.stack(
-            (returns_embeddings, state_embeddings, action_embeddings), dim=1
-        ).permute(0, 2, 1, 3).reshape(batch_size, 3*seq_length, self.hidden_size)
-        stacked_inputs = self.embed_ln(stacked_inputs)
-
-        # to make the attention mask fit the stacked inputs, have to stack it as well
-        stacked_attention_mask = torch.stack(
-            (attention_mask, attention_mask, attention_mask), dim=1
-        ).permute(0, 2, 1).reshape(batch_size, 3*seq_length)
-
-        # we feed in the input embeddings (not word indices as in NLP) to the model
-        transformer_outputs = self.transformer(
-            inputs_embeds=stacked_inputs,
-            attention_mask=stacked_attention_mask,
-        )
-        x = transformer_outputs['last_hidden_state']
-
-        # reshape x so that the second dimension corresponds to the original
-        # returns (0), states (1), or actions (2); i.e. x[:,1,t] is the token for s_t
-        x = x.reshape(batch_size, seq_length, 3, self.hidden_size).permute(0, 2, 1, 3)
-
-        # get predictions
-        return_preds = self.predict_return(x[:,2])  # predict next return given state and action
-        action_preds = self.predict_action(x[:,1])  # predict next action given state
-
-        return  action_preds, return_preds
+        return optimizer
 
 
-class DL_model(arch):
+    @property
+    def device(self):
+        return next(self.parameters())
+   
+
+class DT_model(arch):
     def __init__(self,args) -> None:
         super().__init__(args)
         self.args = args
@@ -344,40 +258,28 @@ class DL_model(arch):
         self.preprocess_image = self.backbone.preprocess_image
         self.prompt = args.prompt
         self.prompt_scale = args.prompt_scale 
+        self.reward_norm = args.reward_norm
+        self.tasks = args.tasks
+        @dataclass
+        class GPTConfig:
+            seq_len: int = args.seq_len
+            step_len: int = 3 + len(args.cams)
+            block_size: int = (seq_len*step_len) + 1
+            n_cams: int = len(args.cams)
+            #vocab_size: int = None # GPT-2 vocab_size of 50257, padded up to nearest multiple of 64 for efficiency
+            max_episode_len: int = args.max_ep_len
+            state_size: int = args.imgs_emps 
+            action_size: int = args.action_dim
+            command_size: int = args.instuction_emps
+            hand_pos_size: int = args.pos_dim
+            n_layer: int = args.dt_n_layer
+            n_head: int = args.dt_n_head
+            n_embd: int = args.dt_embed_dim
+            dropout: float = args.dt_dropout
+            bias: bool = False # True: bias in Linears and LayerNorms, like GPT-2. False: a bit better and faster
 
-        self.dl_model = DecisionTransformer_multi(
-            state_dim=len(args.cams)*args.imgs_emps,
-            state_len=1,#len(args.cams),
-            act_dim=args.action_dim,
-            command_dim=args.instuction_emps,
-            pos_emp=args.pos_dim,
-            max_length=args.seq_len,
-            max_ep_len=args.max_ep_len,
-            hidden_size=args.dt_embed_dim,
-            n_layer=args.dt_n_layer,
-            n_head=args.dt_n_head,
-            activation_function=args.dt_activation_function,
-            n_positions=1024,
-            resid_pdrop=args.dt_dropout,
-            attn_pdrop=args.dt_dropout,
-        )
-        """self.dl_model = DecisionTransformer(
-            state_dim=args.imgs_emps*len(args.cams),
-            state_len=1,#len(args.cams),
-            act_dim=args.action_dim,
-            command_dim=args.instuction_emps,
-            pos_emp=args.pos_emp,
-            max_length=args.seq_len,
-            max_ep_len=args.max_ep_len,
-            hidden_size=args.dt_embed_dim,
-            n_inner=args.dt_embed_dim*4,
-            n_layer=args.dt_n_layer,
-            n_head=args.dt_n_head,
-            activation_function=args.dt_activation_function,
-            n_positions=1024,
-            resid_pdrop=args.dt_dropout,
-            attn_pdrop=args.dt_dropout,
-        )"""
+        self.dt_model = GPT(GPTConfig())
+
     def reset_memory(self):
         args = self.args
         self.commands_embeddings = deque([], maxlen=1)  
@@ -387,7 +289,7 @@ class DL_model(arch):
         self.rewards             = deque([], maxlen=args.seq_len)  
         self.timesteps           = deque([], maxlen=args.seq_len)  
         self.attention_mask      = deque([], maxlen=args.seq_len)   
-        self.eval_return_to_go   = np.float32(self.args.target_rtg)/np.float32(self.prompt_scale)
+        self.eval_return_to_go   = 1.0
 
     def forward(self,batch):
         states_embeddings ,attention_mask,poses_embeddings= [],[],[]
@@ -408,37 +310,42 @@ class DL_model(arch):
         poses_embeddings    = torch.stack(poses_embeddings,dim=0).transpose(1,0).to(self.device)
         actions             = torch.stack(batch['action'],dim=0).transpose(1,0).to(self.device)
         timesteps           = torch.stack(batch['timesteps'],dim=0).transpose(1,0).to(self.device)
-        returns_to_go       = torch.stack(batch[self.prompt],dim=0).unsqueeze(-1).transpose(1,0).float().to(self.device)
+        returns_to_go       = torch.stack(batch[self.prompt],dim=0).unsqueeze(-1).transpose(1,0).to(torch.float32).to(self.device)
         attention_mask      = torch.stack(attention_mask,dim=0).transpose(1,0).to(self.device)
-        returns_to_go/= self.prompt_scale
-
-        
+        #returns_to_go/= self.prompt_scale
         
 
-        action_preds,rewards_preds = self.dl_model.forward(
-            states_embeddings,
-            actions,
-            poses_embeddings,
-            commands_embeddings,
-            returns_to_go,
-            timesteps,
-            attention_mask=attention_mask,
+        action_preds,rewards_preds = self.dt_model(
+            commands= commands_embeddings,
+            returns_to_go= returns_to_go,
+            states=states_embeddings,
+            hand_poses=poses_embeddings, 
+            actions=actions,
+            time_steps=timesteps
         )
 
-        action_preds = action_preds.transpose(1,0)
-        rewards_preds = rewards_preds.transpose(1,0).squeeze(-1)
+        action_preds  = action_preds.transpose(1,0)
+        rewards_preds = rewards_preds.transpose(1,0)
         return action_preds,rewards_preds
     
     def train_step(self,batch,device,opts=None):
         y_actions = torch.stack(batch['action'],dim=0).to(device)
-        y_rewards = torch.stack(batch['reward'],dim=0).float().to(device)/self.prompt_scale
+        y_rewards = torch.stack(batch['reward'],dim=0).unsqueeze(-1).to(torch.float32).to(device)
+        attention_mask = torch.stack(batch['attention_mask'],dim=0).unsqueeze(-1).to(torch.long).to(self.device)
 
         pred_actions,pred_rewards = self.forward(batch)
         
-        actions_loss = self.loss_fun(pred_actions, y_actions)
-        rewards_loss = self.loss_fun(pred_rewards, y_rewards)
+        actions_loss = self.masked_loss_fun(y_actions, pred_actions, attention_mask.repeat(1,1,4)) 
+        rewards_loss = self.masked_loss_fun(y_rewards, pred_rewards, attention_mask)               
 
         return actions_loss + rewards_loss
+    def masked_loss_fun(self,y_gt, y,mask):
+        loss = (y_gt-y)**2
+        # Apply the mask to ignore padded steps
+        masked_loss = loss * mask
+        # Calculate the average loss over the non-padded steps
+        average_loss = torch.sum(masked_loss) / torch.sum(mask)
+        return average_loss
     
     def eval_step(self,input_step):
         batch_step = {k : v.to(self.device) if type(v) == torch.tensor else v  for k,v in input_step.items()}
@@ -465,40 +372,39 @@ class DL_model(arch):
         attention_mask      = torch.stack(list(self.attention_mask)     ,dim=0).transpose(1,0).to(self.device)
 
         if states_embeddings.shape[1]<self.args.seq_len:
-            delta_seq_len = self.args.seq_len - states_embeddings.shape[1]
-            states_embeddings = torch.cat([torch.zeros((1 ,delta_seq_len,states_embeddings.shape[2]),dtype=torch.float32).to(self.device),states_embeddings],dim=1)
-            poses_embeddings  = torch.cat([torch.zeros((1 ,delta_seq_len,poses_embeddings.shape[2]),dtype=torch.float32).to(self.device) ,poses_embeddings ],dim=1)
-            actions           = torch.cat([torch.zeros((1 ,delta_seq_len,actions.shape[2]),dtype=torch.float32).to(self.device)          ,actions          ],dim=1)
-            timesteps         = torch.cat([torch.zeros((1 ,delta_seq_len),dtype=torch.long).to(self.device)                              ,timesteps        ],dim=1)
-            returns_to_go     = torch.cat([torch.zeros((1 ,delta_seq_len),dtype=torch.float32).to(self.device)                           ,returns_to_go    ],dim=1)
-            attention_mask    = torch.cat([torch.zeros((1 ,delta_seq_len),dtype=torch.long).to(self.device)                              ,attention_mask   ],dim=1)
+            delta_seq_len     = self.args.seq_len - states_embeddings.shape[1]
+            states_embeddings = torch.cat([states_embeddings ,torch.zeros((1 ,delta_seq_len, states_embeddings.shape[2]),dtype=torch.float32).to(self.device)],dim=1)
+            poses_embeddings  = torch.cat([poses_embeddings  ,torch.zeros((1 ,delta_seq_len, poses_embeddings.shape[2]) ,dtype=torch.float32).to(self.device)],dim=1)
+            actions           = torch.cat([actions           ,torch.zeros((1 ,delta_seq_len, actions.shape[2])          ,dtype=torch.float32).to(self.device)],dim=1)
+            timesteps         = torch.cat([timesteps         ,torch.zeros((1 ,delta_seq_len)                            ,dtype=torch.long   ).to(self.device)],dim=1)
+            returns_to_go     = torch.cat([returns_to_go     ,torch.zeros((1 ,delta_seq_len)                            ,dtype=torch.float32).to(self.device)],dim=1)
+            attention_mask    = torch.cat([attention_mask    ,torch.zeros((1 ,delta_seq_len)                            ,dtype=torch.long   ).to(self.device)],dim=1)
         
         
-
-        action_preds,rewards_preds = self.dl_model.forward(
-        states_embeddings,
-        actions,
-        poses_embeddings,
-        commands_embeddings,
-        returns_to_go.unsqueeze(-1),
-        timesteps, 
-        attention_mask=attention_mask
+        
+        action_preds,rewards_preds = self.dt_model(
+            commands= commands_embeddings,
+            returns_to_go= returns_to_go.unsqueeze(-1),
+            states=states_embeddings,
+            hand_poses=poses_embeddings, 
+            actions=actions,
+            time_steps=timesteps
         )
         
 
-        """ if self.prompt != 'reward':
-            if self.args.use_env_reward:
-                self.eval_return_to_go -= input_step['reward']/self.prompt_scale
-            else:
-                self.eval_return_to_go -= (rewards_preds[0,-2] * attention_mask[0,-2])
-        """
-        if self.prompt != 'reward':
-            if self.args.use_env_reward:
-                self.eval_return_to_go -= input_step['reward']/self.prompt_scale
-            else:
-                self.eval_return_to_go -= (rewards_preds[0,-2] * attention_mask[0,-2])
-        self.actions[-1] = action_preds[:,-1]
-        return action_preds[0,-1]
+        current_ts = input_step['timesteps'].item()
+        current_ts = min(current_ts , self.args.seq_len-1)
+       
+        task_name = self.tasks[input_step['task_id'].item()]
+
+        #if self.prompt != 'reward':
+        if self.args.use_env_reward:
+            self.eval_return_to_go -= input_step['reward']/self.dataset_specs['max_return_to_go'][task_name]
+        else:
+            if current_ts > 0:
+                self.eval_return_to_go -= (rewards_preds[0,current_ts-1] * attention_mask[0,current_ts-1])
+        self.actions[-1] = action_preds[:,current_ts]
+        return action_preds[0,current_ts]
         
     def get_opt_params(self):
         params = self.backbone.get_opt_params() + [{"params": self.dt_model.parameters()}] 
@@ -508,8 +414,9 @@ class DL_model(arch):
         return params
     def get_optimizer(self):
         params = self.get_opt_params()
+        #return self.dt_model.configure_optimizers(learning_rate=self.args.lr,weight_decay=self.args.weight_decay,cuda_device= 'cuda' in str(self.device))
+        #return torch.optim.Adam(params,lr=self.args.lr)
 
-        return torch.optim.AdamW(params,lr=self.args.lr)
-
+        return torch.optim.AdamW(params,lr=self.args.lr,weight_decay=self.args.weight_decay)
 
    

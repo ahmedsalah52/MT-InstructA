@@ -9,10 +9,8 @@ from PIL import Image
 from torch.optim.lr_scheduler import StepLR
 from train_utils.models.base import base_model
 from train_utils.models.seq import seq_model
-from train_utils.models.decision_transformer2 import DT_model
-from train_utils.models.decision_transformer_obs2 import DL_model_obs
-from train_utils.models.decision_full_transformer_obs import DFT_model_obs
-from train_utils.models.decision_full_transformer import DFT_model
+from Metaworld.train_utils.models.decision_transformer import DT_model
+from Metaworld.train_utils.models.decision_transformer_obs import DL_model_obs
 from train_utils.models.dt_lora_obs import DL_lora_obs
 from train_utils.models.dt_lora import DT_lora
 from tqdm import tqdm
@@ -31,7 +29,7 @@ class TL_model(pl.LightningModule):
         self.batch_size = args.batch_size
         self.env = env
         self.wandb_logger = wandb_logger
-        models = {'base':base_model,'seq':seq_model,'dt':DT_model,'dt_obs':DL_model_obs,'dft_obs':DFT_model_obs,'dft':DFT_model,'dt_lora_obs':DL_lora_obs,'dt_lora':DT_lora}
+        models = {'base':base_model,'seq':seq_model,'dt':DT_model,'dt_obs':DL_model_obs,'dt_lora_obs':DL_lora_obs,'dt_lora':DT_lora}
         #print('TL model device is ',str(self.device))
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
