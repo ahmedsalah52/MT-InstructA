@@ -69,6 +69,11 @@ many examples for different models for training or evaluation in experiments dir
   * finetune_dt.sh for training base model (clip + film layers + decision transformer + dt lora layers)
   * train_dt_obs.sh for training decision transformer only using the vector observation without images
 
+- **Installations**
+  * for Metaworld installations, please follow the instrucions in Metaworld repo (https://github.com/Farama-Foundation/Metaworld) or in L2M repo (https://github.com/ml-jku/L2M)
+  * Baseline3: (https://stable-baselines3.readthedocs.io/en/master/guide/install.html)
+  * CLIP: (https://github.com/openai/CLIP)
+
 - **references:**
   * Learning to Modulate pre-trained Models in RL: (https://arxiv.org/pdf/2306.14884.pdf)
   * Metaworld: (https://github.com/Farama-Foundation/Metaworld)
