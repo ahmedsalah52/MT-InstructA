@@ -130,6 +130,9 @@ parser.add_argument('--lora_alpha', type=int, default=None)
 parser.add_argument('--success_threshold', type=float, default=0.95)
 parser.add_argument('--use_task_idx', action='store_true',help='by raising this flag, the task index will be used to pick the lora modules instead of a learnable key')
 
+#rl model params for fine tuning the general model
+parser.add_argument('--rl_model_layers',type=str,default='512,512,512')
+parser.add_argument('--obs_only', action='store_true') #to use the default obs without the images as input
 
 
 #testing
@@ -142,5 +145,6 @@ parser.add_argument('--vis_embeddings', action='store_true')
 def process_args(args):
     args.cams  = [int(c) for c in args.cams.split(',')]
     args.tasks = [c for c in args.tasks.split(',')]
+    args.rl_model_layers = [int(l) for l in args.rl_model_layers.split(',')]
 
     return args

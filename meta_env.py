@@ -27,13 +27,15 @@ from stable_baselines3.common.env_checker import check_env
 from stable_baselines3 import SAC
 from stable_baselines3.common.callbacks import BaseCallback,CheckpointCallback
 import copy
-from gymnasium.spaces import Dict, Box,Space
+from gymnasium.spaces import  Box,Space
 from stable_baselines3.common.buffers import ReplayBuffer
 from metaworld.envs.mujoco.env_dict import ALL_V2_ENVIRONMENTS_multi
 from metaworld.envs.build_random_envs import Multi_task_env
 import wandb
 from typing import Any, Dict, Generator, List, Optional, Union
 import gymnasium
+from collections import deque
+
 
 class Custom_replay_buffer(ReplayBuffer):
     def __init__(self, buffer_size: int, observation_space: Space, action_space: Space, device: str = "auto", n_envs: int = 1, optimize_memory_usage: bool = False, handle_timeout_termination: bool = True):
@@ -135,7 +137,7 @@ class meta_env(Env):
         self.prev_reward = 0
         
         if self.pos_emb_flag: obs = np.hstack((self.env.main_pos_index,obs))
-        return obs ,  {'images':images,'file_order':self.env.file_order if self.multi else -1,'success':0.0} # Reset environment
+        return obs ,  {'images':images,'file_order':self.env.file_order if self.multi else -1,'success':0.0,'is_success':False} # Reset environment
         
     def get_visual_obs_log(self):
         behindGripper  = self.env.render(offscreen= True,camera_name='behindGripper')
@@ -150,7 +152,7 @@ class meta_env(Env):
     def render(self, mode='human'):
         print('render________________________________________',self.env.current_task_variant)
         #super().render()
-        wandb.log({"frame": wandb.Image( cv2.rotate(cv2.cvtColor(self.env.render(offscreen= True,camera_name='behindGripper'),cv2.COLOR_RGB2BGR), cv2.ROTATE_180))})
+        #wandb.log({"frame": wandb.Image( cv2.rotate(cv2.cvtColor(self.env.render(offscreen= True,camera_name='behindGripper'),cv2.COLOR_RGB2BGR), cv2.ROTATE_180))})
         pass
     def get_images(self):
         return self.get_visual_obs()
@@ -175,12 +177,11 @@ class meta_env(Env):
                 self.rendered_seq = self.rendered_seq.transpose(0,3, 1, 2)
                 wandb.log({"video": wandb.Video(self.rendered_seq, fps=30)})
         if self.end_episode and self.wandb_log:
-            wandb.log({self.process+" success counter": self.success_counter})
-
-        
+            wandb.log({self.process+" success counter": self.success_counter})        
         
         info['images'] = images
         info['file_order'] = self.env.file_order if self.multi else -1
+        info['is_success'] = (info['success'] == 1.0)
 
         if self.pos_emb_flag: obs = np.hstack((self.env.main_pos_index,obs))
             
@@ -197,82 +198,103 @@ class meta_env(Env):
         return np.array(images)
     
 
+class sequence_metaenv(Env):
+    def __init__(self,commands_dict,images_obs,episode_length = 200,wandb_render = False,process='None',wandb_log = True,general_model = False,cams_ids=[0,1,2,3,4],max_seq_len=10,train=True):
+        super().__init__()
 
+        self.max_seq_len = max_seq_len
+        self.commands_dict = commands_dict
+        self.images_obs = images_obs
+        self.episode_length = episode_length
+        self.wandb_render = wandb_render
+        self.process = process
+        self.wandb_log = wandb_log
+        self.general_model = general_model
+        self.cams_ids = cams_ids
 
-class meta_Callback(BaseCallback):
-    """
-    A custom callback that derives from ``BaseCallback``.
+        #random_task = np.random.choice(list(self.commands_dict.keys()))
+        self.task_id = np.random.randint(len(self.commands_dict.keys()))
+        task_name = list(self.commands_dict.keys())[self.task_id]
+        self.command_id = np.random.randint(len(self.commands_dict[task_name]))
 
-    :param verbose: Verbosity level: 0 for no output, 1 for info messages, 2 for debug messages
-    """
-    def __init__(self, verbose=0,env=None,save_dir=None):
-        super(meta_Callback, self).__init__(verbose)
-        # Those variables will be accessible in the callback
-        # (they are defined in the base class)
-        # The RL model
-        # self.model = None  # type: BaseAlgorithm
-        # An alias for self.model.get_env(), the environment used for training
-        # self.training_env = None  # type: Union[gym.Env, VecEnv, None]
-        # Number of time the callback was called
-        # self.n_calls = 0  # type: int
-        # self.num_timesteps = 0  # type: int
-        # local and global variables
-        # self.locals = None  # type: Dict[str, Any]
-        # self.globals = None  # type: Dict[str, Any]
-        # The logger object, used to report things in the terminal
-        # self.logger = None  # stable_baselines3.common.logger
-        # # Sometimes, for event callback, it is useful
-        # # to have access to the parent object
-        # self.parent = None  # type: Optional[BaseCallback]
-        self.env = env
-        self.save_dir = save_dir
-    def _on_training_start(self) -> None:
-        """
-        This method is called before the first rollout starts.
-        """
-        print('_on_training_start ')
-        self.save_replay_buffer('_on_training_start ')
+        self.env = meta_env(task_name,task_pos=None,save_images=self.images_obs,variant=None,episode_length = self.episode_length,pos_emb_flag=False,wandb_render = self.wandb_render,multi = True,process='None',wandb_log = self.wandb_log,general_model = self.general_model,cams_ids=self.cams_ids)
+        self.action_space = self.env.action_space
 
-    def _on_rollout_start(self) -> None:
-        """
-        A rollout is the collection of environment interaction
-        using the current policy.
-        This event is triggered before collecting new samples.
-        """
-        print('_on_rollout_start')
+        observation_space = {#"hand_pos":Box(low=-1,high=1,shape=(max_seq_len,8),dtype=np.float32),
+                             #"task_idx":Box(low=-1,high=len(commands_dict),shape=(1,),dtype=np.int32),
+                             #"command_idx":Box(low=-1,high=500,shape=(1,),dtype=np.int32),
+                             #"actions":Box(low=-1,high=1,shape=(max_seq_len,4),dtype=np.float32),
+                            }
+        if images_obs:
+            observation_space["images"] = Box(low=0,high=255,shape=(max_seq_len,len(cams_ids),224,224,3),dtype=np.uint8)
+            observation_space['hand_pos']         = Box(low=-1,high=1                        ,shape=(max_seq_len,8),dtype=np.float32)
 
+            self.images_list   = deque([np.zeros((len(cams_ids),224,224,3))]*max_seq_len,maxlen=self.max_seq_len)
+            self.hand_pos_list = deque([np.zeros(8)]*max_seq_len,maxlen=self.max_seq_len)
 
+        else:
+            observation_space["obs"] = Box(low=-1,high=1,shape=(max_seq_len,39),dtype=np.float32)
+            self.obs_list      = deque([np.zeros(39)]*max_seq_len,maxlen=self.max_seq_len)
+        observation_space['command_dict_idx'] = Box(low=0,high=1                         ,shape=(max_seq_len,) ,dtype=np.int32)
+        observation_space['task_idx']         = Box(low=0,high=len(commands_dict)        ,shape=(max_seq_len,) ,dtype=np.int32)
+        observation_space['command_idx']      = Box(low=0,high=1000                      ,shape=(max_seq_len,) ,dtype=np.int32)
+        self.observation_space = gymnasium.spaces.Dict(observation_space)
+        
 
-    def _on_step(self) -> bool:
-        """
-        This method will be called by the model after each call to `env.step()`.
+        self.actions_list  = deque([np.zeros(4)]*max_seq_len,maxlen=self.max_seq_len)
+        self.command_dict_idx = 0 if train else 1
 
-        For child callback (of an `EventCallback`), this will be called
-        when the event is triggered.
+    def prepare_step(self,obs,images,aciton=np.zeros(4)):
+        
+        self.actions_list[-1] = aciton
+        self.actions_list.append(np.zeros(4))
+       
+        aciton   = np.stack(self.actions_list)
+       
 
-        :return: (bool) If the callback returns False, training is aborted early.
-        """
-        """if self.env.end_episode:
+        current_state = self.observation_space.sample()
+        #current_state["actions"]          = aciton
+        current_state["task_idx"]         = np.array([self.task_id],dtype=np.int32)   #task_id
+        current_state["command_idx"]      = np.array([self.command_id],dtype=np.int32) #command_id
+        current_state["command_dict_idx"] = np.array([self.command_dict_idx],dtype=np.int32)
+        if self.images_obs:
+            self.images_list.append(images)
+            images        = np.stack(self.images_list)
+            current_state["images"] = images
 
-            with open(os.path.join(self.save_dir,self.env.env.file_name+'-'+str(self.env.episode_number)+'-'+str(self.env.current_episode['info'][-1]['success']==1.0)+'.pkl'), 'wb') as fp:
-                pickle.dump(self.env.current_episode, fp)
-                print('Episode {}  {}  {}'.format(self.env.episode_number,self.env.env.file_name,self.env.current_episode['info'][-1]['success']))
-            self.env.episode_number  +=1
-            self.env.end_episode = False
-            self.env.current_episode = defaultdict(list)
-        """
-        print('step')
-        return True
+            self.hand_pos_list.append(np.concatenate((obs[0:4],obs[18:22]),axis = 0,dtype=np.float32))
+            hand_pos = np.stack(self.hand_pos_list)
+            current_state["hand_pos"]         = hand_pos
 
-    def _on_rollout_end(self) -> None:
-        """
-        This event is triggered before updating the policy.
-        """
-        print('_on_rollout_end')
-        self.save_replay_buffer('_on_rollout_end ')
+        else:
+            self.obs_list.append(obs)
+            obs        = np.stack(self.obs_list)
+            current_state["obs"] = obs
+        
+        return current_state 
+    
+ 
+    def reset(self,seed=None, options=None):
+        super().reset(seed=seed)
+        self.task_id = np.random.randint(len(self.commands_dict.keys()))
+        task_name = list(self.commands_dict.keys())[self.task_id]
+        self.command_id = np.random.randint(len(self.commands_dict[task_name]))
+        
+        self.env = meta_env(task_name,task_pos=None,save_images=self.images_obs,variant=None,episode_length = self.episode_length,pos_emb_flag=False,wandb_render = self.wandb_render,multi = True,process='None',wandb_log = self.wandb_log,general_model = self.general_model,cams_ids=self.cams_ids)
 
-    def _on_training_end(self) -> None:
-        """
-        This event is triggered before exiting the `learn()` method.
-        """
-        print('_on_training_end')
+        obs, first_info = self.env.reset()
+        images = first_info['images']
+        del first_info['images']
+        return self.prepare_step(obs,images) , first_info
+
+    def step(self,a):
+        
+        obs, reward, done ,success,info = self.env.step(a)
+        images = info['images']
+        del info['images']
+        return self.prepare_step(obs,images,a), reward, done ,success,info
+    def render(self, mode='human'):
+        pass
+  
+    def close(self):
+        self.env.close()

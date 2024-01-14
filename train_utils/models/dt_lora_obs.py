@@ -132,7 +132,7 @@ class GPT(nn.Module):
         #assert config.vocab_size is not None
         assert config.block_size is not None
         self.config = config
-
+        self.ret_hidden = config.ret_hidden
         self.transformer = nn.ModuleDict(dict(
             time_encoder     = nn.Embedding(config.max_episode_len, config.n_embd),
             state_encoder    = nn.Linear(config.state_size,config.n_embd),
@@ -219,6 +219,8 @@ class GPT(nn.Module):
         for block,lora_layer in zip(self.transformer.h,lora_layers):
             stacked_sequence = block(stacked_sequence,lora_layer)
 
+        if self.ret_hidden:
+            return stacked_sequence
         task_pred = self.task_head(stacked_sequence[:,0].reshape(b,-1)) # stacked_sequence[:,0] # out after the command
 
         stacked_sequence = stacked_sequence[:,1:].reshape(b,t,self.step_len,-1) # b , t , step_len , emb_dim

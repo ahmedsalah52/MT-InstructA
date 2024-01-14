@@ -1,0 +1,1 @@
+python train_RL.py   --neck film --load_weights /system/user/publicdata/mansour_datasets/metaworld/general_model/base_2cams/checkpoints/epoch=2-success_rate=0.80.ckpt --cams 2,4 --freeze_modules model --run_name finetune_base_rl

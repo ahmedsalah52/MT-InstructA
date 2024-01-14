@@ -154,7 +154,7 @@ class MW_dataset(Dataset):
                 traj_lens.append(len(self.data_dict[task][epi]))
                 for s in range(len(self.data_dict[task][epi])):
                     step = self.data_dict[task][epi][s]
-                    step['task_id'] = i 
+                    step['task_id'] = i
                     step['timesteps'] = s
                     step['return_to_go'] = return_to_go
                     return_to_go -= step['reward']
