@@ -43,6 +43,7 @@ class arch(nn.Module):
         return next(self.parameters()).device
     def set_dataset_specs(self,dataset_specs):
         self.dataset_specs = dataset_specs
+         
 class base_model(arch):
     def __init__(self,args) -> None:
         super().__init__(args)
