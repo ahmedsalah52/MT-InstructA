@@ -3,7 +3,7 @@
 ## Introduction
 Reinforcement learning techniques have revolutionized robotic systems, enabling versatile manipulation. Our research introduces a sophisticated agent adept at navigating a robotic manipulator through diverse tasks. This agent utilizes visual input and linguistic instructions for seamless transitions between activities, marking a transformative advancement in robotic control.
 
-![base](figures/base10_3.mp4) 
+![base](figures/base10_3.gif) 
 
 *Contact:* Ahmed Mansour - ahmed_salah1996@yahoo.com
 
