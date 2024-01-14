@@ -34,13 +34,13 @@ for trying, run: python  test_single.py
 - **training script of baseline3 SAC:**  
 train_sac_on.py script is used to train a SAC agent on a single task, to use:
 
-'python train_sac_on.py <task_name> <task_pos>'
+  'python train_sac_on.py <task_name> <task_pos>'
 
-task_name i.e. button-press-v2 
-task_pos i.e. 0
-task poses are 0 1 2 3 which are equivalent to right middle left Mix, which means where the target task should be placed on the table
-the training configs can be found under the directory configs/sac_configs/<task-name>.json 
-note: if task-name doesn't exist in the directory then defauld.json will be used
+  task_name i.e. button-press-v2 
+  task_pos i.e. 0
+  task poses are 0 1 2 3 which are equivalent to right middle left Mix, which means where the target task should be placed on the table
+  the training configs can be found under the directory configs/sac_configs/<task-name>.json 
+  note: if task-name doesn't exist in the directory then defauld.json will be used
 
 - **dataset generation:**
 after training the SAC agents, you can use them for generating dataset, using generate_data.py script, the script gets:
