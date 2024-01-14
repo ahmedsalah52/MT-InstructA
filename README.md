@@ -43,8 +43,8 @@ note: if task-name doesn't exist in the directory then defauld.json will be used
 - **dataset generation:**
 after training the SAC agents, you can use them for generating dataset, using generate_data.py script, the script gets:
 arguments from train_utils/args.py
-⋅⋅ 1. configs/general_model_configs/agents_dict.json to configure the best agent for every task
-⋅⋅ 2.  for data generation run:
+  1. configs/general_model_configs/agents_dict.json to configure the best agent for every task
+  2. for data generation run:
 sh experiments/generate_dataset.sh
 
 - **general model training**
