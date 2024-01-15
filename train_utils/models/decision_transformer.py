@@ -2,10 +2,8 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-import transformers
 
-from decision_transformer.models.model import TrajectoryModel
-from decision_transformer.models.trajectory_gpt2 import GPT2Model
+
 import torch.functional as F
 from train_utils.backbones import *
 from train_utils.necks.transformer import *

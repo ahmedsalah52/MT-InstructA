@@ -11,7 +11,6 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-import transformers
 import torch.functional as F
 from train_utils.backbones import *
 from train_utils.models.base import arch
