@@ -9,8 +9,8 @@ from PIL import Image
 from torch.optim.lr_scheduler import StepLR
 from train_utils.models.base import base_model
 from train_utils.models.seq import seq_model
-from Metaworld.train_utils.models.decision_transformer import DT_model
-from Metaworld.train_utils.models.decision_transformer_obs import DL_model_obs
+from train_utils.models.decision_transformer import DT_model
+from train_utils.models.decision_transformer_obs import DL_model_obs
 from train_utils.models.dt_lora_obs import DL_lora_obs
 from train_utils.models.dt_lora import DT_lora
 from tqdm import tqdm
