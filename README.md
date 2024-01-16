@@ -1,7 +1,9 @@
 # Multitask Instruction Agent
 
 ## Introduction
-Reinforcement learning techniques have revolutionized robotic systems, enabling versatile manipulation. Our research introduces a sophisticated agent adept at navigating a robotic manipulator through diverse tasks. This agent utilizes visual input and linguistic instructions for seamless transitions between activities, marking a transformative advancement in robotic control.
+Reinforcement learning techniques have improved robotic systems manipulation. 
+Our research introduces a sophisticated agent that navigats a robotic manipulator through diverse tasks. 
+Unlike traditional approaches, our method seamlessly transitions between activities using visual input and linguistic instructions. 
 
 ![base](figures/base10_3.gif) 
 
@@ -75,9 +77,10 @@ many examples for different models for training or evaluation in experiments dir
   * CLIP: (https://github.com/openai/CLIP)
 
 - **references:**
-  * Learning to Modulate pre-trained Models in RL: (https://arxiv.org/pdf/2306.14884.pdf)
-  * Metaworld: (https://github.com/Farama-Foundation/Metaworld)
   * Soft-Actor-Critic: (https://arxiv.org/pdf/1801.01290v2.pdf)
-  * CLIP: (https://github.com/openai/CLIP)
   * FiLM: (https://arxiv.org/pdf/1709.07871.pdf)
+  * Metaworld: (https://github.com/Farama-Foundation/Metaworld)
+  * CLIP: (https://github.com/openai/CLIP)
   * Decision Transformer: paper:(https://arxiv.org/pdf/2106.01345.pdf)   implementation from nanoGPT:(https://github.com/karpathy/nanoGPT) 
+  * Learning to Modulate pre-trained Models in RL: (https://arxiv.org/pdf/2306.14884.pdf)
+
