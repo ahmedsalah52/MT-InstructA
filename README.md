@@ -1,4 +1,4 @@
-# Multitask Instruction Agent
+# Multi-task Instruction Agent
 
 ## Introduction
 Reinforcement learning techniques have improved robotic systems manipulation. 
