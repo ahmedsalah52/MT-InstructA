@@ -121,11 +121,10 @@ class GPT(nn.Module):
 
         self.transformer = nn.ModuleDict(dict(
             time_encoder     = nn.Embedding(config.max_episode_len, config.n_embd),
-            #state_encoder    = nn.Linear(config.state_size   ,config.n_embd),
-            state_encoder    = nn.ModuleList([
-                               nn.Linear(config.state_size, config.n_embd) 
-                               for _ in range(config.n_cams)]),
-
+            state_encoder    = nn.Sequential(nn.Linear(config.state_size   ,config.n_embd),
+                                            nn.LayerNorm(config.n_embd),
+                                            nn.ReLU(),
+                                            nn.Linear(config.n_embd,config.n_embd)),
             returns_encoder  = nn.Linear(1                   ,config.n_embd),
             actions_encoder  = nn.Linear(config.action_size  ,config.n_embd),
             commands_encoder = nn.Linear(config.command_size ,config.n_embd),
@@ -185,16 +184,16 @@ class GPT(nn.Module):
         time_emb = self.transformer.drop(time_emb)
 
         #split state into cams
-        states = states.reshape(b,t,-1,self.config.state_size)
+        #states = states.reshape(b,t,-1,self.config.state_size)
         #encode all inputs to emb_size and add time_emb
         returns_to_go = self.transformer.returns_encoder(returns_to_go) + time_emb
-        states        = [encoder(states[:,:,i,:]) + time_emb for i,encoder in enumerate(self.transformer.state_encoder)]
+        states        = self.transformer.state_encoder(states)          + time_emb
         hand_poses    = self.transformer.hand_pos_encoder(hand_poses)   + time_emb
         actions       = self.transformer.actions_encoder(actions)       + time_emb
         commands      = self.transformer.commands_encoder(commands)
 
         
-        stacked_sequence = torch.stack([returns_to_go, *states, hand_poses, actions],dim=1).transpose(1,2)
+        stacked_sequence = torch.stack([returns_to_go, states, hand_poses, actions],dim=1).transpose(1,2)
         stacked_sequence = torch.flatten(stacked_sequence,start_dim=1,end_dim=2)
         stacked_sequence = torch.cat([commands,stacked_sequence],dim=1)
         
@@ -261,12 +260,12 @@ class DT_model(arch):
         @dataclass
         class GPTConfig:
             seq_len: int = args.seq_len
-            step_len: int = 3 + len(args.cams)
+            step_len: int = 4
             block_size: int = (seq_len*step_len) + 1
             n_cams: int = len(args.cams)
             #vocab_size: int = None # GPT-2 vocab_size of 50257, padded up to nearest multiple of 64 for efficiency
             max_episode_len: int = args.max_ep_len
-            state_size: int = args.imgs_emps 
+            state_size: int = args.imgs_emps * len(args.cams)
             action_size: int = args.action_dim
             command_size: int = args.instuction_emps
             hand_pos_size: int = args.pos_dim
