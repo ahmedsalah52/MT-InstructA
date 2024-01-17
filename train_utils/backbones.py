@@ -2,14 +2,7 @@ import torch.nn as nn
 import torch
 from torch import functional as F
 
-from transformers import DistilBertModel, DistilBertConfig, DistilBertTokenizer
-import timm
 import clip
-from torchvision import transforms
-
-
-
-
 
 class Open_AI_CLIP(nn.Module):
     def __init__(self,args):
