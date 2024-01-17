@@ -58,7 +58,7 @@ class TL_model(pl.LightningModule):
     def on_train_epoch_end(self):
         if self.eval_checkpoint and ((self.current_epoch % self.evaluate_every == 0) ):
             print(f"\n epoch {self.current_epoch}  evaluation on device {self.device}")
-            success_rate = self.evaluate_model()
+            success_rate,_ = self.evaluate_model()
             self.log("success_rate", success_rate,sync_dist=True,batch_size=self.batch_size,prog_bar=True) # type: ignore
 
         #torch.cuda.empty_cache()
@@ -82,12 +82,19 @@ class TL_model(pl.LightningModule):
             
         pbar.close()
         self.model.fill_success_idx(success_dict)
-        for task , row in success_dict.items(): print(f'success rate in {task} with mean {np.mean([c/self.evaluation_episodes for c in row.values()])} and detailed {[[k,c/self.evaluation_episodes] for k,c in row.items()]}')
+        for task , row in success_dict.items(): 
+            task_scores = [c/self.evaluation_episodes for c in row.values()]
+            mean = np.mean(task_scores)
+            std = np.std(task_scores)
+            for pos in row.keys():
+                success_dict[task][pos]/= self.evaluation_episodes
+            print(f'success rate in {task} with mean {mean} and std {std} and detailed {[[k,c/self.evaluation_episodes] for k,c in row.items()]}')
         success_rate =  np.mean(total_success)
-        print('total success rate',success_rate)         
-            #self.log(task, np.mean(success_rate_row),sync_dist=True,batch_size=self.batch_size) # type: ignore
+        print('total mean',success_rate)
+        print('total std',np.std(total_success))
+        #self.log(task, np.mean(success_rate_row),sync_dist=True,batch_size=self.batch_size) # type: ignore
         self.train()
-        return success_rate
+        return success_rate,success_dict
 
 
     def run_epi(self,task,pos):

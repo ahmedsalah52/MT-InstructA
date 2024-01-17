@@ -44,7 +44,7 @@ def main():
     torch.manual_seed(args.seed)
     torch.cuda.manual_seed_all(args.seed)
 
-    success_rate = model.evaluate_model()
+    success_rate,detailed_dict = model.evaluate_model()
     to_log = f'model {args.load_checkpoint_path} with success rate {success_rate} - {args.run_name}'
     print('-'*50)
     print(to_log)
@@ -52,6 +52,9 @@ def main():
     with open(os.path.join(os.path.split(args.load_checkpoint_path)[0],'logs.txt'),'a') as f:
         f.write(to_log+'\n')
 
+    #save the detailed dict in json file
+    with open(os.path.join(os.path.split(args.load_checkpoint_path)[0],os.path.split(args.load_checkpoint_path)[-1]).replace('.ckpt',f'{args.run_name}.json'),'w') as f:
+        json.dump(detailed_dict,f)
 
 if __name__ == "__main__":
     main()
