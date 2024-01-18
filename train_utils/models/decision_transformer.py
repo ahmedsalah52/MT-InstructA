@@ -112,7 +112,6 @@ class Block(nn.Module):
         return x
 
 class GPT(nn.Module):
-
     def __init__(self, config):
         super().__init__()
         #assert config.vocab_size is not None
@@ -392,10 +391,10 @@ class DT_model(arch):
         current_ts = input_step['timesteps'].item()
         current_ts = min(current_ts , self.args.seq_len-1)
        
-        task_name = self.tasks[input_step['task_id'].item()]
 
         #if self.prompt != 'reward':
         if self.args.use_env_reward:
+            task_name = self.tasks[input_step['task_id'].item()]
             self.eval_return_to_go -= input_step['reward']/self.dataset_specs['max_return_to_go'][task_name]
         else:
             if current_ts > 0:
