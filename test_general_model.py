@@ -10,6 +10,21 @@ import numpy as np
 import random
 import os
 import shutil
+import json
+
+
+task_name_conv = {
+    "button_press": ["button-press-v2"],
+    "button_press_topdown": ["button-press-topdown-v2"],
+    "faucet": ["faucet-open-v2", "faucet-close-v2"],
+    "coffee": ["coffee-button-v2"],
+    "drawer": ["drawer-open-v2"],
+    "window_horizontal": ["window-open-v2"],
+    "handle_press": ["handle-press-v2"],
+    "door_pull": ["door-open-v2"],
+    "door_lock": ["door-lock-v2"],
+}
+
 class video():
     def __init__(self,save_dir,save_video,res=(1920,1080)):
         self.save_dir = save_dir
@@ -20,7 +35,7 @@ class video():
             os.mkdir(save_dir)
 
         
-    def imshow_obs(self,env,instruction=None,main_task_pos=None,tasks=None,plot=None):
+    def imshow_obs(self,env,instruction=None,main_task_pos=None,tasks=None,plot=None,vis_output=True):
 
         behindGripper  = env.render(offscreen= True,camera_name='behindGripper')
         topview        = env.render(offscreen= True,camera_name='topview')
@@ -49,9 +64,10 @@ class video():
         final_frame = cv2.resize(cv2.cvtColor( conc_image, cv2.COLOR_RGB2BGR),self.res)
         if self.save_video:
             self.video.append(final_frame)
-        cv2.imshow('image',final_frame)
-        return cv2.waitKey(0)
-    
+        if vis_output:
+            cv2.imshow('image',final_frame)
+            return cv2.waitKey(0)
+        return ''
     def write_video(self,task_name):
         if not self.save_video: return
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
@@ -87,20 +103,11 @@ class video():
         
         return img
 
-def get_visual_obs(env):
-    corner         = env.render(offscreen= True,camera_name='corner') # corner,2,3, corner2, topview, gripperPOV, behindGripper'
-    corner2        = env.render(offscreen= True,camera_name='corner2')
-    behindGripper  = env.render(offscreen= True,camera_name='behindGripper')
-    corner3        = env.render(offscreen= True,camera_name='corner3')
-    topview        = env.render(offscreen= True,camera_name='topview')
-    
-    images = [cv2.resize(corner,(224,224)),       
-            cv2.resize(corner2,(224,224)),      
-            cv2.resize(behindGripper,(224,224)),
-            cv2.resize(corner3,(224,224)),      
-            cv2.resize(topview,(224,224))      
-    ]
+def get_visual_obs(env,cams_ids):
+    cams = ['corner','corner2','behindGripper','corner3','topview']
 
+    renders = [env.render(offscreen= True,camera_name=cam) for i,cam in enumerate(cams) if i in cams_ids]
+    images = [cv2.resize(img,(224,224)) for img in renders]
     return np.array(images)
 def main():
     args = parser.parse_args()
@@ -123,26 +130,32 @@ def main():
     
     task_man = task_manager(taskname,pos=pos,variant=variant,multi=multi,general_model=True)
 
-
     env = task_man.reset()
-   
+    if not args.vis_output:
+        random_picked_task = random.choice(env.current_task_variant)
+
+        task_name = random.choice(task_name_conv[random_picked_task])
+        print('from',env.current_task_variant,'random picked file (',random_picked_task,') picked task (',task_name,')')
+        instructions_dict = json.load(open(args.test_instructions_dir))
+        instruction = random.choice(instructions_dict[task_name])
+    else:
+        instruction = None
     obs = env.reset()  # Reset environment
     print(env.current_task_variant , env.main_pos_index)
-    instruction = None
     a = torch.tensor([0,0,0,0],dtype=torch.float16)
     reward = 0
 
     i = 0
     first_time = True
     plot = None
-    while 1:
+    while i<200:
         while 1:
-            key = video_man.imshow_obs(env,instruction=instruction,main_task_pos=env.main_pos_index,tasks=env.current_task_variant,plot=plot)
-            if first_time:
+            key = video_man.imshow_obs(env,instruction=instruction,main_task_pos=env.main_pos_index,tasks=env.current_task_variant,plot=plot,vis_output=args.vis_output)
+            if first_time and args.vis_output:
                 first_time = False
                 instruction = input('enter the instruction:')
             step_input = {'instruction':[instruction]}
-            images =  [model.model.preprocess_image(Image.fromarray(np.uint8(img))) for img in get_visual_obs(env)]
+            images =  [model.model.preprocess_image(Image.fromarray(np.uint8(img))) for img in get_visual_obs(env,args.cams)]
             step_input['images']   = torch.stack(images).unsqueeze(0).to(model.device)
             step_input['hand_pos'] = torch.tensor(np.concatenate((obs[0:4],obs[18:22]),axis =0)).to(torch.float32).unsqueeze(0).to(model.device)
             step_input['timesteps'] = torch.tensor([i],dtype=torch.int).to(model.device)
@@ -153,21 +166,25 @@ def main():
                 a = model.model.eval_step(step_input)
             if args.vis_embeddings:
                 plot = model.model.vis_embeddings
-            print('action ',a)
-            if key & 0xFF == ord('n'): break
-            if key & 0xFF == ord('m'):instruction = input('enter the instruction:')
-            if key & 0xFF == ord('q'):break
+            #print('action ',a)
+            
+            if not args.vis_output:
+                break
+            else:
+                if key & 0xFF == ord('n'): break
+                if key & 0xFF == ord('m'):instruction = input('enter the instruction:')
+                if key & 0xFF == ord('q'):break
         obs, reward, done, info = env.step(a.detach().cpu().numpy()) 
         i+=1
-        print(instruction , reward)
+        #print(instruction , reward)
         #print(np.concatenate((obs[0:4],obs[18:22]),axis =0))
         #key = video_man.imshow_obs(env,instruction,main_task_pos=env.main_pos_index,tasks=env.current_task_variant)
-    
-        if key & 0xFF == ord('q'):
+        if args.vis_output and key & 0xFF == ord('q'):
             break
+        
     cv2.destroyAllWindows()
     env.close()
-    video_man.write_video(args.video_exp_name)
+    video_man.write_video(task_name+'_'+args.video_exp_name)
 
 if __name__ == "__main__":
     main()
