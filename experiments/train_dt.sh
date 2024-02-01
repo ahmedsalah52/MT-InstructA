@@ -15,7 +15,7 @@ python train.py \
 --dt_n_layer 5 \
 --dt_n_head 16 \
 --dt_embed_dim 1024 \
---run_name dt \
+--run_name dt_no_command \
 --run_notes 'no command for the gpt' \
 --lr 1e-4 \
 --load_weights '/system/user/publicdata/mansour_datasets/metaworld/general_model/film_neck2_2cams/checkpoints/epoch=17-train_loss=0.01.ckpt' \
