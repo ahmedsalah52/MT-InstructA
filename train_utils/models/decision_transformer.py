@@ -189,12 +189,12 @@ class GPT(nn.Module):
         states        = self.transformer.state_encoder(states)          + time_emb
         hand_poses    = self.transformer.hand_pos_encoder(hand_poses)   + time_emb
         actions       = self.transformer.actions_encoder(actions)       + time_emb
-        commands      = self.transformer.commands_encoder(commands)
+        #commands      = self.transformer.commands_encoder(commands)
 
         
         stacked_sequence = torch.stack([returns_to_go, states, hand_poses, actions],dim=1).transpose(1,2)
         stacked_sequence = torch.flatten(stacked_sequence,start_dim=1,end_dim=2)
-        stacked_sequence = torch.cat([commands,stacked_sequence],dim=1)
+        #stacked_sequence = torch.cat([commands,stacked_sequence],dim=1)
         
         stacked_sequence = self.transformer.ln_f(stacked_sequence)
 
@@ -202,7 +202,8 @@ class GPT(nn.Module):
             stacked_sequence = block(stacked_sequence)
 
         #stacked_sequence[:,0] # out after the command
-        stacked_sequence = stacked_sequence[:,1:].reshape(b,t,self.step_len,-1) # b , t , step_len , emb_dim
+        #stacked_sequence = stacked_sequence[:,1:].reshape(b,t,self.step_len,-1) # b , t , step_len , emb_dim
+        stacked_sequence = stacked_sequence.reshape(b,t,self.step_len,-1) # b , t , step_len , emb_dim in case no command
         stacked_sequence = stacked_sequence.transpose(1,2) # b , step_len , t , emb_dim
 
         actions_pred = self.action_head(stacked_sequence[:,-2]) # step  -> return, state , hand_pos, actions # we predict the actions after the hand_pos 
