@@ -88,7 +88,7 @@ class TL_model(pl.LightningModule):
             std = np.std(task_scores)
             for pos in row.keys():
                 success_dict[task][pos]/= self.evaluation_episodes
-            print(f'success rate in {task} with mean {mean} and std {std} and detailed {row}')
+            print(f'success rate in {task} with mean {mean} and std {std} and detailed {[[k,c] for k,c in row.items()]}')
         success_rate =  np.mean(total_success)
         print('total mean',success_rate)
         print('total std',np.std(total_success))
