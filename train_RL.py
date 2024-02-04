@@ -37,12 +37,14 @@ def main():
     args = process_args(args)
     checkpoints_dir = os.path.join(args.project_dir,args.project_name,"RL_finetune")
 
-
-
+    wandb_dir = os.path.join(args.project_dir,args.project_name,args.run_name,args.logs_dir)
+    os.environ["WANDB_DIR"]       = wandb_dir
+    os.environ["WANDB_CACHE_DIR"] = wandb_dir
 
     run = wandb.init(
     project="Metaworld_GM_RL_finetune",
     name = args.run_name,
+    dir = wandb_dir,
     sync_tensorboard=True,  # auto-upload sb3's tensorboard metrics
     monitor_gym=False,  # auto-upload the videos of agents playing the game
     save_code=True,  # optional
