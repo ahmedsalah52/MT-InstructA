@@ -93,8 +93,8 @@ def main():
     task_pos   = int(sys.argv[2])
     task_poses = ['Right','Mid','Left','Mix']
 
-    logs_dir = 'all_logs'
-    #logs_dir = '/system/user/publicdata/mansour_datasets/metaworld'
+    #logs_dir = 'all_logs'
+    logs_dir = '/system/user/publicdata/mansour_datasets/metaworld'
 
     os.environ["WANDB_DIR"] = logs_dir
 
