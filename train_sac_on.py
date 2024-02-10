@@ -129,7 +129,7 @@ def main():
 
 
     env      = meta_env(task_name,task_pos,save_images=configs['render'],episode_length=configs['episode_length'],pos_emb_flag = configs['pos_emb_dim']>0,wandb_render = False,multi=configs['multi'],process = 'train')
-    eval_env = meta_env(task_name,task_pos,save_images=configs['render'],episode_length=configs['episode_length'],pos_emb_flag = configs['pos_emb_dim']>0,wandb_render = True ,multi=configs['multi'],process = 'valid')
+    eval_env = meta_env(task_name,task_pos,save_images=configs['render'],episode_length=configs['episode_length'],pos_emb_flag = configs['pos_emb_dim']>0,wandb_render = False ,multi=configs['multi'],process = 'valid')
 
 
     eval_callback = EvalCallback(eval_env, best_model_save_path=logs_dir+"/eval_logs/"+run_name,
