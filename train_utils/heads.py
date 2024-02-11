@@ -26,11 +26,9 @@ class fc_head(nn.Module):
             
     def forward(self,embeddings):
         if self.use_instruciton:
-            print('feed with  instruction',[s.shape for s in embeddings])
             return self.head(torch.cat(embeddings,dim=1))
         else:
             images_emps,text_emps,pos_emps = embeddings
-            print('feed with no instruction',images_emps.shape,pos_emps.shape)
             return self.head(torch.cat([images_emps,pos_emps],dim=1))
     
     def get_opt_params(self):
