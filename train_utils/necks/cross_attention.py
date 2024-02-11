@@ -115,7 +115,7 @@ class CrossAttentionNeck(nn.Module):
         images_emps = self.encoder(images_emps,text_emps)
         
         if not cat:
-            return self.flatten(images_emps),text_emps,pos_emps
+            return self.flatten(images_emps),self.flatten(text_emps),pos_emps
         
         
         text_emps = self.instruct_dropout(text_emps)
