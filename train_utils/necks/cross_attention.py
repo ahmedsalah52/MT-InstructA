@@ -5,80 +5,30 @@ from torch import nn, Tensor
 import torch.nn.functional as F
 
 class PositionalEncoding(nn.Module):
-    def __init__(self, d_model: int, dropout: float = 0.1, max_len: int = 5000):
-        super().__init__()
-        self.dropout = nn.Dropout(p=dropout)
-
-        position = torch.arange(max_len).unsqueeze(1)
-        div_term = torch.exp(torch.arange(0, d_model, 2) * (-math.log(10000.0) / d_model))
-        self.pe = torch.zeros(max_len, 1, d_model)
-        self.pe[:, 0, 0::2] = torch.sin(position * div_term)
-        self.pe[:, 0, 1::2] = torch.cos(position * div_term)
-        #self.register_buffer('pe', pe)
-
-    def forward(self, x: Tensor) -> Tensor:
-        """
-        Arguments:
-            x: Tensor, shape ``[seq_len, batch_size, embedding_dim]``
-        """
-       
-        x = x + self.pe[:x.size(0)].to(x.device)
-        return self.dropout(x)
-    
-class CrossAttention(nn.Module):
-    def __init__(self, embed_size, num_heads):
-        super(CrossAttention, self).__init__()
-        self.embed_size = embed_size
-        self.num_heads = num_heads
-        self.head_dim = embed_size // num_heads
-
-        assert (
-            self.head_dim * num_heads == embed_size
-        ), "Embedding size needs to be divisible by heads"
-
-        self.values  = nn.Linear(self.head_dim, self.head_dim, bias=False)
-        self.keys    = nn.Linear(self.head_dim, self.head_dim, bias=False)
-        self.queries = nn.Linear(self.head_dim, self.head_dim, bias=False)
-        self.fc_out  = nn.Linear(embed_size, embed_size)
-
-    def forward(self, values, keys, query, mask=None):
-        N = query.shape[0]
-        value_len, key_len, query_len = values.shape[1], keys.shape[1], query.shape[1]
+    def __init__(self, d_model, max_seq_length):
+        super(PositionalEncoding, self).__init__()
         
-        values = values.reshape(N, value_len, self.num_heads, self.head_dim)
-        keys     = keys.reshape(N, key_len, self.num_heads, self.head_dim)
-        queries = query.reshape(N, query_len, self.num_heads, self.head_dim)
-
-        values  = self.values(values)
-        keys    = self.keys(keys)
-        queries = self.queries(queries)
-
-
-
-        energy = torch.einsum("nqhd,nkhd->nhqk", [queries, keys])
-
-        if mask is not None:
-            energy = energy.masked_fill(mask == 0, float("-1e20"))
-
-        attention = torch.softmax(energy / (self.embed_size ** (1 / 2)), dim=3)
-
-        out = torch.einsum("nhql,nlhd->nqhd", [attention, values]).reshape(
-            N, query_len, self.num_heads * self.head_dim
-        )
-
-        out = self.fc_out(out)
-        return out
-
-
+        pe = torch.zeros(max_seq_length, d_model)
+        position = torch.arange(0, max_seq_length, dtype=torch.float).unsqueeze(1)
+        div_term = torch.exp(torch.arange(0, d_model, 2).float() * -(math.log(10000.0) / d_model))
+        
+        pe[:, 0::2] = torch.sin(position * div_term)
+        pe[:, 1::2] = torch.cos(position * div_term)
+        
+        self.register_buffer('pe', pe.unsqueeze(0))
+        
+    def forward(self, x):
+        return x + self.pe[:, :x.size(1)]
+    
 class CrossAttentionEncoderLayer(nn.Module):
     def __init__(self, embed_size, num_heads, dropout):
         super(CrossAttentionEncoderLayer, self).__init__()
         self.cross_attention = nn.MultiheadAttention(embed_size, num_heads, dropout=dropout,batch_first=True) 
-        #CrossAttention(embed_size, num_heads)
         self.norm1 = nn.LayerNorm(embed_size)
         self.feed_forward = nn.Sequential(
             nn.Linear(embed_size, embed_size),
-            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.ReLU(inplace=True),
             nn.Linear(embed_size, embed_size),
         )
         self.norm2 = nn.LayerNorm(embed_size)
@@ -89,12 +39,13 @@ class CrossAttentionEncoderLayer(nn.Module):
 
         cross_attended_src,attn_output_weights = self.cross_attention(query=src, key=conditional_src, value=conditional_src)
         
-       
-        x = self.dropout(self.norm1(cross_attended_src + src))
-        forward = self.feed_forward(x)
+        src = src + self.dropout(cross_attended_src) 
+        src = self.norm1(src)
 
-        out = self.dropout(self.norm2(forward + x))
-        return out
+
+        src = src + self.dropout(self.feed_forward(src))
+        src = self.norm2(src)
+        return src
 
 
 class CrossAttentionEncoder(nn.Module):
@@ -109,7 +60,7 @@ class CrossAttentionEncoder(nn.Module):
         super(CrossAttentionEncoder, self).__init__()
 
         self.embed_size = embed_size
-        self.pos_encoder  = PositionalEncoding(embed_size, dropout=dropout, max_len=max_length)
+        self.pos_encoder  = PositionalEncoding(embed_size, max_length)
 
         self.layers = nn.ModuleList(
             [
@@ -124,6 +75,7 @@ class CrossAttentionEncoder(nn.Module):
         conditional_src = conditional_src.permute(1,0,2)
 
         src = self.pos_encoder(src)
+        conditional_src = self.pos_encoder(conditional_src)
 
         for layer in self.layers:
             src = layer(src, conditional_src, mask)
@@ -156,7 +108,6 @@ class CrossAttentionNeck(nn.Module):
                                                     
         self.flatten = nn.Flatten()
     def forward(self, input_x,cat=True):
-
         images_emps,text_emps,pos_emps = input_x
         text_emps = text_emps[:,None,:]
         
