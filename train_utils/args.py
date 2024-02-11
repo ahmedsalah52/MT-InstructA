@@ -88,7 +88,7 @@ parser.add_argument('--n_heads'     , type=int, default=32)
 parser.add_argument('--emp_size'    , type=int, default=512)
 parser.add_argument('--neck_layers' , type=int, default=2)
 parser.add_argument('--neck_dropout', type=int, default=0.2)
-parser.add_argument('--neck_max_len', type=int, default=16)
+parser.add_argument('--neck_max_len', type=int, default=1)
 
 parser.add_argument('--instruct_dropout', type=float, default=0) #only for the cross attention
 
