@@ -8,10 +8,9 @@ python train.py \
 --num_epochs 100 \
 --checkpoint_every 1 \
 --opt_patience 5 \
---evaluation_episodes 10 \
+--evaluation_episodes 5 \
 --batch_size 32 \
---run_name film_2cams \
---run_notes 'film model 2 cams' \
+--run_name film_2cams_no_head_instruct \
+--run_notes 'film model 2 cams with no instruction to the head' \
 --lr 1e-4 \
---use_env_reward \
 --n_gpus 2 \

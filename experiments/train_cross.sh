@@ -16,5 +16,4 @@ python train.py \
 --run_name cross_2cams_no_head_instruct \
 --run_notes 'cross 2 cams without head instruction' \
 --lr 1e-4 \
---use_env_reward \
 --n_gpus 2 \
