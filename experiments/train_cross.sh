@@ -3,6 +3,10 @@
 python train.py \
 --model base \
 --neck cross_attention \
+--neck_layers 6 \
+--emp_size 512 \
+--n_heads 32 \
+--neck_max_len 16 \
 --dataset generated_data_multi_lvls \
 --cams '2,4' \
 --num_epochs 100 \
