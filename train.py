@@ -15,12 +15,14 @@ def main():
     data_dir = os.path.join(args.project_dir,'data',args.dataset)
     checkpoints_dir = os.path.join(args.project_dir,args.project_name,args.run_name,'checkpoints')
 
-    if not os.path.exists(os.path.join(args.project_dir,args.project_name,args.run_name)):
-        os.makedirs(os.path.join(args.project_dir,args.project_name,args.run_name,args.logs_dir))
+    if not args.debugging_mode:
+        if not os.path.exists(os.path.join(args.project_dir,args.project_name,args.run_name)):
+            os.makedirs(os.path.join(args.project_dir,args.project_name,args.run_name,args.logs_dir))
 
-    os.environ["WANDB_DIR"]       = os.path.join(args.project_dir,args.project_name,args.run_name,args.logs_dir)
-    os.environ["WANDB_CACHE_DIR"] = os.path.join(args.project_dir,args.project_name,args.run_name,args.logs_dir)
+        os.environ["WANDB_DIR"]       = os.path.join(args.project_dir,args.project_name,args.run_name,args.logs_dir)
+        os.environ["WANDB_CACHE_DIR"] = os.path.join(args.project_dir,args.project_name,args.run_name,args.logs_dir)
 
+   
     wandb_logger = WandbLogger( 
     project= args.project_name,
     name   = args.run_name)
