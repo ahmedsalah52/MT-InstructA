@@ -98,7 +98,7 @@ parser.add_argument('--film_N_blocks', type=int, default=4)
 #head params
 parser.add_argument('--act_fun', type=str, default=None,choices=[None,'tanh'])
 parser.add_argument('--head_lr', type=float, default=1e-4)
-
+parser.add_argument('--head_use_instruction', action='store_true')
 
 #loss funcitons
 parser.add_argument('--loss_fun', type=str, default='mse',choices=['mse','relative_mse']) #note: dt has its own masked mse loss function

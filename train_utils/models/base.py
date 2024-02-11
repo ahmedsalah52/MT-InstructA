@@ -55,13 +55,13 @@ class base_model(arch):
             self.neck = self.necks[args.neck](args)
         self.head = self.heads[args.head](args)
 
-        self.cat_backbone_out = args.neck not in ['cross_attention','film']
+        self.cat_out = args.neck not in ['cross_attention','film']
         #self.dummy_param = nn.Parameter(torch.zeros(0))
     def forward(self,batch):
-        x = self.backbone(batch,cat=self.cat_backbone_out)
+        x = self.backbone(batch,cat=self.cat_out)
         
         if self.args.neck:
-            x = self.neck(x)
+            x = self.neck(x,cat=self.cat_out)
 
         x = self.head(x)
         return x
