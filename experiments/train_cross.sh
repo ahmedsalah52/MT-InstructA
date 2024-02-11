@@ -13,8 +13,7 @@ python train.py \
 --opt_patience 5 \
 --evaluation_episodes 5 \
 --batch_size 32 \
---run_name cross_2cams \
---run_notes 'cross attention neck base model 2 cams' \
+--run_name cross_2cams_no_instruct \
+--run_notes 'cross attention neck base model 2 cams no_instruct' \
 --lr 1e-4 \
 --n_gpus 2 \
---head_use_instruction
