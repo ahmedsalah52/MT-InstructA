@@ -56,18 +56,12 @@ class base_model(arch):
         self.head = self.heads[args.head](args)
 
         self.cat_backbone_out = args.neck not in ['cross_attention','film']
-        self.vis_embeddings = {} if args.vis_embeddings else None
         #self.dummy_param = nn.Parameter(torch.zeros(0))
     def forward(self,batch):
         x = self.backbone(batch,cat=self.cat_backbone_out)
-        if self.vis_embeddings is not None:
-            if self.cat_backbone_out:
-                self.vis_embeddings['backbone_out'] = x[0].detach().cpu().numpy()
-            else:
-                self.vis_embeddings['backbone_out'] = x[0][0].detach().cpu().numpy()
+        
         if self.args.neck:
             x = self.neck(x)
-        if self.vis_embeddings is not None: self.vis_embeddings['neck_out'] = x[0,:-(self.args.instuction_emps+self.args.pos_emp)].detach().cpu().numpy()
 
         x = self.head(x)
         return x

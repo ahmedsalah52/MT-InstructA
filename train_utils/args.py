@@ -139,7 +139,6 @@ parser.add_argument('--obs_only', action='store_true') #to use the default obs w
 parser.add_argument('--video_exp_name', type=str, default=None)
 parser.add_argument('--video_dir', type=str, default='video_results')
 parser.add_argument('--video_res', type=tuple, default=(1920,1080))
-parser.add_argument('--vis_embeddings', action='store_true')
 parser.add_argument('--vis_output', action='store_true') #if not then the testing instructions json file should be prepared
 parser.add_argument('--test_instructions_dir', type=str, default='configs/general_model_configs/test_instructions.json')
 
