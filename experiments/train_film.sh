@@ -10,8 +10,8 @@ python train.py \
 --opt_patience 5 \
 --evaluation_episodes 10 \
 --batch_size 32 \
---run_name base_2cams \
---run_notes 'base model 2 cams' \
+--run_name film_2cams \
+--run_notes 'film model 2 cams' \
 --lr 1e-4 \
 --use_env_reward \
 --n_gpus 2 \
