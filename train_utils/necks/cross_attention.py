@@ -73,17 +73,11 @@ class CrossAttentionEncoder(nn.Module):
     def forward(self, src, conditional_src, mask=None):
         src = self.pos_encoder(src)
         conditional_src = self.pos_encoder(conditional_src)
-
-        src = src.permute(1,0,2)
-        conditional_src = conditional_src.permute(1,0,2)
-
-       
-
+        
         for layer in self.layers:
             src = layer(src, conditional_src, mask)
         
         
-        src = src.permute(1,0,2)
 
         return src
 
@@ -116,14 +110,9 @@ class CrossAttentionNeck(nn.Module):
     def forward(self, input_x,cat=True):
         images_emps,text_emps,pos_emps = input_x
         text_emps = text_emps[:,None,:]
-        #images_emps = images_emps.reshape(images_emps.shape[0],images_emps.shape[1],-1,self.emp_size)
         text_emps   = text_emps.reshape(text_emps.shape[0],-1,self.emp_size)
-        text_padding = torch.zeros_like(text_emps)
-        text_emps = torch.cat([text_emps,text_padding],dim=1)
-        #images_emps  = [self.encoder[str(cam)](images_emps[:,i],text_emps) for i,cam in enumerate(self.cams)]
+      
         images_emps = self.encoder(images_emps,text_emps)
-        text_emps = text_emps[:,0,:] #get rid of padding 
-        #images_emps  = torch.stack(images_emps,dim=1)
         
         if not cat:
             return self.flatten(images_emps),text_emps,pos_emps
