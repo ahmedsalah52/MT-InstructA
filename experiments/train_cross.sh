@@ -11,10 +11,10 @@ python train.py \
 --num_epochs 100 \
 --checkpoint_every 1 \
 --opt_patience 5 \
---evaluation_episodes 5 \
+--evaluation_episodes 3 \
 --batch_size 32 \
 --run_name cross_2cams \
 --run_notes 'cross attention neck base model 2 cams' \
 --lr 1e-4 \
 --use_env_reward \
---n_gpus 2 \
+--n_gpus 4 \
