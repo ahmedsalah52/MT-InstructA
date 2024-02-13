@@ -6,6 +6,9 @@ python evaluate_model.py \
 --dataset generated_data_multi_lvls \
 --cams '2,4' \
 --neck cross_attention \
+--neck_layers 6 \
+--emp_size 512 \
+--n_heads 32 \
 --evaluation_episodes 10 \
 --run_name "$1 -seed:$2" \
 --load_checkpoint_path "$1" \
