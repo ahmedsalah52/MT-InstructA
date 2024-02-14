@@ -11,6 +11,7 @@ python train.py \
 --evaluation_episodes 5 \
 --batch_size 32 \
 --run_name film_2cams_no_head_instruct \
---run_notes 'film model 2 cams with no instruction to the head' \
+--run_notes 'film model 2 cams with no instruction to the head proceed' \
 --lr 1e-4 \
 --n_gpus 2 \
+--load_checkpoint_path "/system/user/publicdata/mansour_datasets/metaworld/general_model/film_2cams_no_head_instruct/checkpoints/last.ckpt" 
