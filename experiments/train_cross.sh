@@ -15,6 +15,7 @@ python train.py \
 --batch_size 32 \
 --run_name cross_2cams \
 --run_notes 'cross attention neck base model 2 cams' \
+--load_checkpoint_path "/system/user/publicdata/mansour_datasets/metaworld/general_model/cross_2cams/checkpoints/last.ckpt" \
 --lr 1e-4 \
 --n_gpus 2 \
 --head_use_instruction
