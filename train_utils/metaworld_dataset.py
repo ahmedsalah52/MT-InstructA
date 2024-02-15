@@ -230,7 +230,7 @@ class MW_dataset(Dataset):
         if step_data['success']:
             ret['instruction']  = random.choice(self.tasks_commands[task_name])
         else:
-            ret['instruction']  = "do a stupid thing with "+task_name.replace('-v2','').replace('-',' ')
+            ret['instruction']  = "do a stupid thing with "+task_name.replace('-v2','.').replace('-',' ')
         return ret
     def prepare_padding_step(self,step_data):
         ret = {}
