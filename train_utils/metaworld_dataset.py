@@ -152,8 +152,10 @@ class MW_dataset(Dataset):
                 return_to_go = sum([self.data_dict[task][epi][s]['reward'] for s in range(len(self.data_dict[task][epi]))])
                 self.max_return_to_go[task] = max(self.max_return_to_go[task],return_to_go)
                 traj_lens.append(len(self.data_dict[task][epi]))
+                success = self.data_dict[task][epi][-1]['success']
                 for s in range(len(self.data_dict[task][epi])):
                     step = self.data_dict[task][epi][s]
+                    step['success'] = success
                     step['task_id'] = i
                     step['timesteps'] = s
                     step['return_to_go'] = return_to_go
@@ -220,12 +222,15 @@ class MW_dataset(Dataset):
         ret['hand_pos']     = torch.tensor(np.concatenate((step_data['obs'][0:4],step_data['obs'][18:22]),axis =0)).to(torch.float32)
         ret['obs']          = torch.tensor(step_data['obs']).to(torch.float32)
         ret['action']       = torch.tensor(step_data['action'])
-        ret['instruction']  = random.choice(self.tasks_commands[task_name])
         ret['task_id']      = torch.tensor([step_data['task_id']],dtype=torch.int)
         ret['timesteps']    = step_data['timesteps']
         ret['reward']       = step_data['reward'] / self.max_return_to_go[task_name]
         ret['return_to_go'] = step_data['return_to_go'] / self.max_return_to_go[task_name]
         ret['attention_mask'] = 1
+        if step_data['success']:
+            ret['instruction']  = random.choice(self.tasks_commands[task_name])
+        else:
+            ret['instruction']  = "do a stupid thing with "+task_name.remove('-v2').replace('-',' ')
         return ret
     def prepare_padding_step(self,step_data):
         ret = {}
