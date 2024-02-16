@@ -10,7 +10,7 @@ python train.py \
 --opt_patience 5 \
 --evaluation_episodes 5 \
 --batch_size 32 \
---run_name film_2cams_negative_instruct \
---run_notes 'film model 2 cams with normal instructions for successful episodes and negative once for non successful episodes' \
+--run_name film_2cams_success \
+--run_notes 'film model 2 cams with successful dataset only' \
 --lr 1e-4 \
 --n_gpus 2 \
