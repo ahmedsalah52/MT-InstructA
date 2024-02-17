@@ -12,11 +12,11 @@ python train.py \
 --evaluation_episodes 10 \
 --weight_decay 1e-4 \
 --batch_size 64 \
---dt_n_layer 3 \
+--dt_n_layer 5 \
 --dt_n_head 16 \
 --dt_embed_dim 128 \
---run_name dt_film_no_command \
---run_notes 'no command for the film and gpt' \
+--run_name dt_film_no_command_5l \
+--run_notes 'no command for the film and gpt with 5 layers' \
 --lr 1e-4 \
 --load_weights '/system/user/publicdata/mansour_datasets/metaworld/general_model/film_2cams_no_head_instruct/checkpoints/epoch=24-success_rate=0.89.ckpt' \
 --freeze_modules 'backbone,neck' \
