@@ -109,6 +109,7 @@ class TL_model(pl.LightningModule):
         i = 0
         a = torch.tensor([0,0,0,0],dtype=torch.float16)
         reward = 0
+        success = False
         while 1:
             with torch.no_grad():
                 step_input = {'instruction':[instruction],'task_id':torch.tensor([self.tasks.index(task)],dtype=torch.int)}
@@ -117,7 +118,10 @@ class TL_model(pl.LightningModule):
                 else:
                     images = [self.model.preprocess_image(Image.fromarray(np.uint8(img))) for  img in info['images']]
                     step_input['images']   = torch.stack(images).unsqueeze(0).to(self.device)
-                    
+                if obs == None:
+                    obs , info = env.reset()
+                    print('obs is none')
+                    continue
                 step_input['hand_pos'] = torch.tensor(np.concatenate((obs[0:4],obs[18:22]),axis =0)).to(torch.float32).unsqueeze(0).to(self.device)
                 step_input['timesteps'] = torch.tensor([i],dtype=torch.int).to(self.device)
                 step_input['action']    = a.unsqueeze(0).to(self.device)
