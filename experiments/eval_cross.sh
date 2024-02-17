@@ -13,5 +13,4 @@ python evaluate_model.py \
 --run_name "$1 -seed:$2" \
 --load_checkpoint_path "$1" \
 --seed $2 \
---head_use_instruction
 
