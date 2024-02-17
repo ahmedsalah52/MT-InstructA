@@ -118,7 +118,7 @@ class TL_model(pl.LightningModule):
                 else:
                     images = [self.model.preprocess_image(Image.fromarray(np.uint8(img))) for  img in info['images']]
                     step_input['images']   = torch.stack(images).unsqueeze(0).to(self.device)
-                if obs == None:
+                if type(obs) == type(None):
                     obs , info = env.reset()
                     print('obs is none')
                     continue
