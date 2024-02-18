@@ -14,3 +14,4 @@ python train.py \
 --run_notes 'film model 2 cams with successful dataset only' \
 --lr 1e-4 \
 --n_gpus 2 \
+--load_checkpoint_path "/system/user/publicdata/mansour_datasets/metaworld/general_model/film_2cams_success/checkpoints/last.ckpt" \

@@ -148,11 +148,14 @@ class MW_dataset(Dataset):
         for i,task in enumerate(self.tasks):
             print('preparing task:',task)
             for epi in tqdm(range(len(self.data_dict[task]))):
+                success = self.data_dict[task][epi][-1]['success']
+                if not success:
+                    continue
                 episode = []
                 return_to_go = sum([self.data_dict[task][epi][s]['reward'] for s in range(len(self.data_dict[task][epi]))])
                 self.max_return_to_go[task] = max(self.max_return_to_go[task],return_to_go)
                 traj_lens.append(len(self.data_dict[task][epi]))
-                success = self.data_dict[task][epi][-1]['success']
+                
                 for s in range(len(self.data_dict[task][epi])):
                     step = self.data_dict[task][epi][s]
                     step['success'] = success
