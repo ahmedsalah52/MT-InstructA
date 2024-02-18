@@ -15,10 +15,10 @@ python train.py \
 --dt_n_layer 5 \
 --dt_n_head 16 \
 --dt_embed_dim 1024 \
---run_name dt_no_command \
---run_notes 'no command for the gpt' \
+--run_name dt_film_no_command_5l_1024 \
+--run_notes 'no command for the film and gpt with 5 layers aand 1024 embed dim' \
 --lr 1e-4 \
---load_weights '/system/user/publicdata/mansour_datasets/metaworld/general_model/film_neck2_2cams/checkpoints/epoch=17-train_loss=0.01.ckpt' \
+--load_weights '/system/user/publicdata/mansour_datasets/metaworld/general_model/film_2cams_no_head_instruct/checkpoints/epoch=24-success_rate=0.89.ckpt' \
 --freeze_modules 'backbone,neck' \
 --use_env_reward \
 --n_gpus 1 \

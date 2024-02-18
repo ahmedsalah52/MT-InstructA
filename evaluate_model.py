@@ -53,7 +53,7 @@ def main():
         f.write(to_log+'\n')
 
     #save the detailed dict in json file
-    with open(os.path.join(os.path.split(args.load_checkpoint_path)[0],os.path.split(args.load_checkpoint_path)[-1]).replace('.ckpt',f'{args.run_name}.json'),'w') as f:
+    with open(args.load_checkpoint_path.replace('.ckpt',f'seed-{args.seed}.json'),'w') as f:
         json.dump(detailed_dict,f)
 
 if __name__ == "__main__":
