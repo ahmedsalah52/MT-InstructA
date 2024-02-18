@@ -15,8 +15,8 @@ python train.py \
 --dt_n_layer 3 \
 --dt_n_head 16 \
 --dt_embed_dim 128 \
---run_name dt_prompt_nortg \
---run_notes 'dt based on film with negative prompting without rtg' \
+--run_name dt_prompt_rtg \
+--run_notes 'dt based on film with negative prompting rtg' \
 --lr 1e-4 \
 --load_weights '/system/user/publicdata/mansour_datasets/metaworld/general_model/film_2cams_negative_instruct/checkpoints/epoch=18-success_rate=0.94.ckpt' \
 --freeze_modules 'backbone,neck' \
