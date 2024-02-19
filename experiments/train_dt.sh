@@ -18,7 +18,7 @@ python train.py \
 --run_name dt_success_nortg \
 --run_notes 'dt based on film success without rtg' \
 --lr 1e-4 \
---load_weights '/system/user/publicdata/mansour_datasets/metaworld/general_model/film_2cams_negative_instruct/checkpoints/epoch=18-success_rate=0.94.ckpt' \
+--load_weights '/system/user/publicdata/mansour_datasets/metaworld/general_model/film_2cams_success/checkpoints/epoch=13-success_rate=0.97.ckpt' \
 --freeze_modules 'backbone,neck' \
 --use_env_reward \
 --n_gpus 1 \
