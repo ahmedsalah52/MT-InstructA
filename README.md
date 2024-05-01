@@ -18,7 +18,7 @@ Unlike traditional approaches, our method seamlessly transitions between activit
 - **Data Generation:** Utilized SAC agents for generating datasets encompassing visual information, state observations, actions, rewards, and success flags.
 - **Tasks:** button-press-topdown-v2, button-press-v2, door-lock-v2, door-open-v2, drawer-open-v2, window-open-v2, faucet-open-v2, faucet-close-v2, handle-press-v2, coffee-button-v2.
 
-  ![multi-env](figures/results.png)
+
 
 ### Algorithms Overview
 - **Soft Actor Critic (SAC):** more info can be found here (https://stable-baselines3.readthedocs.io/en/master/modules/sac.html)
@@ -36,6 +36,21 @@ Unlike traditional approaches, our method seamlessly transitions between activit
 - **Decision Transformer model:** 
 ![DT](figures/dt.png) 
 
+### results:
+# Models Success Rates Comparison
+
+| Model                                  | Success Rate         | Parameters |
+|----------------------------------------|----------------------|------------|
+| Dataset (SAC generated)                | 84.0% ± 6.6%         |            |
+| BC CLIP Model                          | 74.0% ± 9.0%         | 152 M      |
+| BC CLIP Model with Cross-Attention Neck| 82.9% ± 6.2%         | 160 M      |
+| BC CLIP Model with FiLM Neck           | 87.2% ± 10.0%        | 170 M      |
+| IDT model with CLIP FiLM               | 89.4% ± 7.0%         | 170.81 M   |
+
+- **Task-wise comparison:** 
+  ![multi-env](figures/results.png)
+
+
 
 
 ### What is provided in the repo:
@@ -45,7 +60,7 @@ for trying, run: python  test_single.py
 - **training script of baseline3 SAC:**  
 train_sac_on.py script is used to train a SAC agent on a single task, to use:
 
-  'python train_sac_on.py <task_name> <task_pos>'
+  `python train_sac_on.py <task_name> <task_pos>`
 
   * task_name i.e. button-press-v2 
   * task_pos i.e. 0
