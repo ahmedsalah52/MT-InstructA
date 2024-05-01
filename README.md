@@ -36,8 +36,8 @@ Unlike traditional approaches, our method seamlessly transitions between activit
 - **Decision Transformer model:** 
 ![DT](figures/dt.png) 
 
-### results:
-# Models Success Rates Comparison
+## results:
+### Models Success Rates Comparison
 
 | Model                                  | Success Rate         | Parameters |
 |----------------------------------------|----------------------|------------|
@@ -47,8 +47,8 @@ Unlike traditional approaches, our method seamlessly transitions between activit
 | BC CLIP Model with FiLM Neck           | 87.2% ± 10.0%        | 170 M      |
 | IDT model with CLIP FiLM               | 89.4% ± 7.0%         | 170.81 M   |
 
-- **Task-wise comparison:** 
-  ![multi-env](figures/results.png)
+### Task-wise comparison
+![multi-env](figures/results.png)
 
 
 
