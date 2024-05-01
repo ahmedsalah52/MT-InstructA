@@ -30,7 +30,7 @@ Unlike traditional approaches, our method seamlessly transitions between activit
 
 - **Base Model:** 
 
-<img src='figures/base.png' width='384'>
+    <img src='figures/base.png' width='384'>
 
 
 - **Decision Transformer model:** 
