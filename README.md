@@ -24,10 +24,7 @@ Unlike traditional approaches, our method seamlessly transitions between activit
 - **Soft Actor Critic (SAC):** more info can be found here (https://stable-baselines3.readthedocs.io/en/master/modules/sac.html)
 
 
-- **CLIP:** CLIP model was used to encode the images using ViT as in the following figure and Language instructions using a transformer encoder.
-![clip](figures/ViT.png) 
-
-
+- **CLIP:** CLIP model was used to encode the images using ViT and Language instructions using a transformer encoder.
 
 - **FiLM:** for more info: (https://github.com/caffeinism/film-pytorch)
 
