@@ -29,7 +29,6 @@ Unlike traditional approaches, our method seamlessly transitions between activit
 - **FiLM:** for more info: (https://github.com/caffeinism/film-pytorch)
 
 - **Base Model:** 
-
     <img src='figures/base.png' width='384'>
 
 
