@@ -34,7 +34,7 @@ Unlike traditional approaches, our method seamlessly transitions between activit
 
 
 - **Decision Transformer model:** 
-![DT](figures/dt.png) 
+![DT](figures/dt_no_command.drawio.png) 
 
 ## results:
 ### Models Success Rates Comparison
