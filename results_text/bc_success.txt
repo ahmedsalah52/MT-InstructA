@@ -1,0 +1,441 @@
+Epoch 0: 100%|██████████████████████████████████████████████████████████████████████████████████| 6066/6066 [38:05<00:00,  2.65it/s, v_num=9k54, train_loss=0.111]
+ 34 LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [2,3]
+ 35   | Name  | Type       | Params
+ 36 -------------------------------------
+ 37 0 | model | base_model | 170 M
+ 38 -------------------------------------
+ 39 170 M     Trainable params
+ 40 0         Non-trainable params
+ 41 170 M     Total params
+ 42 683.113   Total estimated model params size (MB)
+ 43  epoch 0  evaluation on device cuda:0
+ 44                                                                                                                                                                   /system/user/mansour/apps/apps0/miniconda3/envs/mujoco/lib/python3.9/site-packages/gym/spaces/box.py:127: UserWarning: WARN: Box bound precision lowered by casting to float64
+ 45   logger.warn(f"Box bound precision lowered by casting to {self.dtype}")                                                                  | 0/150 [00:00<?, ?it/s]
+ 46 /system/user/mansour/apps/apps0/miniconda3/envs/mujoco/lib/python3.9/site-packages/gym/spaces/box.py:127: UserWarning: WARN: Box bound precision lowered by casting to float32
+ 47   logger.warn(f"Box bound precision lowered by casting to {self.dtype}")
+ 48   warnings.warn(str(err), category=RuntimeWarning)                                                                                       | 0/150 [00:00<?, ?it/s]
+ 49 task: door-open-v2 reached the success rate threshold
+ epoch 0  evaluation on device cuda:0
+ 50 success rate in button-press-topdown-v2 with mean 0.8000000000000002 and std 0.16329931618554522 and detailed [[0, 0.6], [1, 1.0], [2, 0.8]]
+ 51 success rate in button-press-v2 with mean 0.5333333333333333 and std 0.4109609335312651 and detailed [[0, 1.0], [1, 0.6], [2, 0.0]]
+ 52 success rate in door-lock-v2 with mean 0.8666666666666667 and std 0.1885618083164127 and detailed [[0, 1.0], [1, 1.0], [2, 0.6]]
+ 53 success rate in door-open-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+ 54 success rate in drawer-open-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 1.0], [1, 1.0], [2, 0.8]]
+ 55 success rate in window-open-v2 with mean 0.6666666666666666 and std 0.33993463423951903 and detailed [[0, 0.8], [1, 1.0], [2, 0.2]]
+ 56 success rate in faucet-open-v2 with mean 0.7999999999999999 and std 0.16329931618554522 and detailed [[0, 1.0], [1, 0.8], [2, 0.6]]
+ 57 success rate in faucet-close-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 1.0], [1, 1.0], [2, 0.8]]
+ 58 success rate in handle-press-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 0.8], [1, 1.0], [2, 1.0]]
+ 59 success rate in coffee-button-v2 with mean 0.8000000000000002 and std 1.1102230246251565e-16 and detailed [[0, 0.8], [1, 0.8], [2, 0.8]]
+ 60 total mean 0.8266666666666667
+ 61 total std 0.1339983416149452
+ 62 Epoch 1: 100%|█████████████████████████████████████████████████████████████| 6066/6066 [38:05<00:00,  2.65it/s, v_num=9k54, train_loss=0.0695, success_rate=0.817]
+ 63  epoch 1  evaluation on device cuda:0
+ 64 Evaluation on GPU : cuda:0:   0%|                                                                                                         | 0/150 [00:00<?, ?it/s]
+ 65 task: drawer-open-v2 reached the success rate threshold
+ 66 task: window-open-v2 reached the success rate threshold
+ 67 task: faucet-open-v2 reached the success rate threshold
+ 68 task: faucet-close-v2 reached the success rate threshold
+ 69 success rate in button-press-topdown-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 1.0], [1, 1.0], [2, 0.8]]
+ 70 success rate in button-press-v2 with mean 0.8666666666666667 and std 0.09428090415820632 and detailed [[0, 1.0], [1, 0.8], [2, 0.8]]
+ 71 success rate in door-lock-v2 with mean 0.7999999999999999 and std 0.282842712474619 and detailed [[0, 0.4], [1, 1.0], [2, 1.0]]
+ 72 success rate in door-open-v2 with mean 0.7999999999999999 and std 0.282842712474619 and detailed [[0, 1.0], [1, 1.0], [2, 0.4]]
+ 73 success rate in drawer-open-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+ 74 success rate in window-open-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+ 75 success rate in faucet-open-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+ 76 success rate in faucet-close-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+ 77 success rate in handle-press-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 1.0], [1, 1.0], [2, 0.8]]
+ 78 success rate in coffee-button-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 1.0], [1, 0.8], [2, 1.0]]
+ 79 total mean 0.9266666666666666
+ 80 total std 0.07571877794400367
+ epoch 2  evaluation on device cuda:0
+ 83 Evaluation on GPU : cuda:0:   0%|                                                                                                         | 0/150 [00:00<?, ?it/s]
+ 84 task: faucet-open-v2 reached the success rate threshold
+ 85 task: faucet-close-v2 reached the success rate threshold
+ 86 task: coffee-button-v2 reached the success rate threshold
+ 87 success rate in button-press-topdown-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 0.8], [1, 1.0], [2, 1.0]]
+ 88 success rate in button-press-v2 with mean 0.6666666666666666 and std 0.33993463423951903 and detailed [[0, 1.0], [1, 0.8], [2, 0.2]]
+ 89 success rate in door-lock-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 1.0], [1, 1.0], [2, 0.8]]
+ 90 success rate in door-open-v2 with mean 0.7999999999999999 and std 0.282842712474619 and detailed [[0, 1.0], [1, 1.0], [2, 0.4]]
+ 91 success rate in drawer-open-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 0.8], [1, 1.0], [2, 1.0]]
+ 92 success rate in window-open-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 1.0], [1, 1.0], [2, 0.8]]
+ 93 success rate in faucet-open-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+ 94 success rate in faucet-close-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+ 95 success rate in handle-press-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 1.0], [1, 1.0], [2, 0.8]]
+ 96 success rate in coffee-button-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+ 97 total mean 0.9133333333333333
+ 98 total std 0.09910712498212337
+ 99 Epoch 3: 100%|█████████████████████████████████████████████████████████████| 6066/6066 [38:06<00:00,  2.65it/s, v_num=9k54, train_loss=0.0443, success_rate=0.910]
+100  epoch 3  evaluation on device cuda:0
+101 Evaluation on GPU : cuda:0:   0%|                                                                                                         | 0/150 [00:00<?, ?it/s]
+102 task: button-press-topdown-v2 reached the success rate threshold
+103 task: drawer-open-v2 reached the success rate threshold
+104 task: window-open-v2 reached the success rate threshold
+105 task: faucet-open-v2 reached the success rate threshold
+106 task: faucet-close-v2 reached the success rate threshold
+107 task: handle-press-v2 reached the success rate threshold
+108 success rate in button-press-topdown-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+109 success rate in button-press-v2 with mean 0.5333333333333333 and std 0.24944382578492946 and detailed [[0, 0.8], [1, 0.6], [2, 0.2]]
+110 success rate in door-lock-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 1.0], [1, 1.0], [2, 0.8]]
+111 success rate in door-open-v2 with mean 0.8666666666666667 and std 0.1885618083164127 and detailed [[0, 1.0], [1, 1.0], [2, 0.6]]
+112 success rate in drawer-open-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+113 success rate in window-open-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+114 success rate in faucet-open-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+115 success rate in faucet-close-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+116 success rate in handle-press-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+117 success rate in coffee-button-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 1.0], [1, 0.8], [2, 1.0]]
+118 total mean 0.9266666666666666
+119 total std 0.13808210118138653
+120 Epoch 4: 100%|██████████████████████████████████████████████████████████| 6066/6066 [38:18<00:00,  2.64it/s, v_num=9k54, train_loss=0.0396, success_rate=0.913]
+121  epoch 4  evaluation on device cuda:0
+122 Evaluation on GPU : cuda:0:   0%|                                                                                                      | 0/150 [00:00<?, ?it/s]
+123 task: door-lock-v2 reached the success rate threshold
+124 task: window-open-v2 reached the success rate threshold
+125 success rate in button-press-topdown-v2 with mean 0.8000000000000002 and std 1.1102230246251565e-16 and detailed [[0, 0.8], [1, 0.8], [2, 0.8]]
+126 success rate in button-press-v2 with mean 0.8000000000000002 and std 0.16329931618554522 and detailed [[0, 1.0], [1, 0.6], [2, 0.8]]
+127 success rate in door-lock-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+128 success rate in door-open-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 1.0], [1, 1.0], [2, 0.8]]
+129 success rate in drawer-open-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 0.8], [1, 1.0], [2, 1.0]]
+130 success rate in window-open-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+131 success rate in faucet-open-v2 with mean 0.7999999999999999 and std 0.16329931618554522 and detailed [[0, 0.8], [1, 0.6], [2, 1.0]]
+132 success rate in faucet-close-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 1.0], [1, 1.0], [2, 0.8]]
+133 success rate in handle-press-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 1.0], [1, 1.0], [2, 0.8]]
+134 success rate in coffee-button-v2 with mean 0.8666666666666667 and std 0.09428090415820632 and detailed [[0, 0.8], [1, 0.8], [2, 1.0]]
+135 total mean 0.9
+136 total std 0.07453559924999294
+epoch 5  evaluation on device cuda:0
+140 task: door-lock-v2 reached the success rate threshold
+141 task: drawer-open-v2 reached the success rate threshold
+142 task: faucet-open-v2 reached the success rate threshold
+143 task: faucet-close-v2 reached the success rate threshold
+144 success rate in button-press-topdown-v2 with mean 0.8666666666666667 and std 0.09428090415820632 and detailed [[0, 0.8], [1, 0.8], [2, 1.0]]
+145 success rate in button-press-v2 with mean 0.5333333333333333 and std 0.4109609335312651 and detailed [[0, 1.0], [1, 0.6], [2, 0.0]]
+146 success rate in door-lock-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+147 success rate in door-open-v2 with mean 0.8666666666666667 and std 0.09428090415820632 and detailed [[0, 1.0], [1, 0.8], [2, 0.8]]
+148 success rate in drawer-open-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+149 success rate in window-open-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 0.8], [1, 1.0], [2, 1.0]]
+150 success rate in faucet-open-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+151 success rate in faucet-close-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+152 success rate in handle-press-v2 with mean 0.8666666666666667 and std 0.09428090415820632 and detailed [[0, 0.8], [1, 1.0], [2, 0.8]]
+153 success rate in coffee-button-v2 with mean 0.8666666666666667 and std 0.18856180831641267 and detailed [[0, 1.0], [1, 0.6], [2, 1.0]]
+154 total mean 0.8933333333333333
+155 total std 0.1339983416149452
+156 Epoch 6: 100%|█| 6066/6066 [38:06<00:00,  2.65it/s, v_num=9k54, train_loss=0.024, s
+157  epoch 6  evaluation on device cuda:0
+158 Evaluation on GPU : cuda:0:   0%|                          | 0/150 [00:00<?, ?it/s]
+159 task: button-press-topdown-v2 reached the success rate threshold
+160 task: door-lock-v2 reached the success rate threshold
+161 task: drawer-open-v2 reached the success rate threshold
+162 task: faucet-close-v2 reached the success rate threshold
+163 success rate in button-press-topdown-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+164 success rate in button-press-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 0.8], [1, 1.0], [2, 1.0]]
+165 success rate in door-lock-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+166 success rate in door-open-v2 with mean 0.8666666666666667 and std 0.09428090415820632 and detailed [[0, 1.0], [1, 0.8], [2, 0.8]]
+167 success rate in drawer-open-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+168 success rate in window-open-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 1.0], [1, 1.0], [2, 0.8]]
+169 success rate in faucet-open-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 1.0], [1, 0.8], [2, 1.0]]
+170 success rate in faucet-close-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+171 success rate in handle-press-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 1.0], [1, 1.0], [2, 0.8]]
+172 success rate in coffee-button-v2 with mean 0.7999999999999999 and std 0.282842712474619 and detailed [[0, 1.0], [1, 1.0], [2, 0.4]]
+173 total mean 0.94
+174 total std 0.06289320754704404
+175 Epoch 7: 100%|████████████████████████████████████████████████████████████| 6066/6066 [38:05<00:00,  2.65it/s, v_num=9k54, train_loss=0.0194, success_rate=0.917]
+176 Evaluation on GPU : cuda:0:   0%|                                                                                                        | 0/150 [00:00<?, ?it/s]
+177  epoch 7  evaluation on device cuda:0
+178 task: button-press-topdown-v2 reached the success rate threshold
+179 task: drawer-open-v2 reached the success rate threshold
+180 task: window-open-v2 reached the success rate threshold
+181 task: faucet-open-v2 reached the success rate threshold
+182 task: coffee-button-v2 reached the success rate threshold
+183 success rate in button-press-topdown-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+184 success rate in button-press-v2 with mean 0.7999999999999999 and std 0.16329931618554522 and detailed [[0, 1.0], [1, 0.8], [2, 0.6]]
+185 success rate in door-lock-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 1.0], [1, 1.0], [2, 0.8]]
+186 success rate in door-open-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 1.0], [1, 0.8], [2, 1.0]]
+187 success rate in drawer-open-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+188 success rate in window-open-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+189 success rate in faucet-open-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+190 success rate in faucet-close-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 1.0], [1, 1.0], [2, 0.8]]
+191 success rate in handle-press-v2 with mean 0.8666666666666667 and std 0.18856180831641267 and detailed [[0, 0.6], [1, 1.0], [2, 1.0]]
+192 success rate in coffee-button-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+193 total mean 0.9466666666666667
+194 total std 0.0653197264742181
+epoch 8  evaluation on device cuda:0
+198 task: door-lock-v2 reached the success rate threshold
+199 task: drawer-open-v2 reached the success rate threshold
+200 task: window-open-v2 reached the success rate threshold
+201 task: faucet-open-v2 reached the success rate threshold
+202 task: faucet-close-v2 reached the success rate threshold
+203 success rate in button-press-topdown-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 1.0], [1, 1.0], [2, 0.8]]
+204 success rate in button-press-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 1.0], [1, 1.0], [2, 0.8]]
+205 success rate in door-lock-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+206 success rate in door-open-v2 with mean 0.8666666666666667 and std 0.18856180831641267 and detailed [[0, 1.0], [1, 0.6], [2, 1.0]]
+207 success rate in drawer-open-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+208 success rate in window-open-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+209 success rate in faucet-open-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+210 success rate in faucet-close-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+211 success rate in handle-press-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 1.0], [1, 1.0], [2, 0.8]]
+212 success rate in coffee-button-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 1.0], [1, 0.8], [2, 1.0]]
+213 total mean 0.96
+214 total std 0.044221663871405345
+215 Epoch 9: 100%|████████████████████████████████████████████████████████████| 6066/6066 [38:07<00:00,  2.65it/s, v_num=9k54, train_loss=0.0241, success_rate=0.963]
+216 Evaluation on GPU : cuda:0:   0%|                                                                                                        | 0/150 [00:00<?, ?it/s]
+217  epoch 9  evaluation on device cuda:0
+218 task: button-press-topdown-v2 reached the success rate threshold
+219 task: door-lock-v2 reached the success rate threshold
+220 task: faucet-open-v2 reached the success rate threshold
+221 task: faucet-close-v2 reached the success rate threshold
+222 task: coffee-button-v2 reached the success rate threshold
+223 success rate in button-press-topdown-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+224 success rate in button-press-v2 with mean 0.6666666666666666 and std 0.2494438257849294 and detailed [[0, 1.0], [1, 0.6], [2, 0.4]]
+225 success rate in door-lock-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+226 success rate in door-open-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 1.0], [1, 0.8], [2, 1.0]]
+227 success rate in drawer-open-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 0.8], [1, 1.0], [2, 1.0]]
+228 success rate in window-open-v2 with mean 0.8666666666666667 and std 0.09428090415820632 and detailed [[0, 0.8], [1, 1.0], [2, 0.8]]
+229 success rate in faucet-open-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+230 success rate in faucet-close-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+231 success rate in handle-press-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 0.8], [1, 1.0], [2, 1.0]]
+232 success rate in coffee-button-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+233 total mean 0.9333333333333333
+234 total std 0.09888264649460886
+epoch 10  evaluation on device cuda:0
+238 task: button-press-v2 reached the success rate threshold
+239 task: door-lock-v2 reached the success rate threshold
+240 task: drawer-open-v2 reached the success rate threshold
+241 task: window-open-v2 reached the success rate threshold
+242 task: faucet-open-v2 reached the success rate threshold
+243 success rate in button-press-topdown-v2 with mean 0.7999999999999999 and std 0.282842712474619 and detailed [[0, 1.0], [1, 0.4], [2, 1.0]]
+244 success rate in button-press-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+245 success rate in door-lock-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+246 success rate in door-open-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 1.0], [1, 0.8], [2, 1.0]]
+247 success rate in drawer-open-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+248 success rate in window-open-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+249 success rate in faucet-open-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+250 success rate in faucet-close-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 1.0], [1, 1.0], [2, 0.8]]
+251 success rate in handle-press-v2 with mean 0.8000000000000002 and std 1.1102230246251565e-16 and detailed [[0, 0.8], [1, 0.8], [2, 0.8]]
+252 success rate in coffee-button-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 1.0], [1, 0.8], [2, 1.0]]
+253 total mean 0.94
+254 total std 0.07571877794400363
+255 Epoch 11: 100%|███████████████████████████████████████████████████████████| 6066/6066 [38:08<00:00,  2.65it/s, v_num=9k54, train_loss=0.0166, success_rate=0.937]
+256 Evaluation on GPU : cuda:0:   0%|                                                                                                        | 0/150 [00:00<?, ?it/s]
+257  epoch 11  evaluation on device cuda:0
+258 task: door-open-v2 reached the success rate threshold
+259 task: window-open-v2 reached the success rate threshold
+260 task: handle-press-v2 reached the success rate threshold
+261 success rate in button-press-topdown-v2 with mean 0.8000000000000002 and std 0.16329931618554522 and detailed [[0, 0.6], [1, 1.0], [2, 0.8]]
+262 success rate in button-press-v2 with mean 0.8666666666666667 and std 0.09428090415820632 and detailed [[0, 1.0], [1, 0.8], [2, 0.8]]
+263 success rate in door-lock-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 1.0], [1, 1.0], [2, 0.8]]
+264 success rate in door-open-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+265 success rate in drawer-open-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 0.8], [1, 1.0], [2, 1.0]]
+266 success rate in window-open-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+267 success rate in faucet-open-v2 with mean 0.8666666666666667 and std 0.09428090415820632 and detailed [[0, 0.8], [1, 1.0], [2, 0.8]]
+268 success rate in faucet-close-v2 with mean 0.8666666666666667 and std 0.09428090415820632 and detailed [[0, 1.0], [1, 0.8], [2, 0.8]]
+269 success rate in handle-press-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+270 success rate in coffee-button-v2 with mean 0.8666666666666667 and std 0.09428090415820632 and detailed [[0, 1.0], [1, 0.8], [2, 0.8]]
+271 total mean 0.9133333333333333
+272 total std 0.06699917080747257
+273 Epoch 12: 100%|██████████████████████████████████████████████████████████| 6066/6066 [38:05<00:00,  2.65it/s, v_num=9k54, train_loss=0.00902, success_rate=0.930]
+274  epoch 12  evaluation on device cuda:0
+275 Evaluation on GPU : cuda:0:   0%|                                                                                                        | 0/150 [00:00<?, ?it/s]
+276 task: button-press-v2 reached the success rate threshold
+277 task: drawer-open-v2 reached the success rate threshold
+278 task: window-open-v2 reached the success rate threshold
+279 task: faucet-open-v2 reached the success rate threshold
+280 task: coffee-button-v2 reached the success rate threshold
+281 success rate in button-press-topdown-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 1.0], [1, 0.8], [2, 1.0]]
+282 success rate in button-press-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+283 success rate in door-lock-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 1.0], [1, 1.0], [2, 0.8]]
+284 success rate in door-open-v2 with mean 0.8666666666666667 and std 0.1885618083164127 and detailed [[0, 1.0], [1, 1.0], [2, 0.6]]
+285 success rate in drawer-open-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+286 success rate in window-open-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+287 success rate in faucet-open-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+288 success rate in faucet-close-v2 with mean 0.8666666666666667 and std 0.1885618083164127 and detailed [[0, 1.0], [1, 1.0], [2, 0.6]]
+289 success rate in handle-press-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 0.8], [1, 1.0], [2, 1.0]]
+290 success rate in coffee-button-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+291 total mean 0.9533333333333334
+292 total std 0.05206833117271103
+epoch 13  evaluation on device cuda:0
+ 48                                                                                                                                                                                     /system/user/mansour/apps/apps0/miniconda3/envs/mujoco/lib/python3.9/site-packages/gym/spaces/box.py:127: UserWarning: WARN: Box bound precision lowered by casting to float64
+ 49   logger.warn(f"Box bound precision lowered by casting to {self.dtype}")                                                                                    | 0/150 [00:00<?, ?it/s]
+ 50 /system/user/mansour/apps/apps0/miniconda3/envs/mujoco/lib/python3.9/site-packages/gym/spaces/box.py:127: UserWarning: WARN: Box bound precision lowered by casting to float32
+ 51   logger.warn(f"Box bound precision lowered by casting to {self.dtype}")
+ 52   File "/system/user/mansour/apps/apps0/miniconda3/envs/mujoco/lib/python3.9/site-packages/numpy/core/_internal.py", line 652, in _dtype_from_pep3118                                                      | 36/150 [03:34<10:34,  5.57s/it]
+ 53 task: button-press-topdown-v2 reached the success rate threshold
+ 54 task: door-lock-v2 reached the success rate threshold
+ 55 task: drawer-open-v2 reached the success rate threshold
+ 56 task: window-open-v2 reached the success rate threshold
+ 57 task: faucet-open-v2 reached the success rate threshold
+ 58 task: faucet-close-v2 reached the success rate threshold
+ 59 task: handle-press-v2 reached the success rate threshold
+ 60 success rate in button-press-topdown-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+ 61 success rate in button-press-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 1.0], [1, 0.8], [2, 1.0]]
+ 62 success rate in door-lock-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+ 63 success rate in door-open-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 1.0], [1, 0.8], [2, 1.0]]
+ 64 success rate in drawer-open-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+ 65 success rate in window-open-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+ 66 success rate in faucet-open-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+ 67 success rate in faucet-close-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+ 68 success rate in handle-press-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+ 69 success rate in coffee-button-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 1.0], [1, 1.0], [2, 0.8]]
+ 70 total mean 0.98
+ 71 total std 0.030550504633038978
+epoch 14  evaluation on device cuda:0
+ 75 task: button-press-v2 reached the success rate threshold
+ 76 task: door-lock-v2 reached the success rate threshold
+ 77 task: door-open-v2 reached the success rate threshold
+ 78 task: window-open-v2 reached the success rate threshold
+ 79 task: faucet-open-v2 reached the success rate threshold
+ 80 task: faucet-close-v2 reached the success rate threshold
+ 81 task: coffee-button-v2 reached the success rate threshold
+ 82 success rate in button-press-topdown-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 0.8], [1, 1.0], [2, 1.0]]
+ 83 success rate in button-press-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+ 84 success rate in door-lock-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+ 85 success rate in door-open-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+ 86 success rate in drawer-open-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 0.8], [1, 1.0], [2, 1.0]]
+ 87 success rate in window-open-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+ 88 success rate in faucet-open-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+ 89 success rate in faucet-close-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+ 90 success rate in handle-press-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 0.8], [1, 1.0], [2, 1.0]]
+ 91 success rate in coffee-button-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+ 92 total mean 0.98
+ 93 total std 0.030550504633038975
+ 94 Epoch 15: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 6066/6066 [39:16<00:00,  2.57it/s, v_num=59uz, train_loss=0.00784, success_rate=0.967]
+ 95 Evaluation on GPU : cuda:0:   0%|                                                                                                                                                              | 0/150 [00:00<?, ?it/s]
+ 96  epoch 15  evaluation on device cuda:0
+ 97 task: button-press-topdown-v2 reached the success rate threshold
+ 98 task: door-lock-v2 reached the success rate threshold
+ 99 task: drawer-open-v2 reached the success rate threshold
+100 task: faucet-open-v2 reached the success rate threshold
+101 task: coffee-button-v2 reached the success rate threshold
+102 success rate in button-press-topdown-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+103 success rate in button-press-v2 with mean 0.8666666666666667 and std 0.1885618083164127 and detailed [[0, 1.0], [1, 1.0], [2, 0.6]]
+104 success rate in door-lock-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+105 success rate in door-open-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 1.0], [1, 0.8], [2, 1.0]]
+106 success rate in drawer-open-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+107 success rate in window-open-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 0.8], [1, 1.0], [2, 1.0]]
+108 success rate in faucet-open-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+109 success rate in faucet-close-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 1.0], [1, 1.0], [2, 0.8]]
+110 success rate in handle-press-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 0.8], [1, 1.0], [2, 1.0]]
+111 success rate in coffee-button-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+112 total mean 0.96
+113 total std 0.044221663871405345
+ epoch 16  evaluation on device cuda:0
+116 Evaluation on GPU : cuda:0:   0%|                                                                                                                                                              | 0/150 [00:00<?, ?it/s]
+117 task: button-press-topdown-v2 reached the success rate threshold
+118 task: door-lock-v2 reached the success rate threshold
+119 task: drawer-open-v2 reached the success rate threshold
+120 task: window-open-v2 reached the success rate threshold
+121 task: faucet-open-v2 reached the success rate threshold
+122 task: faucet-close-v2 reached the success rate threshold
+123 task: handle-press-v2 reached the success rate threshold
+124 task: coffee-button-v2 reached the success rate threshold
+125 success rate in button-press-topdown-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+126 success rate in button-press-v2 with mean 0.7333333333333334 and std 0.24944382578492943 and detailed [[0, 1.0], [1, 0.4], [2, 0.8]]
+127 success rate in door-lock-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+128 success rate in door-open-v2 with mean 0.8666666666666667 and std 0.09428090415820632 and detailed [[0, 1.0], [1, 0.8], [2, 0.8]]
+129 success rate in drawer-open-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+130 success rate in window-open-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+131 success rate in faucet-open-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+132 success rate in faucet-close-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+133 success rate in handle-press-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+134 success rate in coffee-button-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+135 total mean 0.96
+136 total std 0.08537498983243796
+137 Epoch 17: 100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 6066/6066 [39:17<00:00,  2.57it/s, v_num=59uz, train_loss=0.0117, success_rate=0.953]
+138 Evaluation on GPU : cuda:0:   0%|                                                                                                                                                              | 0/150 [00:00<?, ?it/s]
+139  epoch 17  evaluation on device cuda:0
+140 task: drawer-open-v2 reached the success rate threshold
+141 task: faucet-open-v2 reached the success rate threshold
+142 task: coffee-button-v2 reached the success rate threshold
+143 success rate in button-press-topdown-v2 with mean 0.7333333333333334 and std 0.3771236166328254 and detailed [[0, 1.0], [1, 1.0], [2, 0.2]]
+144 success rate in button-press-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 1.0], [1, 1.0], [2, 0.8]]
+145 success rate in door-lock-v2 with mean 0.8666666666666667 and std 0.09428090415820632 and detailed [[0, 0.8], [1, 0.8], [2, 1.0]]
+146 success rate in door-open-v2 with mean 0.8666666666666667 and std 0.1885618083164127 and detailed [[0, 1.0], [1, 1.0], [2, 0.6]]
+147 success rate in drawer-open-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+148 success rate in window-open-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 0.8], [1, 1.0], [2, 1.0]]
+149 success rate in faucet-open-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+150 success rate in faucet-close-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 1.0], [1, 0.8], [2, 1.0]]
+151 success rate in handle-press-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 1.0], [1, 0.8], [2, 1.0]]
+152 success rate in coffee-button-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+153 total mean 0.92
+154 total std 0.07774602526460399
+epoch 18  evaluation on device cuda:0
+157 Evaluation on GPU : cuda:0:   0%|                                                                                                                                                          | 0/150 [00:00<?, ?it/s]
+158 task: door-lock-v2 reached the success rate threshold
+159 task: door-open-v2 reached the success rate threshold
+160 task: window-open-v2 reached the success rate threshold
+161 task: faucet-close-v2 reached the success rate threshold
+162 task: handle-press-v2 reached the success rate threshold
+163 task: coffee-button-v2 reached the success rate threshold
+164 success rate in button-press-topdown-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 1.0], [1, 1.0], [2, 0.8]]
+165 success rate in button-press-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 1.0], [1, 0.8], [2, 1.0]]
+166 success rate in door-lock-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+167 success rate in door-open-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+168 success rate in drawer-open-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 1.0], [1, 1.0], [2, 0.8]]
+169 success rate in window-open-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+170 success rate in faucet-open-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 0.8], [1, 1.0], [2, 1.0]]
+171 success rate in faucet-close-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+172 success rate in handle-press-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+173 success rate in coffee-button-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+174 total mean 0.9733333333333334
+175 total std 0.03265986323710909
+176 Epoch 19: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████| 6066/6066 [41:02<00:00,  2.46it/s, v_num=59uz, train_loss=0.00535, success_rate=0.980]
+177  epoch 19  evaluation on device cuda:0
+178 Evaluation on GPU : cuda:0:   0%|                                                                                                                                                          | 0/150 [00:00<?, ?it/s]
+179 task: button-press-topdown-v2 reached the success rate threshold
+180 task: door-lock-v2 reached the success rate threshold
+181 task: drawer-open-v2 reached the success rate threshold
+182 task: faucet-open-v2 reached the success rate threshold
+183 task: faucet-close-v2 reached the success rate threshold
+184 success rate in button-press-topdown-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+185 success rate in button-press-v2 with mean 0.7333333333333334 and std 0.2494438257849294 and detailed [[0, 1.0], [1, 0.8], [2, 0.4]]
+186 success rate in door-lock-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+187 success rate in door-open-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 1.0], [1, 1.0], [2, 0.8]]
+188 success rate in drawer-open-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+189 success rate in window-open-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 1.0], [1, 1.0], [2, 0.8]]
+190 success rate in faucet-open-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+191 success rate in faucet-close-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+192 success rate in handle-press-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 0.8], [1, 1.0], [2, 1.0]]
+193 success rate in coffee-button-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 1.0], [1, 1.0], [2, 0.8]]
+194 total mean 0.9466666666666667
+195 total std 0.07774602526460399
+epoch 20  evaluation on device cuda:0
+198 Evaluation on GPU : cuda:0:   0%|                                                                                                                                                                                   | 0/150 [00:00<?, ?it/s]
+199 task: button-press-topdown-v2 reached the success rate threshold
+200 task: button-press-v2 reached the success rate threshold
+201 task: door-lock-v2 reached the success rate threshold
+202 task: drawer-open-v2 reached the success rate threshold
+203 task: window-open-v2 reached the success rate threshold
+204 task: faucet-close-v2 reached the success rate threshold
+205 task: handle-press-v2 reached the success rate threshold
+206 task: coffee-button-v2 reached the success rate threshold
+207 success rate in button-press-topdown-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+208 success rate in button-press-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+209 success rate in door-lock-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+210 success rate in door-open-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 1.0], [1, 0.8], [2, 1.0]]
+211 success rate in drawer-open-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+212 success rate in window-open-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+213 success rate in faucet-open-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 1.0], [1, 0.8], [2, 1.0]]
+214 success rate in faucet-close-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+215 success rate in handle-press-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+216 success rate in coffee-button-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+217 total mean 0.9866666666666667
+218 total std 0.026666666666666703
+219 Epoch 21: 100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 6066/6066 [40:47<00:00,  2.48it/s, v_num=59uz, train_loss=0.00533, success_rate=0.977]
+220  epoch 21  evaluation on device cuda:0
+221 Evaluation on GPU : cuda:0:   0%|                                                                                                                                                                                   | 0/150 [00:00<?, ?it/s]
+222 task: button-press-v2 reached the success rate threshold
+223 task: door-lock-v2 reached the success rate threshold
+224 task: door-open-v2 reached the success rate threshold
+225 task: handle-press-v2 reached the success rate threshold
+226 task: coffee-button-v2 reached the success rate threshold
+227 success rate in button-press-topdown-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 1.0], [1, 0.8], [2, 1.0]]
+228 success rate in button-press-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+229 success rate in door-lock-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+230 success rate in door-open-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+231 success rate in drawer-open-v2 with mean 0.8666666666666667 and std 0.09428090415820632 and detailed [[0, 0.8], [1, 1.0], [2, 0.8]]
+232 success rate in window-open-v2 with mean 0.9333333333333332 and std 0.09428090415820632 and detailed [[0, 1.0], [1, 1.0], [2, 0.8]]
+233 success rate in faucet-open-v2 with mean 0.8666666666666667 and std 0.09428090415820632 and detailed [[0, 1.0], [1, 0.8], [2, 0.8]]
+234 success rate in faucet-close-v2 with mean 0.8666666666666667 and std 0.1885618083164127 and detailed [[0, 1.0], [1, 1.0], [2, 0.6]]
+235 success rate in handle-press-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+236 success rate in coffee-button-v2 with mean 1.0 and std 0.0 and detailed [[0, 1.0], [1, 1.0], [2, 1.0]]
+237 total mean 0.9466666666666667
+238 total std 0.05811865258054231
