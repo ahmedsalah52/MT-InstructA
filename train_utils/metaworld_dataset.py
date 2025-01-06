@@ -123,7 +123,7 @@ def get_stats(data_dict):
     return table
 
 class MW_dataset(Dataset):
-    def __init__(self,preprocess,dataset_dict_dir,dataset_dir,tasks_commands,total_data_len,seq_len=1,seq_overlap=10,cams=[0,1,2,3,4],with_imgs=True):
+    def __init__(self, preprocess, dataset_dict_dir, dataset_dir, tasks_commands, total_data_len, seq_len=1, seq_overlap=10, cams=[0,1,2,3,4], with_imgs=True, with_rtg=True):
         self.data_dict = json.load(open(dataset_dict_dir))
         self.dataset_dir = dataset_dir
         self.tasks_commands = tasks_commands
@@ -135,6 +135,7 @@ class MW_dataset(Dataset):
         self.cams = cams
         self.max_return_to_go = defaultdict(lambda:0)
         self.with_imgs = with_imgs
+        self.with_rtg = with_rtg
         self.data_specs = {}
         self.load_data()
         print('seq' if self.sequence else 'single step'+' data preparation done with length',len(self.data))
@@ -224,9 +225,12 @@ class MW_dataset(Dataset):
         ret['task_id']      = torch.tensor([step_data['task_id']],dtype=torch.int)
         ret['timesteps']    = step_data['timesteps']
         ret['reward']       = step_data['reward'] / self.max_return_to_go[task_name]
-        ret['return_to_go'] = step_data['return_to_go'] / self.max_return_to_go[task_name]
         ret['attention_mask'] = 1
+        ret['return_to_go']   = 0
+        if self.with_rtg:
+            ret['return_to_go'] = step_data['return_to_go'] / self.max_return_to_go[task_name]
         return ret
+    
     def prepare_padding_step(self,step_data):
         ret = {}
         if self.with_imgs:

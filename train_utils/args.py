@@ -67,6 +67,7 @@ parser.add_argument('--prompt_scale', type=float, default=164.6723)
 parser.add_argument('--prompt', type=str, default='return_to_go',choices=['reward','return_to_go'])
 parser.add_argument('--target_rtg', type=float, default=2000.0)
 parser.add_argument('--use_env_reward', action='store_true',help='by raising this flag, the return to go will be calulated using the env reward instead of the model predicted reward')
+parser.add_argument('--with_no_rtg', action='store_true',help='by raising this flag, the return to go will not be used in the model')
 
 
 
